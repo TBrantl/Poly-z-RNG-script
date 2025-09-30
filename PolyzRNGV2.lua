@@ -1,5 +1,12 @@
--- Load Rayfield
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+-- Load Rayfield with error handling
+local success, Rayfield = pcall(function()
+    return loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+end)
+if not success then
+    warn("FreezyyHub: Failed to load Rayfield library: " .. tostring(Rayfield))
+    return
+end
+
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
@@ -7,28 +14,22 @@ local player = Players.LocalPlayer
 local Remotes = ReplicatedStorage:WaitForChild("Remotes")
 
 -- Debug: Confirm script start
-print("FreezyyHub: Initializing UI")
+print("Hops Hub: Initializing UI")
 
--- UI Window with Custom Theme
+-- UI Window
 local Window = Rayfield:CreateWindow({
-    Name = "FreezyyHub",
-    LoadingTitle = "Launching FreezyyHub...",
+    Name = "Hops Hub",
+    LoadingTitle = "Launching Hub...",
     LoadingSubtitle = "powered by Rayfield",
     ToggleUIKeybind = "K",
     ConfigurationSaving = {
         Enabled = true,
-        FolderName = "FreezyyHub",
+        FolderName = "ZombieHub",
         FileName = "Config"
     },
-    Theme = {
-        PrimaryColor = Color3.fromRGB(128, 0, 255), -- Purple
-        SecondaryColor = Color3.fromRGB(30, 30, 30), -- Dark Gray
-        AccentColor = Color3.fromRGB(200, 150, 255), -- Light Purple
-        TextColor = Color3.fromRGB(255, 255, 255), -- White
-        BackgroundColor = Color3.fromRGB(20, 20, 20), -- Near Black
-        BorderColor = Color3.fromRGB(100, 0, 200) -- Dark Purple
-    }
+    Theme = "DarkBlue" -- Revert to original theme
 })
+print("Hops Hub: Window created")
 
 -- Get equipped weapon name
 local function getEquippedWeaponName()
@@ -45,7 +46,7 @@ end
 
 -- Combat Tab
 local CombatTab = Window:CreateTab("Main", "skull")
-print("FreezyyHub: Combat Tab created")
+print("Hops Hub: Combat Tab created")
 
 -- Weapon Label
 local weaponLabel = CombatTab:CreateLabel("🔫 Current Weapon: Loading...")
@@ -130,7 +131,6 @@ CombatTab:CreateToggle({
                             end
                         end
                     end
-                    -- Fire delay adjusted by multiplier
                     local baseDelay = weapon == "M1911" and math.random(25, 70) / 100 or math.random(20, 50) / 100
                     local fireDelay = math.max(baseDelay / speedMultiplier, 0.05)
                     task.wait(fireDelay)
@@ -164,7 +164,7 @@ CombatTab:CreateToggle({
 
 -- Misc Tab
 local MiscTab = Window:CreateTab("Misc", "skull")
-print("FreezyyHub: Misc Tab created")
+print("Hops Hub: Misc Tab created")
 
 -- Camera Unlock Toggle with Click-and-Drag
 local cameraUnlocked = false
@@ -174,7 +174,7 @@ MiscTab:CreateToggle({
     CurrentValue = false,
     Flag = "CameraUnlock",
     Callback = function(state)
-        print("FreezyyHub: Camera Unlock Toggle set to " .. tostring(state))
+        print("Hops Hub: Camera Unlock Toggle set to " .. tostring(state))
         cameraUnlocked = state
         if state then
             cameraLoop = task.spawn(function()
@@ -192,14 +192,14 @@ MiscTab:CreateToggle({
             UserInputService.InputBegan:Connect(function(input, gameProcessed)
                 if cameraUnlocked and not gameProcessed then
                     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.MouseButton2 then
-                        print("FreezyyHub: Mouse button held for rotation")
+                        print("Hops Hub: Mouse button held for rotation")
                     end
                 end
             end)
             UserInputService.InputEnded:Connect(function(input)
                 if cameraUnlocked then
                     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.MouseButton2 then
-                        print("FreezyyHub: Mouse button released")
+                        print("Hops Hub: Mouse button released")
                     end
                 end
             end)
@@ -215,7 +215,7 @@ MiscTab:CreateToggle({
         end
     end
 })
-print("FreezyyHub: Camera Unlock Toggle created")
+print("Hops Hub: Camera Unlock Toggle created")
 
 MiscTab:CreateButton({
     Name = "Delete All Doors",
@@ -288,7 +288,7 @@ MiscTab:CreateButton({
 
 -- Crate Tab
 local crateTab = Window:CreateTab("Crates", "Skull")
-print("FreezyyHub: Crates Tab created")
+print("Hops Hub: Crates Tab created")
 
 -- Auto Open Crates
 local function createCrateToggle(name, flag, remoteName, invokeArg)
@@ -312,9 +312,9 @@ local function createCrateToggle(name, flag, remoteName, invokeArg)
                                 end)
                             end
                         end
-                        task.wait(0.1) -- Match provided script
+                        task.wait(0.1)
                         if invocations >= 20 then
-                            task.wait(60) -- Wait 1 minute before resetting
+                            task.wait(60) -- Wait 1 minute
                             invocations = 0
                         end
                     end
@@ -332,4 +332,4 @@ createCrateToggle("Camo", "AutoOpenCamoCrate", "OpenCamoCrate", "Random")
 
 -- Load config
 Rayfield:LoadConfiguration()
-print("FreezyyHub: Configuration loaded")
+print("Hops Hub: Configuration loaded")
