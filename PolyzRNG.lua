@@ -116,8 +116,8 @@ CombatTab:CreateToggle({
                             shotsFired = shotsFired + 1
 
                             -- Random pause to simulate reloading/repositioning
-                            if shotsFired >= math.random(1, 3) then
-                                task.wait(math.random(100, 200) / 100) -- 1-2s pause
+                            if shotsFired >= math.random(5, 10) then
+                                task.wait(math.random(20, 50) / 100) --  pause
                                 shotsFired = 0
                             end
                         end
