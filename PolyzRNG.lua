@@ -5,23 +5,30 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local player = Players.LocalPlayer
 local Remotes = ReplicatedStorage:WaitForChild("Remotes")
 
--- UI Window
+-- UI Window with Custom Theme
 local Window = Rayfield:CreateWindow({
-    Name = "Hops Hub",
-    LoadingTitle = "Launching Hub...",
+    Name = "FreezyyHub",
+    LoadingTitle = "Launching FreezyyHub...",
     LoadingSubtitle = "powered by Rayfield",
-    Theme = "DarkBlue",
     ToggleUIKeybind = "K",
     ConfigurationSaving = {
         Enabled = true,
-        FolderName = "ZombieHub",
+        FolderName = "FreezyyHub",
         FileName = "Config"
+    },
+    Theme = {
+        PrimaryColor = Color3.fromRGB(128, 0, 255), -- Purple
+        SecondaryColor = Color3.fromRGB(30, 30, 30), -- Dark Gray
+        AccentColor = Color3.fromRGB(200, 150, 255), -- Light Purple
+        TextColor = Color3.fromRGB(255, 255, 255), -- White
+        BackgroundColor = Color3.fromRGB(20, 20, 20), -- Near Black
+        BorderColor = Color3.fromRGB(100, 0, 200) -- Dark Purple
     }
 })
 
 -- Get equipped weapon name
 local function getEquippedWeaponName()
-    local model = workspace:FindFirstChild("Players"):FindFirstChild(player.Name)
+    local model = workspace:FindFirstChild("Players") and workspace.Players:FindFirstChild(player.Name)
     if model then
         for _, child in ipairs(model:GetChildren()) do
             if child:IsA("Model") then
@@ -46,8 +53,7 @@ task.spawn(function()
     end
 end)
 
--- Auto Headshots
--- Auto Headshots
+-- Auto Headshots with 360-Degree LOS
 local autoKill = false
 CombatTab:CreateToggle({
     Name = "Auto Headshot Zombies",
@@ -60,38 +66,51 @@ CombatTab:CreateToggle({
                 while autoKill do
                     local enemies = workspace:FindFirstChild("Enemies")
                     local shootRemote = Remotes:FindFirstChild("ShootEnemy")
-                    if enemies and shootRemote then
+                    if enemies and shootRemote and player.Character and player.Character.PrimaryPart then
                         local weapon = getEquippedWeaponName()
-                        local playerPos = player.Character and player.Character.PrimaryPart.Position  -- Get player position for distance check
+                        local playerPos = player.Character.PrimaryPart.Position
                         local closestZombie = nil
                         local minDist = math.huge
 
-                        -- Find the closest zombie instead of all (less suspicious)
+                        -- Scan all zombies in 360 degrees
                         for _, zombie in pairs(enemies:GetChildren()) do
                             if zombie:IsA("Model") then
                                 local humanoid = zombie:FindFirstChild("Humanoid")
                                 local head = zombie:FindFirstChild("Head")
-                                if humanoid and humanoid.Health > 0 and head and playerPos then
+                                if humanoid and humanoid.Health > 0 and head then
                                     local dist = (head.Position - playerPos).Magnitude
-                                    if dist < minDist and dist < 100 then  -- Arbitrary range limit (adjust as needed)
-                                        minDist = dist
-                                        closestZombie = zombie
+                                    if dist < minDist and dist < 100 then -- Max range 100 studs
+                                        -- 360-degree LOS check using raycast
+                                        local rayParams = RaycastParams.new()
+                                        rayParams.FilterDescendantsInstances = {player.Character}
+                                        rayParams.FilterType = Enum.RaycastFilterType.Blacklist
+                                        local rayResult = workspace:Raycast(playerPos, (head.Position - playerPos).Unit * dist, rayParams)
+                                        if rayResult and rayResult.Instance and rayResult.Instance:IsDescendantOf(zombie) then
+                                            minDist = dist
+                                            closestZombie = zombie
+                                        end
                                     end
                                 end
                             end
                         end
 
-                        -- Only shoot if a valid target found
+                        -- Fire at closest zombie with randomized offset
                         if closestZombie then
                             local head = closestZombie:FindFirstChild("Head")
-                            local args = {closestZombie, head, head.Position, 2, weapon}
+                            local offset = Vector3.new(
+                                math.random(-5, 5) / 10,
+                                math.random(-5, 5) / 10,
+                                math.random(-5, 5) / 10
+                            )
+                            local args = {closestZombie, head, head.Position + offset, 2, weapon}
                             pcall(function()
                                 shootRemote:FireServer(unpack(args))
                             end)
                         end
                     end
-                    -- Random delay to mimic human reaction time (0.2-0.5s)
-                    task.wait(math.random(20, 50) / 100)
+                    -- Weapon-specific fire delay
+                    local fireDelay = weapon == "M1911" and math.random(30, 60) / 100 or math.random(15, 40) / 100
+                    task.wait(fireDelay)
                 end
             end)
         end
@@ -113,7 +132,7 @@ CombatTab:CreateToggle({
                     if skip then
                         pcall(function() skip:FireServer() end)
                     end
-                    task.wait(1)
+                    task.wait(math.random(200, 500) / 100) -- 2-5s delay
                 end
             end)
         end
@@ -129,8 +148,8 @@ MiscTab:CreateButton({
         local doorsFolder = workspace:FindFirstChild("Doors")
         if doorsFolder then
             for _, group in pairs(doorsFolder:GetChildren()) do
-                if group:IsA("Folder") or group:IsA("Model") then
-                    group:Destroy()
+                if (group:IsA("Folder") or group:IsA("Model")) and not group:FindFirstChild("Critical") then
+                    pcall(function() group:Destroy() end)
                 end
             end
         end
@@ -142,17 +161,10 @@ MiscTab:CreateButton({
     Callback = function()
         local vars = player:FindFirstChild("Variables")
         if not vars then return end
-
-        local perks = {
-            "Bandoiler_Perk",
-            "DoubleUp_Perk",
-            "Haste_Perk",
-            "Tank_Perk"
-        }
-
+        local perks = {"Bandoiler_Perk", "DoubleUp_Perk", "Haste_Perk", "Tank_Perk"}
         for _, perk in ipairs(perks) do
             if vars:GetAttribute(perk) ~= nil then
-                vars:SetAttribute(perk, true)
+                pcall(function() vars:SetAttribute(perk, true) end)
             end
         end
     end
@@ -163,34 +175,24 @@ MiscTab:CreateButton({
     Callback = function()
         local vars = player:FindFirstChild("Variables")
         if not vars then return end
-
-        local enchants = {
-            "Primary_Enhanced",
-            "Secondary_Enhanced"
-        }
-
+        local enchants = {"Primary_Enhanced", "Secondary_Enhanced"}
         for _, attr in ipairs(enchants) do
             if vars:GetAttribute(attr) ~= nil then
-                vars:SetAttribute(attr, true)
+                pcall(function() vars:SetAttribute(attr, true) end)
             end
         end
     end
 })
 
 MiscTab:CreateButton({
-    Name = "Set Mag to 1 Million",
+    Name = "Set Mag to 9999",
     Callback = function()
         local vars = player:FindFirstChild("Variables")
         if not vars then return end
-
-        local ammoAttributes = {
-            "Primary_Mag",
-            "Secondary_Mag"
-        }
-
+        local ammoAttributes = {"Primary_Mag", "Secondary_Mag"}
         for _, attr in ipairs(ammoAttributes) do
             if vars:GetAttribute(attr) ~= nil then
-                vars:SetAttribute(attr, 100000000)
+                pcall(function() vars:SetAttribute(attr, 9999) end)
             end
         end
     end
@@ -201,17 +203,16 @@ MiscTab:CreateButton({
     Callback = function()
         local gunData = player:FindFirstChild("GunData")
         if not gunData then return end
-
         for _, value in ipairs(gunData:GetChildren()) do
             if value:IsA("StringValue") then
-                value.Value = "immortal"
+                pcall(function() value.Value = "immortal" end)
             end
         end
     end
 })
 
 -- Crate Tab
-local crateTab = Window:CreateTab("Crates", "Skull") 
+local crateTab = Window:CreateTab("Crates", "Skull")
 
 -- Auto Open Crates
 local function createCrateToggle(name, flag, remoteName, invokeArg)
@@ -231,7 +232,7 @@ local function createCrateToggle(name, flag, remoteName, invokeArg)
                                 remote:InvokeServer(invokeArg)
                             end)
                         end
-                        task.wait(0.1)
+                        task.wait(math.random(100, 300) / 100) -- 1-3s delay
                     end
                 end)
             end
