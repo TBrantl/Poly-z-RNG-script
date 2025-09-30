@@ -82,7 +82,7 @@ CombatTab:CreateToggle({
                                 local torso = zombie:FindFirstChild("Torso") or zombie:FindFirstChild("UpperTorso")
                                 if humanoid and humanoid.Health > 0 and head and torso then
                                     local dist = (head.Position - playerPos).Magnitude
-                                    if dist < minDist and dist < 500 then -- Max range 100 studs
+                                    if dist < minDist and dist < 1000 then -- Max range 100 studs
                                         -- 360-degree LOS check using raycast
                                         local rayParams = RaycastParams.new()
                                         rayParams.FilterDescendantsInstances = {player.Character}
@@ -98,10 +98,10 @@ CombatTab:CreateToggle({
                         end
 
                         -- Fire at closest zombie with randomized behavior
-                        if closestZombie and tick() - lastShotTime >= 0.5 then -- Global cooldown
+                        if closestZombie and tick() - lastShotTime >= 0.1 then -- Global cooldown
                             local head = closestZombie:FindFirstChild("Head")
                             local torso = closestZombie:FindFirstChild("Torso") or closestZombie:FindFirstChild("UpperTorso")
-                            local isHeadshot = math.random() < 0.9 -- 90% headshots, 10% body shots
+                            local isHeadshot = math.random() < 0.95 -- 95% headshots, 5% body shots
                             local targetPart = isHeadshot and head or torso
                             local offset = Vector3.new(
                                 math.random(-10, 10) / 10, -- ±1 stud offset
