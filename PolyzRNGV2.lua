@@ -2,8 +2,12 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local UserInputService = game:GetService("UserInputService")
 local player = Players.LocalPlayer
 local Remotes = ReplicatedStorage:WaitForChild("Remotes")
+
+-- Debug: Confirm script start
+print("FreezyyHub: Initializing UI")
 
 -- UI Window with Custom Theme
 local Window = Rayfield:CreateWindow({
@@ -41,6 +45,7 @@ end
 
 -- Combat Tab
 local CombatTab = Window:CreateTab("Main", "skull")
+print("FreezyyHub: Combat Tab created")
 
 -- Weapon Label
 local weaponLabel = CombatTab:CreateLabel("🔫 Current Weapon: Loading...")
@@ -67,7 +72,7 @@ CombatTab:CreateSlider({
     end
 })
 
--- Auto Headshots with 360-Degree LOS (Stealthy, Powerful, Works on Bosses)
+-- Auto Headshots (Kills zombies and bosses, bypasses detection)
 local autoKill = false
 local lastShotTime = 0
 local shotsFired = 0
@@ -85,10 +90,6 @@ CombatTab:CreateToggle({
                     if enemies and shootRemote and player.Character and player.Character.PrimaryPart and player.Character.Humanoid and player.Character.Humanoid.Health > 0 then
                         local weapon = getEquippedWeaponName()
                         local playerPos = player.Character.PrimaryPart.Position
-                        local closestEnemy = nil
-                        local minDist = math.huge
-
-                        -- Scan all enemies (zombies and bosses) in 360 degrees
                         for _, enemy in pairs(enemies:GetChildren()) do
                             if enemy:IsA("Model") then
                                 local humanoid = enemy:FindFirstChild("Humanoid")
@@ -96,49 +97,42 @@ CombatTab:CreateToggle({
                                 local torso = enemy:FindFirstChild("Torso") or enemy:FindFirstChild("UpperTorso")
                                 if humanoid and humanoid.Health > 0 and head and torso then
                                     local dist = (head.Position - playerPos).Magnitude
-                                    if dist < minDist and dist < 100 then -- Max range 100 studs
-                                        -- 360-degree LOS check using raycast
+                                    if dist < 100 then -- Max range 100 studs
+                                        -- 360-degree LOS check
                                         local rayParams = RaycastParams.new()
                                         rayParams.FilterDescendantsInstances = {player.Character}
                                         rayParams.FilterType = Enum.RaycastFilterType.Blacklist
                                         local rayResult = workspace:Raycast(playerPos, (head.Position - playerPos).Unit * dist, rayParams)
                                         if rayResult and rayResult.Instance and rayResult.Instance:IsDescendantOf(enemy) then
-                                            minDist = dist
-                                            closestEnemy = enemy
+                                            if tick() - lastShotTime >= math.max(0.5 / speedMultiplier, 0.05) then
+                                                local isHeadshot = math.random() < 0.9 -- 90% headshots
+                                                local targetPart = isHeadshot and head or torso
+                                                local offset = Vector3.new(
+                                                    math.random(-10, 10) / 10, -- ±1 stud offset
+                                                    math.random(-10, 10) / 10,
+                                                    math.random(-10, 10) / 10
+                                                )
+                                                local args = {enemy, targetPart, targetPart.Position + offset, 2, weapon}
+                                                pcall(function()
+                                                    shootRemote:FireServer(unpack(args))
+                                                end)
+                                                lastShotTime = tick()
+                                                shotsFired = shotsFired + 1
+                                                -- Random pause to simulate reloading
+                                                if shotsFired >= math.random(5, 10) then
+                                                    task.wait(math.random(100, 200) / 100) -- 1-2s pause
+                                                    shotsFired = 0
+                                                end
+                                            end
                                         end
                                     end
                                 end
                             end
                         end
-
-                        -- Fire at closest enemy with randomized behavior
-                        if closestEnemy and tick() - lastShotTime >= math.max(0.5 / speedMultiplier, 0.05) then -- Global cooldown adjusted by multiplier
-                            local head = closestEnemy:FindFirstChild("Head")
-                            local torso = closestEnemy:FindFirstChild("Torso") or closestEnemy:FindFirstChild("UpperTorso")
-                            local isHeadshot = math.random() < 0.9 -- 90% headshots, 10% body shots
-                            local targetPart = isHeadshot and head or torso
-                            local offset = Vector3.new(
-                                math.random(-10, 10) / 10, -- ±1 stud offset
-                                math.random(-10, 10) / 10,
-                                math.random(-10, 10) / 10
-                            )
-                            local args = {closestEnemy, targetPart, targetPart.Position + offset, 2, weapon}
-                            pcall(function()
-                                shootRemote:FireServer(unpack(args))
-                            end)
-                            lastShotTime = tick()
-                            shotsFired = shotsFired + 1
-
-                            -- Random pause to simulate reloading/repositioning
-                            if shotsFired >= math.random(5, 10) then
-                                task.wait(math.random(100, 200) / 100) -- 1-2s pause
-                                shotsFired = 0
-                            end
-                        end
                     end
-                    -- Weapon-specific fire delay, adjusted by multiplier
+                    -- Fire delay adjusted by multiplier
                     local baseDelay = weapon == "M1911" and math.random(25, 70) / 100 or math.random(20, 50) / 100
-                    local fireDelay = math.max(baseDelay / speedMultiplier, 0.05) -- Minimum 0.05s
+                    local fireDelay = math.max(baseDelay / speedMultiplier, 0.05)
                     task.wait(fireDelay)
                 end
             end)
@@ -159,7 +153,7 @@ CombatTab:CreateToggle({
                 while autoSkip do
                     local skip = Remotes:FindFirstChild("CastClientSkipVote")
                     if skip then
-                        pcall(function() skip:FireServer() end) -- Fixed typo (was shootRemote)
+                        pcall(function() skip:FireServer() end)
                     end
                     task.wait(math.random(300, 700) / 100) -- 3-7s delay
                 end
@@ -170,8 +164,9 @@ CombatTab:CreateToggle({
 
 -- Misc Tab
 local MiscTab = Window:CreateTab("Misc", "skull")
+print("FreezyyHub: Misc Tab created")
 
--- Camera Unlock Toggle
+-- Camera Unlock Toggle with Click-and-Drag
 local cameraUnlocked = false
 local cameraLoop
 MiscTab:CreateToggle({
@@ -179,6 +174,7 @@ MiscTab:CreateToggle({
     CurrentValue = false,
     Flag = "CameraUnlock",
     Callback = function(state)
+        print("FreezyyHub: Camera Unlock Toggle set to " .. tostring(state))
         cameraUnlocked = state
         if state then
             cameraLoop = task.spawn(function()
@@ -186,9 +182,25 @@ MiscTab:CreateToggle({
                     if player.Character and player.Character.Humanoid and player.Character.Humanoid.Health > 0 then
                         player.CameraMode = Enum.CameraMode.Classic
                         player.CameraMinZoomDistance = 0.5
-                        player.CameraMaxZoomDistance = 10 -- Adjustable zoom for third-person
+                        player.CameraMaxZoomDistance = 10 -- Adjustable zoom
+                        player.DevEnableMouseLock = true -- Enable click-and-drag rotation
                     end
-                    task.wait(0.1) -- Check frequently to counter game overrides
+                    task.wait(0.1) -- Counter game overrides
+                end
+            end)
+            -- Monitor mouse input for click-and-drag
+            UserInputService.InputBegan:Connect(function(input, gameProcessed)
+                if cameraUnlocked and not gameProcessed then
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.MouseButton2 then
+                        print("FreezyyHub: Mouse button held for rotation")
+                    end
+                end
+            end)
+            UserInputService.InputEnded:Connect(function(input)
+                if cameraUnlocked then
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.MouseButton2 then
+                        print("FreezyyHub: Mouse button released")
+                    end
                 end
             end)
         else
@@ -199,9 +211,11 @@ MiscTab:CreateToggle({
             player.CameraMode = Enum.CameraMode.LockFirstPerson
             player.CameraMinZoomDistance = 0
             player.CameraMaxZoomDistance = 0
+            player.DevEnableMouseLock = false -- Disable rotation
         end
     end
 })
+print("FreezyyHub: Camera Unlock Toggle created")
 
 MiscTab:CreateButton({
     Name = "Delete All Doors",
@@ -224,7 +238,7 @@ MiscTab:CreateButton({
         if not vars then return end
         local perks = {"Bandoiler_Perk", "DoubleUp_Perk", "Haste_Perk", "Tank_Perk"}
         for _, perk in ipairs(perks) do
-            if vars:GetAttribute(perk) ~= nil then
+            if vars:GetAttribute(perk) != nil then
                 pcall(function() vars:SetAttribute(perk, true) end)
             end
         end
@@ -238,7 +252,7 @@ MiscTab:CreateButton({
         if not vars then return end
         local enchants = {"Primary_Enhanced", "Secondary_Enhanced"}
         for _, attr in ipairs(enchants) do
-            if vars:GetAttribute(attr) ~= nil then
+            if vars:GetAttribute(attr) != nil then
                 pcall(function() vars:SetAttribute(attr, true) end)
             end
         end
@@ -252,7 +266,7 @@ MiscTab:CreateButton({
         if not vars then return end
         local ammoAttributes = {"Primary_Mag", "Secondary_Mag"}
         for _, attr in ipairs(ammoAttributes) do
-            if vars:GetAttribute(attr) ~= nil then
+            if vars:GetAttribute(attr) != nil then
                 pcall(function() vars:SetAttribute(attr, 100000000) end)
             end
         end
@@ -274,6 +288,7 @@ MiscTab:CreateButton({
 
 -- Crate Tab
 local crateTab = Window:CreateTab("Crates", "Skull")
+print("FreezyyHub: Crates Tab created")
 
 -- Auto Open Crates
 local function createCrateToggle(name, flag, remoteName, invokeArg)
@@ -317,3 +332,4 @@ createCrateToggle("Camo", "AutoOpenCamoCrate", "OpenCamoCrate", "Random")
 
 -- Load config
 Rayfield:LoadConfiguration()
+print("FreezyyHub: Configuration loaded")
