@@ -160,7 +160,7 @@ CombatTab:CreateToggle({
                     end
                     
                     -- Minimal delay (weapon-independent for speed)
-                    task.wait(0.01) -- 10ms = 100 iterations/second
+                    task.wait(0.02) -- ms = 50 iterations/second
                 end
             end)
         else
