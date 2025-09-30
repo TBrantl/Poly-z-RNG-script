@@ -67,12 +67,12 @@ CombatTab:CreateSlider({
     end
 })
 
--- Auto Headshots with 360-Degree LOS (Stealthy and Powerful)
+-- Auto Headshots with 360-Degree LOS (Stealthy, Powerful, Works on Bosses)
 local autoKill = false
 local lastShotTime = 0
 local shotsFired = 0
 CombatTab:CreateToggle({
-    Name = "Auto Headshot Zombies",
+    Name = "Auto Headshot Zombies & Bosses",
     CurrentValue = false,
     Flag = "AutoKillZombies",
     Callback = function(state)
@@ -85,15 +85,15 @@ CombatTab:CreateToggle({
                     if enemies and shootRemote and player.Character and player.Character.PrimaryPart and player.Character.Humanoid and player.Character.Humanoid.Health > 0 then
                         local weapon = getEquippedWeaponName()
                         local playerPos = player.Character.PrimaryPart.Position
-                        local closestZombie = nil
+                        local closestEnemy = nil
                         local minDist = math.huge
 
-                        -- Scan all zombies in 360 degrees
-                        for _, zombie in pairs(enemies:GetChildren()) do
-                            if zombie:IsA("Model") then
-                                local humanoid = zombie:FindFirstChild("Humanoid")
-                                local head = zombie:FindFirstChild("Head")
-                                local torso = zombie:FindFirstChild("Torso") or zombie:FindFirstChild("UpperTorso")
+                        -- Scan all enemies (zombies and bosses) in 360 degrees
+                        for _, enemy in pairs(enemies:GetChildren()) do
+                            if enemy:IsA("Model") then
+                                local humanoid = enemy:FindFirstChild("Humanoid")
+                                local head = enemy:FindFirstChild("Head")
+                                local torso = enemy:FindFirstChild("Torso") or enemy:FindFirstChild("UpperTorso")
                                 if humanoid and humanoid.Health > 0 and head and torso then
                                     local dist = (head.Position - playerPos).Magnitude
                                     if dist < minDist and dist < 100 then -- Max range 100 studs
@@ -102,19 +102,19 @@ CombatTab:CreateToggle({
                                         rayParams.FilterDescendantsInstances = {player.Character}
                                         rayParams.FilterType = Enum.RaycastFilterType.Blacklist
                                         local rayResult = workspace:Raycast(playerPos, (head.Position - playerPos).Unit * dist, rayParams)
-                                        if rayResult and rayResult.Instance and rayResult.Instance:IsDescendantOf(zombie) then
+                                        if rayResult and rayResult.Instance and rayResult.Instance:IsDescendantOf(enemy) then
                                             minDist = dist
-                                            closestZombie = zombie
+                                            closestEnemy = enemy
                                         end
                                     end
                                 end
                             end
                         end
 
-                        -- Fire at closest zombie with randomized behavior
-                        if closestZombie and tick() - lastShotTime >= math.max(0.5 / speedMultiplier, 0.05) then -- Global cooldown adjusted by multiplier
-                            local head = closestZombie:FindFirstChild("Head")
-                            local torso = closestZombie:FindFirstChild("Torso") or closestZombie:FindFirstChild("UpperTorso")
+                        -- Fire at closest enemy with randomized behavior
+                        if closestEnemy and tick() - lastShotTime >= math.max(0.5 / speedMultiplier, 0.05) then -- Global cooldown adjusted by multiplier
+                            local head = closestEnemy:FindFirstChild("Head")
+                            local torso = closestEnemy:FindFirstChild("Torso") or closestEnemy:FindFirstChild("UpperTorso")
                             local isHeadshot = math.random() < 0.9 -- 90% headshots, 10% body shots
                             local targetPart = isHeadshot and head or torso
                             local offset = Vector3.new(
@@ -122,7 +122,7 @@ CombatTab:CreateToggle({
                                 math.random(-10, 10) / 10,
                                 math.random(-10, 10) / 10
                             )
-                            local args = {closestZombie, targetPart, targetPart.Position + offset, 2, weapon}
+                            local args = {closestEnemy, targetPart, targetPart.Position + offset, 2, weapon}
                             pcall(function()
                                 shootRemote:FireServer(unpack(args))
                             end)
@@ -171,6 +171,26 @@ CombatTab:CreateToggle({
 -- Misc Tab
 local MiscTab = Window:CreateTab("Misc", "skull")
 
+-- Camera Unlock Toggle
+local cameraUnlocked = false
+MiscTab:CreateToggle({
+    Name = "Unlock Camera (Third Person)",
+    CurrentValue = false,
+    Flag = "CameraUnlock",
+    Callback = function(state)
+        cameraUnlocked = state
+        if state then
+            player.CameraMode = Enum.CameraMode.Classic
+            player.CameraMaxZoomDistance = 0.5 -- Mimic first-person but allow rotation
+            player.CameraMinZoomDistance = 0.5
+        else
+            player.CameraMode = Enum.CameraMode.LockFirstPerson
+            player.CameraMaxZoomDistance = 0
+            player.CameraMinZoomDistance = 0
+        end
+    end
+})
+
 MiscTab:CreateButton({
     Name = "Delete All Doors",
     Callback = function()
@@ -214,14 +234,14 @@ MiscTab:CreateButton({
 })
 
 MiscTab:CreateButton({
-    Name = "Set Mag to 9999",
+    Name = "Set Mag to 1 Million",
     Callback = function()
         local vars = player:FindFirstChild("Variables")
         if not vars then return end
         local ammoAttributes = {"Primary_Mag", "Secondary_Mag"}
         for _, attr in ipairs(ammoAttributes) do
             if vars:GetAttribute(attr) ~= nil then
-                pcall(function() vars:SetAttribute(attr, 9999) end)
+                pcall(function() vars:SetAttribute(attr, 100000000) end)
             end
         end
     end
@@ -265,7 +285,7 @@ local function createCrateToggle(name, flag, remoteName, invokeArg)
                                 end)
                             end
                         end
-                        task.wait(math.random(100, 300) / 100) -- 1-3s delay
+                        task.wait(0.1) -- Match provided script
                         if invocations >= 20 then
                             task.wait(60) -- Wait 1 minute before resetting
                             invocations = 0
