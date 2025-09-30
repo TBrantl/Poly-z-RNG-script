@@ -159,7 +159,7 @@ CombatTab:CreateToggle({
                 while autoSkip do
                     local skip = Remotes:FindFirstChild("CastClientSkipVote")
                     if skip then
-                        pcall(function() skip:FireServer() end)
+                        pcall(function() shootRemote:FireServer() end)
                     end
                     task.wait(math.random(300, 700) / 100) -- 3-7s delay
                 end
@@ -174,7 +174,7 @@ local MiscTab = Window:CreateTab("Misc", "skull")
 -- Camera Unlock Toggle
 local cameraUnlocked = false
 MiscTab:CreateToggle({
-    Name = "Unlock Camera (Third Person)",
+    Name = "Unlock Camera to 3rd Person Mode",
     CurrentValue = false,
     Flag = "CameraUnlock",
     Callback = function(state)
@@ -184,16 +184,16 @@ MiscTab:CreateToggle({
                 while cameraUnlocked and player and player:IsDescendantOf(Players) do
                     if player.Character and player.Character.Humanoid and player.Character.Humanoid.Health > 0 then
                         player.CameraMode = Enum.CameraMode.Classic
-                        player.CameraMaxZoomDistance = 1 -- Slightly larger for better view
                         player.CameraMinZoomDistance = 0.5
+                        player.CameraMaxZoomDistance = 10 -- Adjustable zoom for third-person
                     end
                     task.wait(0.1) -- Check frequently to counter game overrides
                 end
             end)
         else
             player.CameraMode = Enum.CameraMode.LockFirstPerson
-            player.CameraMaxZoomDistance = 0
             player.CameraMinZoomDistance = 0
+            player.CameraMaxZoomDistance = 0
         end
     end
 })
