@@ -71,40 +71,58 @@ CombatTab:CreateToggle({
                     if enemies and shootRemote and player.Character and player.Character.PrimaryPart and player.Character.Humanoid and player.Character.Humanoid.Health > 0 then
                         local weapon = getEquippedWeaponName()
                         local playerPos = player.Character.PrimaryPart.Position
-                        local closestZombie = nil
-                        local minDist = math.huge
-
-                        -- Scan for closest zombie in 360 degrees
+                        local maxRange = 1000
+                        
+                        -- Collect potential zombies with distance
+                        local potentialZombies = {}
                         for _, zombie in pairs(enemies:GetChildren()) do
                             if zombie:IsA("Model") then
                                 local humanoid = zombie:FindFirstChild("Humanoid")
                                 local head = zombie:FindFirstChild("Head")
-                                if humanoid and humanoid.Health > 0 and head then
+                                local torso = zombie:FindFirstChild("Torso") or zombie:FindFirstChild("UpperTorso")
+                                if humanoid and humanoid.Health > 0 and head and torso then
                                     local dist = (head.Position - playerPos).Magnitude
-                                    if dist < minDist and dist < 1000 then -- Max range 1000 studs
-                                        -- 360-degree LOS check using raycast
-                                        local rayParams = RaycastParams.new()
-                                        rayParams.FilterDescendantsInstances = {player.Character}
-                                        rayParams.FilterType = Enum.RaycastFilterType.Blacklist
-                                        local rayResult = workspace:Raycast(playerPos, (head.Position - playerPos).Unit * dist, rayParams)
-                                        if rayResult and rayResult.Instance and rayResult.Instance:IsDescendantOf(zombie) then
-                                            minDist = dist
-                                            closestZombie = zombie
-                                        end
+                                    if dist < maxRange then
+                                        table.insert(potentialZombies, {zombie = zombie, dist = dist, head = head})
                                     end
                                 end
                             end
                         end
-
-                        -- Fire at closest zombie's head with randomized behavior
-                        if closestZombie and tick() - lastShotTime >= math.max(0.2 / speedMultiplier, 0.03) then -- 5 shots/s at 1x, min 0.03s
+                        
+                        -- Sort by distance ascending
+                        table.sort(potentialZombies, function(a, b)
+                            return a.dist < b.dist
+                        end)
+                        
+                        -- Find the closest with LOS
+                        local closestZombie = nil
+                        local rayParams = RaycastParams.new()
+                        rayParams.FilterDescendantsInstances = {player.Character}
+                        rayParams.FilterType = Enum.RaycastFilterType.Blacklist
+                        
+                        for _, entry in ipairs(potentialZombies) do
+                            local zombie = entry.zombie
+                            local dist = entry.dist
+                            local headPos = entry.head.Position
+                            local rayResult = workspace:Raycast(playerPos, (headPos - playerPos).Unit * dist, rayParams)
+                            if rayResult and rayResult.Instance and rayResult.Instance:IsDescendantOf(zombie) then
+                                closestZombie = zombie
+                                break  -- First one with LOS is the closest
+                            end
+                        end
+                        
+                        -- Fire at closest zombie with randomized behavior
+                        if closestZombie and tick() - lastShotTime >= 0.1 then -- Global cooldown
                             local head = closestZombie:FindFirstChild("Head")
+                            local torso = closestZombie:FindFirstChild("Torso") or closestZombie:FindFirstChild("UpperTorso")
+                            local isHeadshot = math.random() < 0.95 -- 95% headshots, 5% body shots
+                            local targetPart = isHeadshot and head or torso
                             local offset = Vector3.new(
-                                math.random(-15, 15) / 10, -- ±1.5 stud offset for human-like aiming
-                                math.random(-15, 15) / 10,
-                                math.random(-15, 15) / 10
+                                math.random(-10, 10) / 10, -- ±1 stud offset
+                                math.random(-10, 10) / 10,
+                                math.random(-10, 10) / 10
                             )
-                            local args = {closestZombie, head, head.Position + offset, 9999, weapon} -- High damage for 1-shot kill
+                            local args = {closestZombie, targetPart, targetPart.Position + offset, 2, weapon}
                             pcall(function()
                                 shootRemote:FireServer(unpack(args))
                             end)
@@ -113,13 +131,14 @@ CombatTab:CreateToggle({
 
                             -- Random pause to simulate reloading/repositioning
                             if shotsFired >= math.random(3, 8) then
-                                task.wait(math.random(50, 150) / 100) -- 0.5-1.5s pause
+                                task.wait(math.random(50, 100) / 100) -- 0.5-1s pause
                                 shotsFired = 0
                             end
                         end
                     end
-                    -- Jittered delay to hit 5 kills/s while avoiding detection
-                    task.wait(math.random(18, 22) / 100) -- 0.18-0.22s per cycle
+                    -- Weapon-specific fire delay
+                    local fireDelay = weapon == "M1911" and math.random(25, 70) / 100 or math.random(20, 50) / 100
+                    task.wait(fireDelay)
                 end
             end)
         end
