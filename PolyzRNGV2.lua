@@ -180,9 +180,16 @@ MiscTab:CreateToggle({
     Callback = function(state)
         cameraUnlocked = state
         if state then
-            player.CameraMode = Enum.CameraMode.Classic
-            player.CameraMaxZoomDistance = 0.5 -- Mimic first-person but allow rotation
-            player.CameraMinZoomDistance = 0.5
+            task.spawn(function()
+                while cameraUnlocked and player and player:IsDescendantOf(Players) do
+                    if player.Character and player.Character.Humanoid and player.Character.Humanoid.Health > 0 then
+                        player.CameraMode = Enum.CameraMode.Classic
+                        player.CameraMaxZoomDistance = 1 -- Slightly larger for better view
+                        player.CameraMinZoomDistance = 0.5
+                    end
+                    task.wait(0.1) -- Check frequently to counter game overrides
+                end
+            end)
         else
             player.CameraMode = Enum.CameraMode.LockFirstPerson
             player.CameraMaxZoomDistance = 0
