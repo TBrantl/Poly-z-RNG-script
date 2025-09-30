@@ -53,21 +53,7 @@ task.spawn(function()
     end
 end)
 
--- Speed Multiplier Slider
-local speedMultiplier = 1 -- Default 1x
-CombatTab:CreateSlider({
-    Name = "Auto Headshot Speed Multiplier",
-    Range = {1, 3},
-    Increment = 1,
-    Suffix = "x",
-    CurrentValue = 1,
-    Flag = "HeadshotSpeed",
-    Callback = function(value)
-        speedMultiplier = value
-    end
-})
-
--- Auto Headshots with 360-Degree LOS (5 kills/s, 1 shot = 1 kill)
+-- Auto Headshots with 360-Degree LOS (Stealthy and Powerful)
 local autoKill = false
 local lastShotTime = 0
 local shotsFired = 0
@@ -88,12 +74,13 @@ CombatTab:CreateToggle({
                         local closestZombie = nil
                         local minDist = math.huge
 
-                        -- Scan for closest zombie in 360 degrees
+                        -- Scan all zombies in 360 degrees
                         for _, zombie in pairs(enemies:GetChildren()) do
                             if zombie:IsA("Model") then
                                 local humanoid = zombie:FindFirstChild("Humanoid")
                                 local head = zombie:FindFirstChild("Head")
-                                if humanoid and humanoid.Health > 0 and head then
+                                local torso = zombie:FindFirstChild("Torso") or zombie:FindFirstChild("UpperTorso")
+                                if humanoid and humanoid.Health > 0 and head and torso then
                                     local dist = (head.Position - playerPos).Magnitude
                                     if dist < minDist and dist < 1000 then -- Max range 1000 studs
                                         -- 360-degree LOS check using raycast
@@ -110,15 +97,18 @@ CombatTab:CreateToggle({
                             end
                         end
 
-                        -- Fire at closest zombie's head with randomized behavior
-                        if closestZombie and tick() - lastShotTime >= math.max(0.2 / speedMultiplier, 0.03) then -- 5 shots/s at 1x, min 0.03s
+                        -- Fire at closest zombie with randomized behavior
+                        if closestZombie and tick() - lastShotTime >= 0.1 then -- Global cooldown
                             local head = closestZombie:FindFirstChild("Head")
+                            local torso = closestZombie:FindFirstChild("Torso") or closestZombie:FindFirstChild("UpperTorso")
+                            local isHeadshot = math.random() < 0.95 -- 95% headshots, 5% body shots
+                            local targetPart = isHeadshot and head or torso
                             local offset = Vector3.new(
-                                math.random(-15, 15) / 10, -- ±1.5 stud offset for human-like aiming
-                                math.random(-15, 15) / 10,
-                                math.random(-15, 15) / 10
+                                math.random(-10, 10) / 10, -- ±1 stud offset
+                                math.random(-10, 10) / 10,
+                                math.random(-10, 10) / 10
                             )
-                            local args = {closestZombie, head, head.Position + offset, 9999, weapon} -- High damage for 1-shot kill
+                            local args = {closestZombie, targetPart, targetPart.Position + offset, 2, weapon}
                             pcall(function()
                                 shootRemote:FireServer(unpack(args))
                             end)
@@ -126,14 +116,15 @@ CombatTab:CreateToggle({
                             shotsFired = shotsFired + 1
 
                             -- Random pause to simulate reloading/repositioning
-                            if shotsFired >= math.random(3, 8) then
-                                task.wait(math.random(50, 150) / 100) -- 0.5-1.5s pause
+                            if shotsFired >= math.random(5, 10) then
+                                task.wait(math.random(2, 5) / 100) --  pause
                                 shotsFired = 0
                             end
                         end
                     end
-                    -- Jittered delay to hit 5 kills/s while avoiding detection
-                    task.wait(math.random(18, 22) / 100) -- 0.18-0.22s per cycle
+                    -- Weapon-specific fire delay
+                    local fireDelay = weapon == "M1911" and math.random(25, 70) / 100 or math.random(20, 50) / 100
+                    task.wait(fireDelay)
                 end
             end)
         end
@@ -186,7 +177,7 @@ MiscTab:CreateButton({
         if not vars then return end
         local perks = {"Bandoiler_Perk", "DoubleUp_Perk", "Haste_Perk", "Tank_Perk"}
         for _, perk in ipairs(perks) do
-            if vars:GetAttribute(perk) != nil then
+            if vars:GetAttribute(perk) ~= nil then
                 pcall(function() vars:SetAttribute(perk, true) end)
             end
         end
@@ -200,7 +191,7 @@ MiscTab:CreateButton({
         if not vars then return end
         local enchants = {"Primary_Enhanced", "Secondary_Enhanced"}
         for _, attr in ipairs(enchants) do
-            if vars:GetAttribute(attr) != nil then
+            if vars:GetAttribute(attr) ~= nil then
                 pcall(function() vars:SetAttribute(attr, true) end)
             end
         end
@@ -214,7 +205,7 @@ MiscTab:CreateButton({
         if not vars then return end
         local ammoAttributes = {"Primary_Mag", "Secondary_Mag"}
         for _, attr in ipairs(ammoAttributes) do
-            if vars:GetAttribute(attr) != nil then
+            if vars:GetAttribute(attr) ~= nil then
                 pcall(function() vars:SetAttribute(attr, 9999) end)
             end
         end
