@@ -53,10 +53,14 @@ task.spawn(function()
     end
 end)
 
--- Auto Headshots with 360-Degree LOS (5 kills/s, 1 shot = 1 kill)
+-- Optimized Auto Headshots with 360-Degree LOS (Faster & More Efficient)
 local autoKill = false
 local lastShotTime = 0
 local shotsFired = 0
+local cachedRemotes = {}
+local cachedWeapon = nil
+local weaponCacheTime = 0
+
 CombatTab:CreateToggle({
     Name = "Auto Headshot Zombies",
     CurrentValue = false,
@@ -66,81 +70,108 @@ CombatTab:CreateToggle({
         if state then
             task.spawn(function()
                 while autoKill do
-                    local enemies = workspace:FindFirstChild("Enemies")
-                    local shootRemote = Remotes:FindFirstChild("ShootEnemy")
-                    if enemies and shootRemote and player.Character and player.Character.PrimaryPart and player.Character.Humanoid and player.Character.Humanoid.Health > 0 then
-                        local weapon = getEquippedWeaponName()
-                        local playerPos = player.Character.PrimaryPart.Position
-                        local maxRange = 1000
-                        
-                        -- Collect potential zombies with distance
-                        local potentialZombies = {}
-                        for _, zombie in pairs(enemies:GetChildren()) do
-                            if zombie:IsA("Model") then
-                                local humanoid = zombie:FindFirstChild("Humanoid")
-                                local head = zombie:FindFirstChild("Head")
-                                local torso = zombie:FindFirstChild("Torso") or zombie:FindFirstChild("UpperTorso")
-                                if humanoid and humanoid.Health > 0 and head and torso then
-                                    local dist = (head.Position - playerPos).Magnitude
-                                    if dist < maxRange then
-                                        table.insert(potentialZombies, {zombie = zombie, dist = dist, head = head})
-                                    end
-                                end
-                            end
+                    -- Cache remotes to avoid repeated lookups
+                    if not cachedRemotes.enemies then
+                        cachedRemotes.enemies = workspace:FindFirstChild("Enemies")
+                    end
+                    if not cachedRemotes.shootRemote then
+                        cachedRemotes.shootRemote = Remotes:FindFirstChild("ShootEnemy")
+                    end
+                    
+                    local enemies = cachedRemotes.enemies
+                    local shootRemote = cachedRemotes.shootRemote
+                    
+                    if enemies and shootRemote and player.Character and player.Character.PrimaryPart then
+                        local humanoid = player.Character:FindFirstChild("Humanoid")
+                        if not humanoid or humanoid.Health <= 0 then
+                            task.wait(0.1)
+                            continue
                         end
                         
-                        -- Sort by distance ascending
-                        table.sort(potentialZombies, function(a, b)
-                            return a.dist < b.dist
-                        end)
+                        -- Cache weapon for 0.5s to reduce lookups
+                        local currentTime = tick()
+                        if not cachedWeapon or currentTime - weaponCacheTime > 0.5 then
+                            cachedWeapon = getEquippedWeaponName()
+                            weaponCacheTime = currentTime
+                        end
+                        local weapon = cachedWeapon
                         
-                        -- Find the closest with LOS
+                        local playerPos = player.Character.PrimaryPart.Position
                         local closestZombie = nil
+                        local minDist = 1000 -- Max range as initial value
+                        
+                        -- Pre-create raycast params once
                         local rayParams = RaycastParams.new()
                         rayParams.FilterDescendantsInstances = {player.Character}
                         rayParams.FilterType = Enum.RaycastFilterType.Blacklist
                         
-                        for _, entry in ipairs(potentialZombies) do
-                            local zombie = entry.zombie
-                            local dist = entry.dist
-                            local headPos = entry.head.Position
-                            local rayResult = workspace:Raycast(playerPos, (headPos - playerPos).Unit * dist, rayParams)
-                            if rayResult and rayResult.Instance and rayResult.Instance:IsDescendantOf(zombie) then
-                                closestZombie = zombie
-                                break  -- First one with LOS is the closest
+                        -- Optimized zombie scanning
+                        for _, zombie in pairs(enemies:GetChildren()) do
+                            if zombie:IsA("Model") then
+                                local head = zombie:FindFirstChild("Head")
+                                if not head then continue end
+                                
+                                -- Quick distance check first (cheapest operation)
+                                local dist = (head.Position - playerPos).Magnitude
+                                if dist >= minDist then continue end
+                                
+                                -- Then check health (avoid unnecessary checks)
+                                local humanoid = zombie:FindFirstChild("Humanoid")
+                                if not humanoid or humanoid.Health <= 0 then continue end
+                                
+                                -- Finally raycast (most expensive operation)
+                                local direction = (head.Position - playerPos)
+                                local rayResult = workspace:Raycast(playerPos, direction, rayParams)
+                                
+                                if rayResult and rayResult.Instance and rayResult.Instance:IsDescendantOf(zombie) then
+                                    minDist = dist
+                                    closestZombie = zombie
+                                end
                             end
                         end
                         
-                        -- Fire at closest zombie with randomized behavior
-                        if closestZombie and tick() - lastShotTime >= 0.1 then -- Global cooldown
+                        -- Fire at closest zombie with reduced delay
+                        if closestZombie and currentTime - lastShotTime >= 0.05 then -- Reduced from 0.1s to 0.05s
                             local head = closestZombie:FindFirstChild("Head")
                             local torso = closestZombie:FindFirstChild("Torso") or closestZombie:FindFirstChild("UpperTorso")
-                            local isHeadshot = math.random() < 0.95 -- 95% headshots, 5% body shots
-                            local targetPart = isHeadshot and head or torso
-                            local offset = Vector3.new(
-                                math.random(-10, 10) / 10, -- ±1 stud offset
-                                math.random(-10, 10) / 10,
-                                math.random(-10, 10) / 10
-                            )
-                            local args = {closestZombie, targetPart, targetPart.Position + offset, 2, weapon}
-                            pcall(function()
-                                shootRemote:FireServer(unpack(args))
-                            end)
-                            lastShotTime = tick()
-                            shotsFired = shotsFired + 1
-
-                            -- Random pause to simulate reloading/repositioning
-                            if shotsFired >= math.random(3, 8) then
-                                task.wait(math.random(50, 100) / 100) -- 0.5-1s pause
-                                shotsFired = 0
+                            
+                            if head and torso then
+                                local isHeadshot = math.random() < 0.95
+                                local targetPart = isHeadshot and head or torso
+                                
+                                -- Reduced offset calculation overhead
+                                local offset = Vector3.new(
+                                    math.random(-10, 10) * 0.1,
+                                    math.random(-10, 10) * 0.1,
+                                    math.random(-10, 10) * 0.1
+                                )
+                                
+                                local args = {closestZombie, targetPart, targetPart.Position + offset, 2, weapon}
+                                pcall(function()
+                                    shootRemote:FireServer(unpack(args))
+                                end)
+                                
+                                lastShotTime = currentTime
+                                shotsFired = shotsFired + 1
+                                
+                                -- More aggressive firing pattern
+                                if shotsFired >= math.random(5, 12) then -- Increased burst size
+                                    task.wait(math.random(20, 50) * 0.01) -- Reduced pause: 0.2-0.5s
+                                    shotsFired = 0
+                                end
                             end
                         end
                     end
-                    -- Weapon-specific fire delay
-                    local fireDelay = weapon == "M1911" and math.random(25, 70) / 100 or math.random(20, 50) / 100
+                    
+                    -- Reduced weapon-specific fire delay (50% faster)
+                    local fireDelay = weapon == "M1911" and math.random(15, 40) * 0.01 or math.random(10, 30) * 0.01
                     task.wait(fireDelay)
                 end
             end)
+        else
+            -- Clear caches when disabled
+            cachedRemotes = {}
+            cachedWeapon = nil
         end
     end
 })
