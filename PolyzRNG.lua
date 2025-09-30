@@ -53,8 +53,10 @@ task.spawn(function()
     end
 end)
 
--- Auto Headshots with 360-Degree LOS
+-- Auto Headshots with 360-Degree LOS (Stealthy and Powerful)
 local autoKill = false
+local lastShotTime = 0
+local shotsFired = 0
 CombatTab:CreateToggle({
     Name = "Auto Headshot Zombies",
     CurrentValue = false,
@@ -66,7 +68,7 @@ CombatTab:CreateToggle({
                 while autoKill do
                     local enemies = workspace:FindFirstChild("Enemies")
                     local shootRemote = Remotes:FindFirstChild("ShootEnemy")
-                    if enemies and shootRemote and player.Character and player.Character.PrimaryPart then
+                    if enemies and shootRemote and player.Character and player.Character.PrimaryPart and player.Character.Humanoid and player.Character.Humanoid.Health > 0 then
                         local weapon = getEquippedWeaponName()
                         local playerPos = player.Character.PrimaryPart.Position
                         local closestZombie = nil
@@ -77,7 +79,8 @@ CombatTab:CreateToggle({
                             if zombie:IsA("Model") then
                                 local humanoid = zombie:FindFirstChild("Humanoid")
                                 local head = zombie:FindFirstChild("Head")
-                                if humanoid and humanoid.Health > 0 and head then
+                                local torso = zombie:FindFirstChild("Torso") or zombie:FindFirstChild("UpperTorso")
+                                if humanoid and humanoid.Health > 0 and head and torso then
                                     local dist = (head.Position - playerPos).Magnitude
                                     if dist < minDist and dist < 100 then -- Max range 100 studs
                                         -- 360-degree LOS check using raycast
@@ -94,22 +97,33 @@ CombatTab:CreateToggle({
                             end
                         end
 
-                        -- Fire at closest zombie with randomized offset
-                        if closestZombie then
+                        -- Fire at closest zombie with randomized behavior
+                        if closestZombie and tick() - lastShotTime >= 0.5 then -- Global cooldown
                             local head = closestZombie:FindFirstChild("Head")
+                            local torso = closestZombie:FindFirstChild("Torso") or closestZombie:FindFirstChild("UpperTorso")
+                            local isHeadshot = math.random() < 0.9 -- 90% headshots, 10% body shots
+                            local targetPart = isHeadshot and head or torso
                             local offset = Vector3.new(
-                                math.random(-5, 5) / 10,
-                                math.random(-5, 5) / 10,
-                                math.random(-5, 5) / 10
+                                math.random(-10, 10) / 10, -- ±1 stud offset
+                                math.random(-10, 10) / 10,
+                                math.random(-10, 10) / 10
                             )
-                            local args = {closestZombie, head, head.Position + offset, 2, weapon}
+                            local args = {closestZombie, targetPart, targetPart.Position + offset, 2, weapon}
                             pcall(function()
                                 shootRemote:FireServer(unpack(args))
                             end)
+                            lastShotTime = tick()
+                            shotsFired = shotsFired + 1
+
+                            -- Random pause to simulate reloading/repositioning
+                            if shotsFired >= math.random(5, 10) then
+                                task.wait(math.random(100, 200) / 100) -- 1-2s pause
+                                shotsFired = 0
+                            end
                         end
                     end
                     -- Weapon-specific fire delay
-                    local fireDelay = weapon == "M1911" and math.random(30, 60) / 100 or math.random(15, 40) / 100
+                    local fireDelay = weapon == "M1911" and math.random(25, 70) / 100 or math.random(20, 50) / 100
                     task.wait(fireDelay)
                 end
             end)
@@ -132,7 +146,7 @@ CombatTab:CreateToggle({
                     if skip then
                         pcall(function() skip:FireServer() end)
                     end
-                    task.wait(math.random(200, 500) / 100) -- 2-5s delay
+                    task.wait(math.random(300, 700) / 100) -- 3-7s delay
                 end
             end)
         end
@@ -148,7 +162,7 @@ MiscTab:CreateButton({
         local doorsFolder = workspace:FindFirstChild("Doors")
         if doorsFolder then
             for _, group in pairs(doorsFolder:GetChildren()) do
-                if (group:IsA("Folder") or group:IsA("Model")) and not group:FindFirstChild("Critical") then
+                if (group:IsA("Folder") or group:IsA("Model")) and not group:FindFirstChild("Critical") and not group:GetAttribute("ServerProtected") then
                     pcall(function() group:Destroy() end)
                 end
             end
@@ -217,6 +231,7 @@ local crateTab = Window:CreateTab("Crates", "Skull")
 -- Auto Open Crates
 local function createCrateToggle(name, flag, remoteName, invokeArg)
     local loop = false
+    local invocations = 0
     crateTab:CreateToggle({
         Name = "Auto Open " .. name .. " Crates",
         CurrentValue = false,
@@ -226,13 +241,20 @@ local function createCrateToggle(name, flag, remoteName, invokeArg)
             if state then
                 task.spawn(function()
                     while loop do
-                        local remote = Remotes:FindFirstChild(remoteName)
-                        if remote then
-                            pcall(function()
-                                remote:InvokeServer(invokeArg)
-                            end)
+                        if invocations < 20 then -- Max 20 invocations per minute
+                            local remote = Remotes:FindFirstChild(remoteName)
+                            if remote then
+                                pcall(function()
+                                    remote:InvokeServer(invokeArg)
+                                    invocations = invocations + 1
+                                end)
+                            end
                         end
                         task.wait(math.random(100, 300) / 100) -- 1-3s delay
+                        if invocations >= 20 then
+                            task.wait(60) -- Wait 1 minute before resetting
+                            invocations = 0
+                        end
                     end
                 end)
             end
