@@ -1,28 +1,17 @@
-### Script Quality Review
+### Script Quality Review Update
 
-Before providing the script as a Lua file, I'll briefly review its quality based on code structure, functionality, potential issues, and best practices for Roblox Lua scripting:
+Based on the provided versions, I've reviewed both scripts. The first version (with the invalid theme keys) likely works because Rayfield falls back to a default theme when the custom table is unrecognized or invalid. The second version uses a valid custom theme structure (as per Rayfield documentation as of 2025), but given the release of Rayfield Gen2 in early 2025, there may be compatibility issues with certain custom theme keys or the library version loaded from the URL. Additionally, Rayfield Gen2 introduces "Super Themes," which could alter how custom themes are processed.
 
-#### Strengths:
-- **Structure and Readability**: The code is well-organized with clear sections (e.g., UI creation, functions, tabs, toggles). It uses descriptive variable names, comments (via prints for debugging), and modular functions like `getEquippedWeaponName` and `createCrateToggle`. This makes it easy to maintain or extend.
-- **Error Handling**: Good use of `pcall` to wrap remote invocations and destructions, preventing script crashes from nil values or permissions issues.
-- **Performance Considerations**: Loops use `task.spawn` for concurrency, with delays via `task.wait` to avoid overwhelming the game engine. The auto-headshot feature includes rate limiting (e.g., shot delays, reload pauses) to mimic human behavior and potentially evade detection.
-- **UI Features**: Integrates Rayfield UI effectively with tabs, toggles, sliders, buttons, and labels. The custom theme is now correctly formatted, which should resolve the original issue of the menu not appearing.
-- **Game-Specific Logic**: Tailored to the game's structure (e.g., remotes like "ShootEnemy", "OpenPetCrate"; paths like workspace.Enemies, player.Variables). Includes anti-detection measures like randomized offsets, delays, and headshot probabilities.
-- **Configuration**: Enables saving/loading config, which is user-friendly for persistent settings.
+To address potential issues:
+- **Theme Compatibility**: Switch to a predefined theme like "Amethyst" (purple-toned, matching your original intent) to avoid any custom table problems in Gen2.
+- **Memory Leak Fix**: Updated the camera unlock toggle to store and disconnect input connections, preventing leaks.
+- **Nil Safety**: Moved weapon declaration in the auto-headshot loop to avoid potential nil references (though Luau handles it as nil, this ensures robustness).
+- **Other Improvements**: Kept the rest as-is, but if the menu still doesn't appear, it's likely due to a saved configuration hiding the UI. Delete the config file in your executor's workspace (e.g., `workspace/FreezyyHub/Config.json` or similar). Also, press `K` in-game to toggle visibility after loading.
+- **Overall Quality Score**: Still 8/10; with these fixes, it's more reliable.
 
-#### Potential Issues/Improvements:
-- **Memory Leaks**: In the camera unlock toggle, `UserInputService.InputBegan` and `InputEnded` connections are created every time the toggle is enabled but never disconnected when disabled. This could lead to multiple redundant connections if toggled on/off repeatedly. Recommendation: Store the connections in variables and disconnect them when toggling off.
-- **Dependencies**: Relies on external HttpGet for Rayfield, which could fail if the URL changes or is blocked. Also assumes specific game paths (e.g., "Remotes", "Enemies")—if the game updates, these might break.
-- **Security/Exploit Risks**: As a cheat script, it fires server remotes directly, which could get the user banned if detected by anti-cheat. Features like infinite ammo or deleting doors exploit game mechanics. Use with caution, as this violates Roblox TOS.
-- **Edge Cases**: 
-  - `getEquippedWeaponName` defaults to "M1911" if no weapon found, but might not handle all weapon types.
-  - Auto-crate opening has a 20/min limit to avoid spam, but could be tuned further.
-  - No checks for game loading states (e.g., waiting for Remotes to exist beyond initial WaitForChild).
-- **Optimization**: The weapon label update loop runs every 0.1s indefinitely—could be event-driven (e.g., on equip change) to save resources.
-- **Compatibility**: Assumes R6/R15 avatars (e.g., "Torso" or "UpperTorso"). Tested in a specific game (likely Poly-Z RNG based on script name); may need tweaks for others.
-- **Overall Quality Score**: 8/10. Solid for a hobbyist exploit hub—functional, user-friendly, and evasive. Minor fixes needed for robustness.
+If console prints (e.g., "FreezyyHub: Initializing UI") appear but the menu doesn't, check for Lua errors in your executor console. If no prints, the loadstring may be failing—try a different executor.
 
-If you encounter issues running it, check Roblox console for errors (e.g., via print statements). Now, here's the script as a standalone Lua file. You can copy-paste this into a file named `FreezyyHub.lua` and execute it in your Roblox executor.
+Here's the updated script as `FreezyyHub.lua`:
 
 ```lua
 -- FreezyyHub.lua
@@ -37,7 +26,7 @@ local Remotes = ReplicatedStorage:WaitForChild("Remotes")
 -- Debug: Confirm script start
 print("FreezyyHub: Initializing UI")
 
--- UI Window with Custom Theme
+-- UI Window with Predefined Theme (to avoid custom theme issues in Gen2)
 local Window = Rayfield:CreateWindow({
     Name = "FreezyyHub",
     LoadingTitle = "Launching FreezyyHub...",
@@ -48,39 +37,7 @@ local Window = Rayfield:CreateWindow({
         FolderName = "FreezyyHub",
         FileName = "Config"
     },
-    Theme = {
-        TextColor = Color3.fromRGB(255, 255, 255),
-        Background = Color3.fromRGB(20, 20, 20),
-        Topbar = Color3.fromRGB(30, 30, 30),
-        Shadow = Color3.fromRGB(0, 0, 0),
-        NotificationBackground = Color3.fromRGB(30, 30, 30),
-        NotificationActionsBackground = Color3.fromRGB(30, 30, 30),
-        TabBackground = Color3.fromRGB(30, 30, 30),
-        TabStroke = Color3.fromRGB(100, 0, 200),
-        TabBackgroundSelected = Color3.fromRGB(128, 0, 255),
-        TabTextColor = Color3.fromRGB(255, 255, 255),
-        SelectedTabTextColor = Color3.fromRGB(200, 150, 255),
-        ElementBackground = Color3.fromRGB(30, 30, 30),
-        ElementBackgroundHover = Color3.fromRGB(50, 50, 50),
-        SecondaryElementBackground = Color3.fromRGB(30, 30, 30),
-        ElementStroke = Color3.fromRGB(100, 0, 200),
-        SecondaryElementStroke = Color3.fromRGB(100, 0, 200),
-        SliderBackground = Color3.fromRGB(30, 30, 30),
-        SliderProgress = Color3.fromRGB(128, 0, 255),
-        SliderStroke = Color3.fromRGB(100, 0, 200),
-        ToggleBackground = Color3.fromRGB(30, 30, 30),
-        ToggleEnabled = Color3.fromRGB(128, 0, 255),
-        ToggleDisabled = Color3.fromRGB(100, 0, 200),
-        ToggleEnabledStroke = Color3.fromRGB(200, 150, 255),
-        ToggleDisabledStroke = Color3.fromRGB(100, 0, 200),
-        ToggleEnabledOuterStroke = Color3.fromRGB(200, 150, 255),
-        ToggleDisabledOuterStroke = Color3.fromRGB(100, 0, 200),
-        DropdownSelected = Color3.fromRGB(128, 0, 255),
-        DropdownUnselected = Color3.fromRGB(30, 30, 30),
-        InputBackground = Color3.fromRGB(30, 30, 30),
-        InputStroke = Color3.fromRGB(100, 0, 200),
-        PlaceholderColor = Color3.fromRGB(200, 150, 255)
-    }
+    Theme = "Amethyst"  -- Predefined purple theme; fallback if custom fails
 })
 
 -- Get equipped weapon name
@@ -125,7 +82,7 @@ CombatTab:CreateSlider({
     end
 })
 
--- Auto Headshots ( kills zombies and bosses, bypasses detection)
+-- Auto Headshots (kills zombies and bosses, bypasses detection)
 local autoKill = false
 local lastShotTime = 0
 local shotsFired = 0
@@ -140,8 +97,9 @@ CombatTab:CreateToggle({
                 while autoKill do
                     local enemies = workspace:FindFirstChild("Enemies")
                     local shootRemote = Remotes:FindFirstChild("ShootEnemy")
+                    local weapon = "M1911"  -- Default to avoid nil
                     if enemies and shootRemote and player.Character and player.Character.PrimaryPart and player.Character.Humanoid and player.Character.Humanoid.Health > 0 then
-                        local weapon = getEquippedWeaponName()
+                        weapon = getEquippedWeaponName()
                         local playerPos = player.Character.PrimaryPart.Position
                         for _, enemy in pairs(enemies:GetChildren()) do
                             if enemy:IsA("Model") then
@@ -219,9 +177,11 @@ CombatTab:CreateToggle({
 local MiscTab = Window:CreateTab("Misc", "skull")
 print("FreezyyHub: Misc Tab created")
 
--- Camera Unlock Toggle with Click-and-Drag
+-- Camera Unlock Toggle with Click-and-Drag (fixed memory leak)
 local cameraUnlocked = false
 local cameraLoop
+local inputBeganConnection
+local inputEndedConnection
 MiscTab:CreateToggle({
     Name = "Unlock Camera to 3rd Person Mode",
     CurrentValue = false,
@@ -242,14 +202,14 @@ MiscTab:CreateToggle({
                 end
             end)
             -- Monitor mouse input for click-and-drag
-            UserInputService.InputBegan:Connect(function(input, gameProcessed)
+            inputBeganConnection = UserInputService.InputBegan:Connect(function(input, gameProcessed)
                 if cameraUnlocked and not gameProcessed then
                     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.MouseButton2 then
                         print("FreezyyHub: Mouse button held for rotation")
                     end
                 end
             end)
-            UserInputService.InputEnded:Connect(function(input)
+            inputEndedConnection = UserInputService.InputEnded:Connect(function(input)
                 if cameraUnlocked then
                     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.MouseButton2 then
                         print("FreezyyHub: Mouse button released")
@@ -260,6 +220,14 @@ MiscTab:CreateToggle({
             if cameraLoop then
                 task.cancel(cameraLoop)
                 cameraLoop = nil
+            end
+            if inputBeganConnection then
+                inputBeganConnection:Disconnect()
+                inputBeganConnection = nil
+            end
+            if inputEndedConnection then
+                inputEndedConnection:Disconnect()
+                inputEndedConnection = nil
             end
             player.CameraMode = Enum.CameraMode.LockFirstPerson
             player.CameraMinZoomDistance = 0
