@@ -82,7 +82,7 @@ CombatTab:CreateToggle({
                                 local torso = zombie:FindFirstChild("Torso") or zombie:FindFirstChild("UpperTorso")
                                 if humanoid and humanoid.Health > 0 and head and torso then
                                     local dist = (head.Position - playerPos).Magnitude
-                                    if dist < minDist and dist < 100 then -- Max range 100 studs
+                                    if dist < minDist and dist < 500 then -- Max range 100 studs
                                         -- 360-degree LOS check using raycast
                                         local rayParams = RaycastParams.new()
                                         rayParams.FilterDescendantsInstances = {player.Character}
