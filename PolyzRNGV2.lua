@@ -53,7 +53,7 @@ task.spawn(function()
     end
 end)
 
--- Auto Headshots with 360-Degree LOS (Stealthy and Powerful)
+-- Auto Headshots with 360-Degree LOS (5 kills/s, 1 shot = 1 kill)
 local autoKill = false
 local lastShotTime = 0
 local shotsFired = 0
@@ -74,13 +74,12 @@ CombatTab:CreateToggle({
                         local closestZombie = nil
                         local minDist = math.huge
 
-                        -- Scan all zombies in 360 degrees
+                        -- Scan for closest zombie in 360 degrees
                         for _, zombie in pairs(enemies:GetChildren()) do
                             if zombie:IsA("Model") then
                                 local humanoid = zombie:FindFirstChild("Humanoid")
                                 local head = zombie:FindFirstChild("Head")
-                                local torso = zombie:FindFirstChild("Torso") or zombie:FindFirstChild("UpperTorso")
-                                if humanoid and humanoid.Health > 0 and head and torso then
+                                if humanoid and humanoid.Health > 0 and head then
                                     local dist = (head.Position - playerPos).Magnitude
                                     if dist < minDist and dist < 1000 then -- Max range 1000 studs
                                         -- 360-degree LOS check using raycast
@@ -97,18 +96,15 @@ CombatTab:CreateToggle({
                             end
                         end
 
-                        -- Fire at closest zombie with randomized behavior
-                        if closestZombie and tick() - lastShotTime >= 0.1 then -- Global cooldown
+                        -- Fire at closest zombie's head with randomized behavior
+                        if closestZombie and tick() - lastShotTime >= math.max(0.2 / speedMultiplier, 0.03) then -- 5 shots/s at 1x, min 0.03s
                             local head = closestZombie:FindFirstChild("Head")
-                            local torso = closestZombie:FindFirstChild("Torso") or closestZombie:FindFirstChild("UpperTorso")
-                            local isHeadshot = math.random() < 0.95 -- 95% headshots, 5% body shots
-                            local targetPart = isHeadshot and head or torso
                             local offset = Vector3.new(
-                                math.random(-10, 10) / 10, -- ±1 stud offset
-                                math.random(-10, 10) / 10,
-                                math.random(-10, 10) / 10
+                                math.random(-15, 15) / 10, -- ±1.5 stud offset for human-like aiming
+                                math.random(-15, 15) / 10,
+                                math.random(-15, 15) / 10
                             )
-                            local args = {closestZombie, targetPart, targetPart.Position + offset, 2, weapon}
+                            local args = {closestZombie, head, head.Position + offset, 9999, weapon} -- High damage for 1-shot kill
                             pcall(function()
                                 shootRemote:FireServer(unpack(args))
                             end)
@@ -116,15 +112,14 @@ CombatTab:CreateToggle({
                             shotsFired = shotsFired + 1
 
                             -- Random pause to simulate reloading/repositioning
-                            if shotsFired >= math.random(5, 10) then
-                                task.wait(math.random(2, 5) / 100) --  pause
+                            if shotsFired >= math.random(3, 8) then
+                                task.wait(math.random(50, 150) / 100) -- 0.5-1.5s pause
                                 shotsFired = 0
                             end
                         end
                     end
-                    -- Weapon-specific fire delay
-                    local fireDelay = weapon == "M1911" and math.random(25, 70) / 100 or math.random(20, 50) / 100
-                    task.wait(fireDelay)
+                    -- Jittered delay to hit 5 kills/s while avoiding detection
+                    task.wait(math.random(18, 22) / 100) -- 0.18-0.22s per cycle
                 end
             end)
         end
