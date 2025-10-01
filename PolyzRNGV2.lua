@@ -333,9 +333,9 @@ end
 local CombatTab = Window:CreateTab("⚔️ Combat", "Skull")
 
 -- Stealth Information
-CombatTab:CreateLabel("🛡️ 360-DEGREE GHOST MODE SYSTEM:")
-CombatTab:CreateLabel("✅ 360° Auto Headshots | ✅ Ultra-Conservative Behavior | ✅ Ghost Mode")
-CombatTab:CreateLabel("✅ 40-70% Miss Rate | ✅ Stealth Target Selection | ✅ Maximum Stealth")
+CombatTab:CreateLabel("🛡️ SAFE CONFLICT-FREE SYSTEM:")
+CombatTab:CreateLabel("✅ 360° Auto Headshots | ✅ Conflict-Free Operation | ✅ Safe Camera")
+CombatTab:CreateLabel("✅ 40-70% Miss Rate | ✅ Minimal System Interference | ✅ Maximum Safety")
 CombatTab:CreateLabel("━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 
 -- Weapon Label
@@ -404,49 +404,60 @@ local function getAdaptiveMissChance(distance)
     return math.min(baseMissChance + roundMissChance + riskMissChance, 50) -- Max 50%
 end
 
--- 360-DEGREE CAMERA SYSTEM (stealth optimized)
+-- SAFE CAMERA SYSTEM (conflict-free)
 local AimAssist = {
     Enabled = false, 
-    Target = nil,
-    Direction = nil -- Store target direction for 360-degree support
+    Target = nil
 }
 local lastCameraUpdate = 0
-local cameraSmoothing = 0.15
-local humanReactionTime = math.random(8, 15) * 0.01
-local cameraRotationSpeed = 0.08 -- Slower rotation for stealth
+local cameraSmoothing = 0.1 -- Reduced for safety
+local humanReactionTime = math.random(15, 25) * 0.01 -- Slower for safety
 
--- 360-DEGREE CAMERA SYSTEM (detection avoidance)
-game:GetService("RunService").RenderStepped:Connect(function()
-    if AimAssist.Enabled and AimAssist.Target and AimAssist.Target.PrimaryPart then
+-- SAFE CAMERA SYSTEM (no conflicts with game systems)
+local function safeCameraUpdate()
+    if AimAssist.Enabled and AimAssist.Target and AimAssist.Target:FindFirstChild("Head") then
         local currentTime = tick()
         
-        -- Variable reaction time for human-like behavior
+        -- Much slower updates to avoid conflicts
         if currentTime - lastCameraUpdate > humanReactionTime then
-            local targetPos = AimAssist.Target.PrimaryPart.Position
-            local currentPos = workspace.CurrentCamera.CFrame.Position
+            local success, result = pcall(function()
+                local targetPos = AimAssist.Target.Head.Position
+                local currentPos = workspace.CurrentCamera.CFrame.Position
+                
+                -- Safe direction calculation
+                local direction = (targetPos - currentPos).Unit
+                local currentLookDirection = workspace.CurrentCamera.CFrame.LookVector
+                
+                -- Very gentle rotation to avoid conflicts
+                local interpolatedDirection = currentLookDirection:Lerp(direction, 0.05)
+                
+                -- Minimal offset to avoid detection
+                local randomOffset = Vector3.new(
+                    math.random(-1, 1) * 0.001,
+                    math.random(-1, 1) * 0.001,
+                    math.random(-1, 1) * 0.001
+                )
+                
+                -- Safe camera movement
+                local targetCFrame = CFrame.new(currentPos, currentPos + interpolatedDirection + randomOffset)
+                workspace.CurrentCamera.CFrame = workspace.CurrentCamera.CFrame:Lerp(targetCFrame, cameraSmoothing)
+                
+                return true
+            end)
             
-            -- 360-DEGREE DIRECTION CALCULATION
-            local direction = (targetPos - currentPos).Unit
-            local currentLookDirection = workspace.CurrentCamera.CFrame.LookVector
-            
-            -- STEALTH ROTATION: Smooth 360-degree movement
-            local interpolatedDirection = currentLookDirection:Lerp(direction, cameraRotationSpeed)
-            
-            -- Add human-like micro-movements for stealth
-            local randomOffset = Vector3.new(
-                math.random(-2, 2) * 0.003, -- Smaller offset for stealth
-                math.random(-2, 2) * 0.003,
-                math.random(-2, 2) * 0.003
-            )
-            
-            -- 360-DEGREE CAMERA MOVEMENT
-            local targetCFrame = CFrame.new(currentPos, currentPos + interpolatedDirection + randomOffset)
-            workspace.CurrentCamera.CFrame = workspace.CurrentCamera.CFrame:Lerp(targetCFrame, cameraSmoothing)
-            
-            lastCameraUpdate = currentTime
-            -- Variable reaction time for human-like behavior
-            humanReactionTime = math.random(10, 20) * 0.01
+            if success then
+                lastCameraUpdate = currentTime
+                humanReactionTime = math.random(20, 40) * 0.01 -- Much slower
+            end
         end
+    end
+end
+
+-- Safe update loop (much slower to avoid conflicts)
+task.spawn(function()
+    while true do
+        safeCameraUpdate()
+        task.wait(0.1) -- Much slower update rate
     end
 end)
 
@@ -597,114 +608,60 @@ CombatTab:CreateToggle({
                                 local success = false
                                 
                                 if useSilentAim then
-                                    -- SILENT AIM WITH CAMERA HIJACKING (detection avoidance)
+                                    -- SAFE SILENT AIM (conflict-free)
                                     AimAssist.Enabled = true
                                     AimAssist.Target = closestZombie
                                     
-                                    -- Adaptive camera aim time (longer in higher rounds)
-                                    local aimTime = math.random(8, 15) + (roundsSurvived * 2)
+                                    -- Much longer aim time to avoid conflicts
+                                    local aimTime = math.random(20, 40) + (roundsSurvived * 5)
                                     task.wait(aimTime * 0.01)
                                     
-                                    -- ULTRA-STEALTH RAYCASTING SYSTEM (completely undetectable)
+                                    -- SAFE RAYCASTING SYSTEM (conflict-free)
                                     local camera = workspace.CurrentCamera
                                     local cameraPos = camera.CFrame.Position
                                     
-                                    -- ADVANCED STEALTH: Multi-layer detection avoidance
+                                    -- MINIMAL STEALTH: Very conservative approach
                                     local sessionAdaptation = getSessionAdaptation()
-                                    local stealthLevel = math.min(detectionRisk * 2, 1) -- 0-1 based on risk
+                                    local stealthLevel = math.min(detectionRisk * 2, 1)
                                     
-                                    -- Layer 1: Camera position obfuscation (human-like movement)
+                                    -- Very small camera offset to avoid conflicts
                                     local humanOffset = Vector3.new(
-                                        math.random(-3, 3) * (0.02 + stealthLevel * 0.03),
-                                        math.random(-3, 3) * (0.02 + stealthLevel * 0.03),
-                                        math.random(-3, 3) * (0.02 + stealthLevel * 0.03)
+                                        math.random(-1, 1) * 0.01,
+                                        math.random(-1, 1) * 0.01,
+                                        math.random(-1, 1) * 0.01
                                     )
                                     local adjustedCameraPos = cameraPos + humanOffset
                                     
-                                    -- Layer 2: Target position prediction (anticipate movement)
-                                    local targetVelocity = Vector3.new(0, 0, 0)
-                                    if closestZombie:FindFirstChild("HumanoidRootPart") then
-                                        local bodyVelocity = closestZombie.HumanoidRootPart:GetAttribute("BodyVelocity")
-                                        if bodyVelocity then
-                                            targetVelocity = bodyVelocity
-                                        end
-                                    end
+                                    -- Simple target calculation (no prediction to avoid conflicts)
+                                    local targetPos = closestHead.Position
+                                    local baseDirection = (targetPos - adjustedCameraPos).Unit
                                     
-                                    -- Predict target position based on movement
-                                    local predictionTime = math.random(50, 150) / 1000 -- 0.05-0.15s prediction
-                                    local predictedTargetPos = closestHead.Position + (targetVelocity * predictionTime)
-                                    
-                                    -- Layer 3: Human-like aim calculation with micro-adjustments
-                                    local baseDirection = (predictedTargetPos - adjustedCameraPos).Unit
-                                    
-                                    -- Advanced aim variation (more realistic human behavior)
+                                    -- Minimal aim variation
                                     local aimJitter = Vector3.new(
-                                        math.random(-5, 5) * (0.01 + stealthLevel * 0.02),
-                                        math.random(-5, 5) * (0.01 + stealthLevel * 0.02),
-                                        math.random(-5, 5) * (0.01 + stealthLevel * 0.02)
+                                        math.random(-2, 2) * 0.005,
+                                        math.random(-2, 2) * 0.005,
+                                        math.random(-2, 2) * 0.005
                                     )
                                     local targetDirection = (baseDirection + aimJitter).Unit
                                     
-                                    -- ULTRA-STEALTH RAYCAST PARAMETERS (completely undetectable)
+                                    -- SAFE RAYCAST PARAMETERS (conflict-free)
                                     local raycastParams = RaycastParams.new()
                                     raycastParams.FilterType = Enum.RaycastFilterType.Include
                                     
-                                    -- Dynamic filter instances based on stealth level and rounds
+                                    -- Simple filter instances to avoid conflicts
                                     local filterInstances = {workspace.Enemies, workspace.Misc}
-                                    
-                                    -- Add BossArena.Decorations only when safe and in higher rounds
-                                    if roundsSurvived >= 5 and stealthLevel < 0.5 then
-                                        local bossArena = workspace:FindFirstChild("BossArena")
-                                        if bossArena and bossArena:FindFirstChild("Decorations") then
-                                            table.insert(filterInstances, bossArena.Decorations)
-                                        end
-                                    end
-                                    
                                     raycastParams.FilterDescendantsInstances = filterInstances
                                     
-                                    -- ADVANCED MULTI-ATTEMPT RAYCASTING (stealth optimized)
+                                    -- SINGLE RAYCAST ATTEMPT (safer)
                                     local raycastResult = nil
-                                    local maxAttempts = stealthLevel > 0.7 and 2 or 3 -- Fewer attempts at high risk
                                     
-                                    for attempt = 1, maxAttempts do
-                                        -- Advanced position variation (human-like micro-movements)
-                                        local attemptOffset = Vector3.new(
-                                            math.random(-2, 2) * (0.02 + stealthLevel * 0.01),
-                                            math.random(-2, 2) * (0.02 + stealthLevel * 0.01),
-                                            math.random(-2, 2) * (0.02 + stealthLevel * 0.01)
-                                        )
-                                        local attemptPos = adjustedCameraPos + attemptOffset
-                                        
-                                        -- Dynamic direction calculation with prediction
-                                        local attemptDirection = (predictedTargetPos - attemptPos).Unit
-                                        
-                                        -- Variable distance based on stealth level
-                                        local baseDistance = 200 + (stealthLevel * 100) -- 200-300 based on risk
-                                        local attemptDistance = math.random(math.floor(baseDistance * 0.8), math.floor(baseDistance * 1.2))
-                                        
-                                        -- Perform raycast with error handling
-                                        local success, result = pcall(function()
-                                            return workspace:Raycast(attemptPos, attemptDirection * attemptDistance, raycastParams)
-                                        end)
-                                        
-                                        if success and result then
-                                            raycastResult = result
-                                            
-                                            -- Enhanced hit validation
-                                            if raycastResult.Instance and raycastResult.Instance:IsDescendantOf(workspace.Enemies) then
-                                                -- Additional validation: check if target is still alive
-                                                local targetHumanoid = raycastResult.Instance.Parent:FindFirstChildOfClass("Humanoid")
-                                                if targetHumanoid and targetHumanoid.Health > 0 then
-                                                    break -- Valid hit found
-                                                end
-                                            end
-                                        end
-                                        
-                                        -- Human-like delay between attempts
-                                        if attempt < maxAttempts then
-                                            local delay = math.random(5, 15) / 1000 -- 0.005-0.015s
-                                            task.wait(delay)
-                                        end
+                                    -- Simple raycast with error handling
+                                    local success, result = pcall(function()
+                                        return workspace:Raycast(adjustedCameraPos, targetDirection * 200, raycastParams)
+                                    end)
+                                    
+                                    if success and result then
+                                        raycastResult = result
                                     end
                                     
                                     -- ULTRA-STEALTH VALIDATION AND FIRING (completely undetectable)
