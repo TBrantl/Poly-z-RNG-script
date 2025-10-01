@@ -40,9 +40,9 @@ end
 local CombatTab = Window:CreateTab("⚔️ Combat", "Skull")
 
 -- Stealth Information
-CombatTab:CreateLabel("🛡️ SILENT AIM MODE:")
-CombatTab:CreateLabel("✅ Crosshair Independent | ✅ Direct Target Raycast | ✅ Anti-Cheat Bypass")
-CombatTab:CreateLabel("✅ Weapon Fire Rates | ✅ Human Miss Chance | ✅ Break Patterns")
+CombatTab:CreateLabel("🛡️ SILENT AIM + CAMERA SYSTEM:")
+CombatTab:CreateLabel("✅ Crosshair Independent | ✅ Camera Hijacking | ✅ Detection Avoidance")
+CombatTab:CreateLabel("✅ Legitimate Raycasts | ✅ Anti-Cheat Bypass | ✅ Human Behavior")
 CombatTab:CreateLabel("━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 
 -- Weapon Label
@@ -94,7 +94,46 @@ local function canShoot()
     return (currentTime - lastShotTime) >= requiredDelay
 end
 
--- Silent aim system (no camera hijacking needed)
+-- Camera hijacking system for silent aim (detection avoidance)
+local AimAssist = {Enabled = false, Target = nil}
+local lastCameraUpdate = 0
+local cameraSmoothing = 0.15
+local humanReactionTime = math.random(8, 15) * 0.01
+
+-- Camera system for silent aim with detection avoidance
+game:GetService("RunService").RenderStepped:Connect(function()
+    if AimAssist.Enabled and AimAssist.Target and AimAssist.Target.PrimaryPart then
+        local currentTime = tick()
+        
+        -- Variable reaction time for human-like behavior
+        if currentTime - lastCameraUpdate > humanReactionTime then
+            local targetPos = AimAssist.Target.PrimaryPart.Position
+            local currentPos = workspace.CurrentCamera.CFrame.Position
+            
+            -- Calculate direction with 360-degree coverage
+            local direction = (targetPos - currentPos).Unit
+            local currentLookDirection = workspace.CurrentCamera.CFrame.LookVector
+            
+            -- Smooth interpolation for natural movement
+            local interpolatedDirection = currentLookDirection:Lerp(direction, cameraSmoothing)
+            
+            -- Add slight randomization for realism
+            local randomOffset = Vector3.new(
+                math.random(-1, 1) * 0.05,
+                math.random(-1, 1) * 0.05,
+                math.random(-1, 1) * 0.05
+            )
+            
+            -- Create smooth camera movement
+            local targetCFrame = CFrame.new(currentPos, currentPos + interpolatedDirection + randomOffset)
+            workspace.CurrentCamera.CFrame = workspace.CurrentCamera.CFrame:Lerp(targetCFrame, 0.2)
+            
+            lastCameraUpdate = currentTime
+            -- Reset reaction time for next update
+            humanReactionTime = math.random(8, 15) * 0.01
+        end
+    end
+end)
 
 -- Text input for shot delay (STEALTH)
 CombatTab:CreateInput({
@@ -126,15 +165,15 @@ CombatTab:CreateInput({
 local useSilentAim = true
 
 CombatTab:CreateToggle({
-    Name = "🎯 Silent Aim",
+    Name = "🎯 Silent Aim + Camera",
     CurrentValue = true,
     Flag = "SilentAim",
     Callback = function(state)
         useSilentAim = state
         Rayfield:Notify({
-            Title = "Silent Aim",
-            Content = "Silent aim " .. (state and "enabled" or "disabled") .. " - Crosshair doesn't need to face target",
-            Duration = 3,
+            Title = "Silent Aim System",
+            Content = "Silent aim " .. (state and "enabled" or "disabled") .. " - Crosshair independent + Camera hijacking for detection avoidance",
+            Duration = 4,
             Image = 4483362458
         })
     end
@@ -201,6 +240,13 @@ CombatTab:CreateToggle({
                                 local success = false
                                 
                                 if useSilentAim then
+                                    -- SILENT AIM WITH CAMERA HIJACKING (detection avoidance)
+                                    AimAssist.Enabled = true
+                                    AimAssist.Target = closestZombie
+                                    
+                                    -- Brief camera aim time for detection avoidance
+                                    task.wait(math.random(8, 15) * 0.01)
+                                    
                                     -- SILENT AIM: Raycast directly to target regardless of crosshair
                                     local camera = workspace.CurrentCamera
                                     local cameraPos = camera.CFrame.Position
@@ -231,6 +277,10 @@ CombatTab:CreateToggle({
                                             shootRemote:FireServer(unpack(args)) 
                                         end)
                                     end
+                                    
+                                    -- Disable camera hijacking immediately
+                                    AimAssist.Enabled = false
+                                    AimAssist.Target = nil
                                     
                                     -- Add small delay for stealth
                                     task.wait(math.random(5, 10) * 0.01)
