@@ -53,127 +53,196 @@ task.spawn(function()
     end
 end)
 
--- Ultra-Optimized Auto Headshots (2x Faster & Maximum Efficiency)
+-- Auto Headshots (Undetectable + Super Effective)
 local autoKill = false
-local lastShotTime = 0
-local shotsFired = 0
-local cachedRemotes = {}
+local autoBoss = false
+local shootDelay = 0.08
+local headshotAccuracy = 85
 local cachedWeapon = nil
 local weaponCacheTime = 0
-local rayParams = RaycastParams.new()
+local shotCount = 0
+local lastBreakTime = tick()
+
+-- Anti-detection: Random human-like patterns
+local function getRandomOffset()
+    return Vector3.new(
+        (math.random(-15, 15)) * 0.01,
+        (math.random(-15, 15)) * 0.01,
+        (math.random(-15, 15)) * 0.01
+    )
+end
+
+local function shouldTakeBreak()
+    shotCount = shotCount + 1
+    -- Every 15-30 shots, take a micro-break (human-like)
+    if shotCount >= math.random(15, 30) then
+        shotCount = 0
+        return true
+    end
+    return false
+end
+
+local function getHumanizedDelay()
+    -- Add random jitter to delay (0.08 base ± 0.03)
+    return shootDelay + (math.random(-30, 30) * 0.001)
+end
+
+-- Stealth Settings
+CombatTab:CreateInput({
+    Name = "⏱️ Shot Delay (sec)",
+    PlaceholderText = "0.08",
+    RemoveTextAfterFocusLost = false,
+    Callback = function(text)
+        local num = tonumber(text)
+        if num and num >= 0.01 and num <= 2 then
+            shootDelay = num
+            Rayfield:Notify({
+                Title = "✅ Updated",
+                Content = "Delay: "..num.."s",
+                Duration = 2,
+                Image = 4483362458
+            })
+        end
+    end,
+})
+
+CombatTab:CreateSlider({
+    Name = "🎯 Headshot Accuracy %",
+    Range = {50, 95},
+    Increment = 5,
+    CurrentValue = 85,
+    Flag = "HeadshotAccuracy",
+    Callback = function(value)
+        headshotAccuracy = value
+    end,
+})
 
 CombatTab:CreateToggle({
-    Name = "Auto Headshot Zombies",
+    Name = "🔪 Auto Kill Zombies",
     CurrentValue = false,
     Flag = "AutoKillZombies",
     Callback = function(state)
         autoKill = state
         if state then
             task.spawn(function()
-                -- Initialize caches
-                cachedRemotes.enemies = workspace:FindFirstChild("Enemies")
-                cachedRemotes.shootRemote = Remotes:FindFirstChild("ShootEnemy")
-                
                 while autoKill do
-                    local enemies = cachedRemotes.enemies
-                    local shootRemote = cachedRemotes.shootRemote
-                    local char = player.Character
+                    local enemies = workspace:FindFirstChild("Enemies")
+                    local shootRemote = Remotes:FindFirstChild("ShootEnemy")
                     
-                    if enemies and shootRemote and char then
-                        local primaryPart = char.PrimaryPart
-                        if not primaryPart then
-                            task.wait(0.05)
-                            continue
-                        end
-                        
-                        local humanoid = char.Humanoid
-                        if not humanoid or humanoid.Health <= 0 then
-                            task.wait(0.05)
-                            continue
-                        end
-                        
-                        -- Ultra-fast weapon caching (1s cache)
+                    if enemies and shootRemote then
+                        -- Cache weapon
                         local currentTime = tick()
-                        if not cachedWeapon or currentTime - weaponCacheTime > 1 then
+                        if not cachedWeapon or currentTime - weaponCacheTime > 2 then
                             cachedWeapon = getEquippedWeaponName()
                             weaponCacheTime = currentTime
                         end
                         
-                        local playerPos = primaryPart.Position
-                        local closestZombie = nil
-                        local closestHead = nil
-                        local minDistSq = 1000000 -- Use squared distance (faster than magnitude)
+                        local zombieList = enemies:GetChildren()
                         
-                        -- Update raycast params
-                        rayParams.FilterDescendantsInstances = {char}
-                        
-                        -- Lightning-fast zombie scanning
-                        for _, zombie in pairs(enemies:GetChildren()) do
-                            local head = zombie:FindFirstChild("Head")
-                            if not head then continue end
+                        -- Super effective: Process in batches but with stealth
+                        for i = 1, math.min(#zombieList, 3) do -- Max 3 per cycle
+                            local zombie = zombieList[math.random(1, #zombieList)]
                             
-                            -- Squared distance (no square root = faster)
-                            local delta = head.Position - playerPos
-                            local distSq = delta.X * delta.X + delta.Y * delta.Y + delta.Z * delta.Z
-                            
-                            if distSq >= minDistSq then continue end
-                            
-                            -- Skip health check for max speed (assume alive if head exists)
-                            -- Raycast with pre-computed direction
-                            local rayResult = workspace:Raycast(playerPos, delta, rayParams)
-                            
-                            if rayResult and rayResult.Instance:IsDescendantOf(zombie) then
-                                minDistSq = distSq
-                                closestZombie = zombie
-                                closestHead = head
-                            end
-                        end
-                        
-                        -- Instant fire (no cooldown check for max speed)
-                        if closestZombie and closestHead then
-                            local torso = closestZombie:FindFirstChild("Torso") or closestZombie:FindFirstChild("UpperTorso")
-                            
-                            if torso then
-                                -- 98% headshot rate (less RNG overhead)
-                                local targetPart = math.random() < 0.98 and closestHead or torso
+                            if zombie and zombie:IsA("Model") then
+                                local head = zombie:FindFirstChild("Head")
+                                local humanoid = zombie:FindFirstChildOfClass("Humanoid")
                                 
-                                -- Minimal offset (faster calculation)
-                                local offset = Vector3.new(
-                                    (math.random(0, 20) - 10) * 0.1,
-                                    (math.random(0, 20) - 10) * 0.1,
-                                    (math.random(0, 20) - 10) * 0.1
-                                )
-                                
-                                -- Fire immediately
-                                shootRemote:FireServer(closestZombie, targetPart, targetPart.Position + offset, 2, cachedWeapon)
-                                
-                                shotsFired = shotsFired + 1
-                                
-                                -- Minimal pauses (only after long bursts)
-                                if shotsFired >= math.random(10, 20) then
-                                    task.wait(math.random(10, 25) * 0.01) -- 0.1-0.25s pause
-                                    shotsFired = 0
+                                if head and humanoid and humanoid.Health > 0 then
+                                    -- Dynamic accuracy based on slider
+                                    local targetPart = head
+                                    if math.random(1, 100) > headshotAccuracy then
+                                        targetPart = zombie:FindFirstChild("Torso") or zombie:FindFirstChild("UpperTorso") or head
+                                    end
+                                    
+                                    -- Add human-like aim offset
+                                    local targetPos = targetPart.Position + getRandomOffset()
+                                    
+                                    local args = {zombie, targetPart, targetPos, math.random(45, 55) * 0.01, cachedWeapon}
+                                    pcall(function() shootRemote:FireServer(unpack(args)) end)
+                                    
+                                    -- Human-like break pattern
+                                    if shouldTakeBreak() then
+                                        task.wait(math.random(20, 50) * 0.01) -- 0.2-0.5s break
+                                    end
                                 end
                             end
                         end
-                    else
-                        -- Re-cache if missing
-                        if not cachedRemotes.enemies then
-                            cachedRemotes.enemies = workspace:FindFirstChild("Enemies")
+                    end
+                    
+                    task.wait(getHumanizedDelay())
+                end
+            end)
+        end
+    end
+})
+
+CombatTab:CreateToggle({
+    Name = "👹 Auto Kill Bosses",
+    CurrentValue = false,
+    Flag = "AutoKillBosses",
+    Callback = function(state)
+        autoBoss = state
+        if state then
+            task.spawn(function()
+                while autoBoss do
+                    local enemies = workspace:FindFirstChild("Enemies")
+                    local shootRemote = Remotes:FindFirstChild("ShootEnemy")
+                    
+                    if enemies and shootRemote then
+                        -- Cache weapon
+                        local currentTime = tick()
+                        if not cachedWeapon or currentTime - weaponCacheTime > 2 then
+                            cachedWeapon = getEquippedWeaponName()
+                            weaponCacheTime = currentTime
                         end
-                        if not cachedRemotes.shootRemote then
-                            cachedRemotes.shootRemote = Remotes:FindFirstChild("ShootEnemy")
+                        
+                        -- Super effective boss targeting
+                        for _, enemy in pairs(enemies:GetChildren()) do
+                            if enemy:IsA("Model") then
+                                local isBoss = false
+                                local humanoid = enemy:FindFirstChildOfClass("Humanoid")
+                                
+                                -- Multi-method boss detection
+                                local name = enemy.Name:lower()
+                                if name:find("boss") or name:find("brute") or name:find("giant") or 
+                                   name:find("tank") or name:find("juggernaut") or name:find("heavy") or
+                                   name:find("titan") or name:find("colossus") then
+                                    isBoss = true
+                                end
+                                
+                                if enemy:GetAttribute("IsBoss") or enemy:GetAttribute("Boss") then
+                                    isBoss = true
+                                end
+                                
+                                if humanoid and humanoid.MaxHealth > 400 then
+                                    isBoss = true
+                                end
+                                
+                                if isBoss and humanoid and humanoid.Health > 0 then
+                                    local head = enemy:FindFirstChild("Head")
+                                    if head then
+                                        -- Higher accuracy for bosses (90%)
+                                        local targetPart = head
+                                        if math.random(1, 100) > 90 then
+                                            targetPart = enemy:FindFirstChild("Torso") or enemy:FindFirstChild("UpperTorso") or head
+                                        end
+                                        
+                                        local targetPos = targetPart.Position + getRandomOffset()
+                                        
+                                        local args = {enemy, targetPart, targetPos, math.random(45, 55) * 0.01, cachedWeapon}
+                                        pcall(function() shootRemote:FireServer(unpack(args)) end)
+                                        
+                                        -- Focused fire on boss
+                                        task.wait(shootDelay * 0.5) -- Faster for bosses
+                                    end
+                                end
+                            end
                         end
                     end
                     
-                    -- Minimal delay (weapon-independent for speed)
-                    task.wait(0.01) -- 10ms = 100 iterations/second
+                    task.wait(getHumanizedDelay())
                 end
             end)
-        else
-            -- Clear caches
-            cachedRemotes = {}
-            cachedWeapon = nil
         end
     end
 })
