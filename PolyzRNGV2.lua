@@ -40,9 +40,9 @@ end
 local CombatTab = Window:CreateTab("⚔️ Combat", "Skull")
 
 -- Stealth Information
-CombatTab:CreateLabel("🛡️ ULTRA-STEALTH MODE ACTIVE:")
-CombatTab:CreateLabel("✅ Camera Hijacking | ✅ Legitimate Raycasts | ✅ Anti-Cheat Bypass")
-CombatTab:CreateLabel("✅ Weapon Fire Rates | ✅ Human Miss Chance | ✅ Break Patterns")
+CombatTab:CreateLabel("🛡️ OPTIMIZED STEALTH MODE:")
+CombatTab:CreateLabel("✅ 360° Camera Coverage | ✅ Smooth Movement | ✅ Toggleable System")
+CombatTab:CreateLabel("✅ Anti-Cheat Bypass | ✅ Weapon Fire Rates | ✅ Human Behavior")
 CombatTab:CreateLabel("━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 
 -- Weapon Label
@@ -94,31 +94,44 @@ local function canShoot()
     return (currentTime - lastShotTime) >= requiredDelay
 end
 
--- Camera hijacking system for legitimate raycasts
+-- Optimized camera hijacking system for legitimate raycasts
 local AimAssist = {Enabled = false, Target = nil}
 local lastCameraUpdate = 0
+local cameraSmoothing = 0.15
+local humanReactionTime = math.random(8, 15) * 0.01
 
--- Hook into the game's render loop to override camera
+-- Optimized camera system with 360-degree coverage
 game:GetService("RunService").RenderStepped:Connect(function()
     if AimAssist.Enabled and AimAssist.Target and AimAssist.Target.PrimaryPart then
         local currentTime = tick()
         
-        -- Only update camera every 0.1-0.2 seconds (human reaction time)
-        if currentTime - lastCameraUpdate > math.random(10, 20) * 0.01 then
+        -- Variable reaction time for human-like behavior
+        if currentTime - lastCameraUpdate > humanReactionTime then
             local targetPos = AimAssist.Target.PrimaryPart.Position
             local currentPos = workspace.CurrentCamera.CFrame.Position
+            local distance = (targetPos - currentPos).Magnitude
             
-            -- Smooth camera movement with slight randomization
+            -- Calculate direction with 360-degree coverage
+            local direction = (targetPos - currentPos).Unit
+            local currentLookDirection = workspace.CurrentCamera.CFrame.LookVector
+            
+            -- Smooth interpolation for natural movement
+            local interpolatedDirection = currentLookDirection:Lerp(direction, cameraSmoothing)
+            
+            -- Add slight randomization for realism (reduced for smoother movement)
             local randomOffset = Vector3.new(
-                math.random(-3, 3) * 0.1,
-                math.random(-3, 3) * 0.1,
-                math.random(-3, 3) * 0.1
+                math.random(-1, 1) * 0.05,
+                math.random(-1, 1) * 0.05,
+                math.random(-1, 1) * 0.05
             )
             
-            local targetCFrame = CFrame.new(currentPos, targetPos + randomOffset)
-            workspace.CurrentCamera.CFrame = workspace.CurrentCamera.CFrame:Lerp(targetCFrame, 0.3)
+            -- Create smooth camera movement
+            local targetCFrame = CFrame.new(currentPos, currentPos + interpolatedDirection + randomOffset)
+            workspace.CurrentCamera.CFrame = workspace.CurrentCamera.CFrame:Lerp(targetCFrame, 0.2)
             
             lastCameraUpdate = currentTime
+            -- Reset reaction time for next update
+            humanReactionTime = math.random(8, 15) * 0.01
         end
     end
 end)
@@ -147,6 +160,24 @@ CombatTab:CreateInput({
             })
         end
     end,
+})
+
+-- Camera hijacking toggle
+local useCameraHijacking = true
+
+CombatTab:CreateToggle({
+    Name = "📹 Camera Hijacking",
+    CurrentValue = true,
+    Flag = "CameraHijacking",
+    Callback = function(state)
+        useCameraHijacking = state
+        Rayfield:Notify({
+            Title = "Camera System",
+            Content = "Camera hijacking " .. (state and "enabled" or "disabled"),
+            Duration = 2,
+            Image = 4483362458
+        })
+    end
 })
 
 CombatTab:CreateToggle({
@@ -199,7 +230,7 @@ CombatTab:CreateToggle({
                             end
                         end
                         
-                        -- Shoot closest zombie with EXACT GAME VALIDATION
+                        -- Shoot closest zombie with OPTIMIZED CAMERA SYSTEM
                         if closestZombie and closestHead then
                             -- Add human-like miss chance (5-15% based on distance)
                             local missChance = math.random(1, 100)
@@ -207,56 +238,69 @@ CombatTab:CreateToggle({
                             local totalMissChance = 5 + distanceMissChance
                             
                             if missChance > totalMissChance then
-                                -- HIJACK CAMERA TO AIM AT TARGET
-                                AimAssist.Enabled = true
-                                AimAssist.Target = closestZombie
+                                local success = false
                                 
-                                -- Wait for camera to aim (human reaction time)
-                                task.wait(math.random(15, 30) * 0.01)
-                                
-                                -- PERFORM EXACT GAME RAYCAST (CRITICAL FOR ANTI-CHEAT BYPASS)
-                                local camera = workspace.CurrentCamera
-                                local cameraPos = camera.CFrame.Position
-                                local lookDirection = camera.CFrame.LookVector
-                                
-                                -- EXACT GAME RAYCAST PARAMETERS
-                                local raycastParams = RaycastParams.new()
-                                raycastParams.FilterType = Enum.RaycastFilterType.Include
-                                raycastParams.FilterDescendantsInstances = {workspace.Enemies, workspace.Misc, workspace.BossArena.Decorations}
-                                
-                                -- Perform raycast from camera (EXACT GAME METHOD)
-                                local raycastResult = workspace:Raycast(cameraPos, lookDirection * 250, raycastParams)
-                                
-                                -- Only fire if raycast hits the target (EXACT GAME VALIDATION)
-                                if raycastResult and raycastResult.Instance:IsDescendantOf(workspace.Enemies) then
-                                    -- Use EXACT GAME PARAMETERS
-                                    local args = {
-                                        raycastResult.Instance.Parent,  -- zombie model
-                                        raycastResult.Instance,        -- hit part
-                                        raycastResult.Position,        -- hit position
-                                        0,                            -- damage multiplier (EXACT GAME VALUE)
-                                        weapon                        -- weapon name
-                                    }
+                                if useCameraHijacking then
+                                    -- OPTIMIZED CAMERA HIJACKING (shorter duration)
+                                    AimAssist.Enabled = true
+                                    AimAssist.Target = closestZombie
                                     
-                                    local success = pcall(function() 
+                                    -- Shorter aim time for better performance
+                                    task.wait(math.random(8, 15) * 0.01)
+                                    
+                                    -- PERFORM EXACT GAME RAYCAST (CRITICAL FOR ANTI-CHEAT BYPASS)
+                                    local camera = workspace.CurrentCamera
+                                    local cameraPos = camera.CFrame.Position
+                                    local lookDirection = camera.CFrame.LookVector
+                                    
+                                    -- EXACT GAME RAYCAST PARAMETERS
+                                    local raycastParams = RaycastParams.new()
+                                    raycastParams.FilterType = Enum.RaycastFilterType.Include
+                                    raycastParams.FilterDescendantsInstances = {workspace.Enemies, workspace.Misc, workspace.BossArena.Decorations}
+                                    
+                                    -- Perform raycast from camera (EXACT GAME METHOD)
+                                    local raycastResult = workspace:Raycast(cameraPos, lookDirection * 250, raycastParams)
+                                    
+                                    -- Only fire if raycast hits the target (EXACT GAME VALIDATION)
+                                    if raycastResult and raycastResult.Instance:IsDescendantOf(workspace.Enemies) then
+                                        -- Use EXACT GAME PARAMETERS
+                                        local args = {
+                                            raycastResult.Instance.Parent,  -- zombie model
+                                            raycastResult.Instance,        -- hit part
+                                            raycastResult.Position,        -- hit position
+                                            0,                            -- damage multiplier (EXACT GAME VALUE)
+                                            weapon                        -- weapon name
+                                        }
+                                        
+                                        success = pcall(function() 
+                                            shootRemote:FireServer(unpack(args)) 
+                                        end)
+                                    end
+                                    
+                                    -- Immediately disable camera hijacking for better performance
+                                    AimAssist.Enabled = false
+                                    AimAssist.Target = nil
+                                    
+                                    -- Add small delay to prevent rapid camera switching
+                                    task.wait(math.random(5, 10) * 0.01)
+                                else
+                                    -- SIMPLE DIRECT SHOOTING (no camera hijacking)
+                                    local args = {closestZombie, closestHead, closestHead.Position, 0, weapon}
+                                    success = pcall(function() 
                                         shootRemote:FireServer(unpack(args)) 
                                     end)
-                                    
-                                    if success then
-                                        lastShotTime = tick()
-                                        shotsFired = shotsFired + 1
-                                        
-                                        -- Take breaks occasionally (human-like behavior)
-                                        if shotsFired >= math.random(8, 15) then
-                                            task.wait(math.random(20, 50) * 0.01) -- 0.2-0.5s break
-                                            shotsFired = 0
-                                        end
-                                    end
                                 end
                                 
-                                -- Disable camera hijacking
-                                AimAssist.Enabled = false
-                                AimAssist.Target = nil
+                                if success then
+                                    lastShotTime = tick()
+                                    shotsFired = shotsFired + 1
+                                    
+                                    -- Take breaks occasionally (human-like behavior)
+                                    if shotsFired >= math.random(8, 15) then
+                                        task.wait(math.random(20, 50) * 0.01) -- 0.2-0.5s break
+                                        shotsFired = 0
+                                    end
+                                end
                             end
                         end
                     end
@@ -397,9 +441,9 @@ MiscTab:CreateButton({
         }  
 
         for _, attr in ipairs(enchants) do  
-            if vars:GetAttribute(attr) ~= nil then  
+            if vars:GetAttribute(attr) ~= nil then
                 vars:SetAttribute(attr, true)  
-            end  
+            end
         end
         Rayfield:Notify({
             Title = "Enhancement",
@@ -417,10 +461,10 @@ MiscTab:CreateButton({
         local gunData = player:FindFirstChild("GunData")
         if not gunData then return end
 
-        for _, value in ipairs(gunData:GetChildren()) do  
-            if value:IsA("StringValue") then  
+        for _, value in ipairs(gunData:GetChildren()) do
+            if value:IsA("StringValue") then
                 value.Value = "celestial"  
-            end  
+            end
         end
         Rayfield:Notify({
             Title = "Weapons",
@@ -514,13 +558,13 @@ OpenTab:CreateToggle({
 local autoOpenPet = false
 OpenTab:CreateToggle({
     Name = "🐾 Pet Crates",
-    CurrentValue = false,
-    Callback = function(state)
+        CurrentValue = false,
+        Callback = function(state)
         autoOpenPet = state
-        if state then
-            task.spawn(function()
+            if state then
+                task.spawn(function()
                 while autoOpenPet do
-                    pcall(function()
+                            pcall(function()
                         for i = 1, selectedQuantity do
                             ReplicatedStorage.Remotes.OpenPetCrate:InvokeServer(1)
                             task.wait(0.1)
@@ -549,12 +593,12 @@ OpenTab:CreateToggle({
                             task.wait(0.1)
                         end
                     end)
-                    task.wait(0.1)
-                end
-            end)
+                        task.wait(0.1)
+                    end
+                end)
+            end
         end
-    end
-})
+    })
 
 
 -- Mod Tab
