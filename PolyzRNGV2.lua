@@ -35,6 +35,26 @@ local humanBehaviorPattern = {
     missChance = {0.05, 0.15}
 }
 
+-- DEBUG LOGGING SYSTEM
+local logFile = "PolyzRNG_Debug.log"
+local function writeLog(message)
+    local timestamp = os.date("%Y-%m-%d %H:%M:%S")
+    local logMessage = "[" .. timestamp .. "] " .. message .. "\n"
+    
+    -- Write to file using writefile (works in most executors)
+    pcall(function()
+        if writefile then
+            writefile(logFile, readfile(logFile) .. logMessage)
+        else
+            -- Fallback to console if writefile not available
+            print(logMessage)
+        end
+    end)
+    
+    -- Also print to console for immediate feedback
+    print(logMessage)
+end
+
 -- Enhanced weapon validation (matches game exactly)
 local function getEquippedWeaponName()
     local success, result = pcall(function()
@@ -163,6 +183,20 @@ local roundLabel = CombatTab:CreateLabel("🎯 Round: 0 | Risk: 0% | Shots: 0")
 
 -- Detection Risk Label
 local riskLabel = CombatTab:CreateLabel("🛡️ Detection Risk: 0% | Session: 0m")
+
+-- Debug Log Button
+CombatTab:CreateButton({
+    Name = "📄 Download Debug Log",
+    Callback = function()
+        writeLog("Debug log download requested")
+        Rayfield:Notify({
+            Title = "Debug Log",
+            Content = "Debug log saved to PolyzRNG_Debug.log - Check your executor's workspace folder",
+            Duration = 5,
+            Image = 4483362458
+        })
+    end
+})
 
 -- Update labels
 task.spawn(function()
@@ -344,9 +378,7 @@ CombatTab:CreateToggle({
                 Duration = 4,
                 Image = 4483362458
             })
-            local debugInfo = "Auto headshot enabled - autoKill: " .. tostring(autoKill) .. " autoKillBosses: " .. tostring(autoKillBosses)
-            print(debugInfo)
-            setclipboard(debugInfo)
+            writeLog("Auto headshot enabled - autoKill: " .. tostring(autoKill) .. " autoKillBosses: " .. tostring(autoKillBosses))
             task.spawn(function()
                 while autoKill do
                     -- Check if we can shoot (cooldown validation)
@@ -355,9 +387,7 @@ CombatTab:CreateToggle({
                         continue
                     end
                     
-                    local loopInfo = "Auto headshot loop running - looking for targets..."
-                    print(loopInfo)
-                    setclipboard(loopInfo)
+                    writeLog("Auto headshot loop running - looking for targets...")
                     
                     local enemies = workspace:FindFirstChild("Enemies")
                     local shootRemote = Remotes:FindFirstChild("ShootEnemy")
@@ -369,7 +399,10 @@ CombatTab:CreateToggle({
                         local minDist = math.huge
                         local playerPos = player.Character and player.Character.PrimaryPart and player.Character.PrimaryPart.Position
                         
+                        writeLog("Checking for targets - Weapon: " .. weapon .. " PlayerPos: " .. tostring(playerPos))
+                        
                         if not playerPos then
+                            writeLog("No player position found, skipping...")
                             task.wait(0.1)
                             continue
                         end
@@ -446,9 +479,7 @@ CombatTab:CreateToggle({
                         
                         -- Shoot closest target (zombie or boss) with ADAPTIVE STEALTH SYSTEM
                         if closestTarget and closestHead then
-                            local targetInfo = "Target found: " .. closestTarget.Name .. " Distance: " .. tostring(math.floor(minDist))
-                            print(targetInfo)
-                            setclipboard(targetInfo)
+                            writeLog("Target found: " .. closestTarget.Name .. " Distance: " .. tostring(minDist))
                             -- Adaptive miss chance (increases with rounds and risk)
                             local missChance = math.random(1, 100)
                             local totalMissChance = getAdaptiveMissChance(minDist)
@@ -628,24 +659,7 @@ CombatTab:CreateToggle({
                     local baseDelay = shootDelay + (roundsSurvived * 0.02) -- +0.02s per round
                     local jitterRange = math.min(5 + roundsSurvived, 15) -- More jitter in higher rounds
                     local delay = baseDelay + math.random(-jitterRange, jitterRange) * 0.01
-                    
-                    -- Debug summary
-                    local debugSummary = "=== AUTO HEADSHOT DEBUG ===\n"
-                    debugSummary = debugSummary .. "Round: " .. roundsSurvived .. "\n"
-                    debugSummary = debugSummary .. "Shots Fired: " .. shotCount .. "\n"
-                    debugSummary = debugSummary .. "Detection Risk: " .. math.floor(detectionRisk * 100) .. "%\n"
-                    debugSummary = debugSummary .. "Weapon: " .. getEquippedWeaponName() .. "\n"
-                    debugSummary = debugSummary .. "Delay: " .. math.floor(delay * 1000) .. "ms\n"
-                    debugSummary = debugSummary .. "Targets Found: " .. (closestTarget and "YES" or "NO") .. "\n"
-                    if closestTarget then
-                        debugSummary = debugSummary .. "Target Name: " .. closestTarget.Name .. "\n"
-                        debugSummary = debugSummary .. "Target Distance: " .. math.floor(minDist) .. " studs\n"
-                    end
-                    debugSummary = debugSummary .. "========================"
-                    
-                    print(debugSummary)
-                    setclipboard(debugSummary)
-                    
+                    writeLog("No targets found, waiting " .. tostring(delay) .. " seconds...")
                     task.wait(math.max(0.1, delay))
                 end
             end)
