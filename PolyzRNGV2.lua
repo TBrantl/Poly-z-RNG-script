@@ -46,7 +46,7 @@ task.spawn(function()
     end
 end)
 
--- Ultra-Optimized Auto Headshots with Predictive AI (Anti-Detection, Max Speed, Zombie Prevention)
+-- Ultra-Optimized Auto Headshots with Predictive AI (Anti-Detection, Zombies & Bosses)
 local autoKill = false
 local lastShotTime = 0
 local shotsFired = 0
@@ -56,17 +56,17 @@ local weaponCacheTime = 0
 local rayParams = RaycastParams.new()
 
 -- Configurable parameters for anti-detection and AI
-local MAX_TARGETS_PER_LOOP = 3 -- Shoot up to 3 closest zombies per cycle for faster clearing
-local SHOT_VARIATION = {min = 0.01, max = 0.025} -- Faster randomized delay
-local BURST_VARIATION = {min = 6, max = 12} -- Smaller bursts for quicker response
-local PAUSE_VARIATION = {min = 0.05, max = 0.15} -- Shorter pauses
+local MAX_TARGETS_PER_LOOP = 3 -- Shoot up to 3 closest enemies per cycle
+local SHOT_VARIATION = {min = 0.01, max = 0.025} -- Fast randomized delay
+local BURST_VARIATION = {min = 6, max = 12} -- Quick bursts
+local PAUSE_VARIATION = {min = 0.05, max = 0.15} -- Short pauses
 local HEADSHOT_CHANCE = 0.99 -- Near-perfect headshots
-local BULLET_SPEED = 500 -- Assumed bullet speed for prediction (adjust if known)
+local BULLET_SPEED = 500 -- Assumed bullet speed for prediction
 
 CombatTab:CreateToggle({
-    Name = "Auto Headshot Zombies",
+    Name = "Auto Headshot Enemies",
     CurrentValue = false,
-    Flag = "AutoKillZombies",
+    Flag = "AutoKillEnemies",
     Callback = function(state)
         autoKill = state
         if state then
@@ -78,11 +78,11 @@ CombatTab:CreateToggle({
                 cachedRemotes[remoteKey] = Remotes:FindFirstChild("ShootEnemy")
                 
                 while autoKill do
-                    local enemies = cachedRemotes[enemyKey]
+                    local enemiesFolder = cachedRemotes[enemyKey]
                     local shootRemote = cachedRemotes[remoteKey]
                     local char = player.Character
                     
-                    if enemies and shootRemote and char then
+                    if shootRemote and char then
                         local primaryPart = char.PrimaryPart
                         if not primaryPart then
                             task.wait(SHOT_VARIATION.min)
@@ -104,66 +104,99 @@ CombatTab:CreateToggle({
                         
                         local playerPos = primaryPart.Position
                         
-                        -- Collect visible zombies
-                        local visibleZombies = {}
+                        -- Collect all enemies (zombies and bosses)
+                        local visibleEnemies = {}
                         rayParams.FilterDescendantsInstances = {char}
                         rayParams.FilterType = Enum.RaycastFilterType.Blacklist
                         
-                        for _, zombie in pairs(enemies:GetChildren()) do
-                            local head = zombie:FindFirstChild("Head")
-                            if not head then continue end
-                            
-                            local delta = head.Position - playerPos
-                            local distSq = delta.X * delta.X + delta.Y * delta.Y + delta.Z * delta.Z
-                            
-                            -- AI Prediction: Get velocity for predictive aiming
-                            local zombieRoot = zombie:FindFirstChild("HumanoidRootPart") or zombie:FindFirstChild("Torso")
-                            local velocity = zombieRoot and zombieRoot.Velocity or Vector3.new(0, 0, 0)
-                            local distance = math.sqrt(distSq)
-                            local bulletTime = distance / BULLET_SPEED
-                            local predictedDelta = delta + velocity * bulletTime
-                            
-                            -- Raycast to predicted position
-                            local rayDirection = predictedDelta + Vector3.new(
-                                math.random(-2, 2) * 0.1,
-                                math.random(-2, 2) * 0.1,
-                                math.random(-2, 2) * 0.1
-                            )
-                            local rayResult = workspace:Raycast(playerPos, rayDirection, rayParams)
-                            
-                            if rayResult and rayResult.Instance:IsDescendantOf(zombie) then
-                                table.insert(visibleZombies, {
-                                    zombie = zombie,
-                                    head = head,
-                                    torso = zombie:FindFirstChild("Torso") or zombie:FindFirstChild("UpperTorso"),
-                                    distSq = distSq,
-                                    predictedPos = head.Position + velocity * bulletTime
-                                })
+                        -- Check Enemies folder (zombies)
+                        if enemiesFolder then
+                            for _, enemy in pairs(enemiesFolder:GetChildren()) do
+                                local head = enemy:FindFirstChild("Head")
+                                if not head then continue end
+                                
+                                local delta = head.Position - playerPos
+                                local distSq = delta.X * delta.X + delta.Y * delta.Y + delta.Z * delta.Z
+                                
+                                local enemyRoot = enemy:FindFirstChild("HumanoidRootPart") or enemy:FindFirstChild("Torso")
+                                local velocity = enemyRoot and enemyRoot.Velocity or Vector3.new(0, 0, 0)
+                                local distance = math.sqrt(distSq)
+                                local bulletTime = distance / BULLET_SPEED
+                                local predictedDelta = delta + velocity * bulletTime
+                                
+                                local rayDirection = predictedDelta + Vector3.new(
+                                    math.random(-2, 2) * 0.1,
+                                    math.random(-2, 2) * 0.1,
+                                    math.random(-2, 2) * 0.1
+                                )
+                                local rayResult = workspace:Raycast(playerPos, rayDirection, rayParams)
+                                
+                                if rayResult and rayResult.Instance:IsDescendantOf(enemy) then
+                                    table.insert(visibleEnemies, {
+                                        enemy = enemy,
+                                        head = head,
+                                        torso = enemy:FindFirstChild("Torso") or enemy:FindFirstChild("UpperTorso"),
+                                        distSq = distSq,
+                                        predictedPos = head.Position + velocity * bulletTime
+                                    })
+                                end
+                            end
+                        end
+                        
+                        -- Check for bosses in workspace
+                        for _, potentialEnemy in pairs(workspace:GetChildren()) do
+                            if potentialEnemy ~= enemiesFolder and potentialEnemy:IsA("Model") then
+                                local head = potentialEnemy:FindFirstChild("Head")
+                                local humanoid = potentialEnemy:FindFirstChildOfClass("Humanoid")
+                                if not (head and humanoid) then continue end
+                                
+                                local delta = head.Position - playerPos
+                                local distSq = delta.X * delta.X + delta.Y * delta.Y + delta.Z * delta.Z
+                                
+                                local enemyRoot = potentialEnemy:FindFirstChild("HumanoidRootPart") or potentialEnemy:FindFirstChild("Torso")
+                                local velocity = enemyRoot and enemyRoot.Velocity or Vector3.new(0, 0, 0)
+                                local distance = math.sqrt(distSq)
+                                local bulletTime = distance / BULLET_SPEED
+                                local predictedDelta = delta + velocity * bulletTime
+                                
+                                local rayDirection = predictedDelta + Vector3.new(
+                                    math.random(-2, 2) * 0.1,
+                                    math.random(-2, 2) * 0.1,
+                                    math.random(-2, 2) * 0.1
+                                )
+                                local rayResult = workspace:Raycast(playerPos, rayDirection, rayParams)
+                                
+                                if rayResult and rayResult.Instance:IsDescendantOf(potentialEnemy) then
+                                    table.insert(visibleEnemies, {
+                                        enemy = potentialEnemy,
+                                        head = head,
+                                        torso = potentialEnemy:FindFirstChild("Torso") or potentialEnemy:FindFirstChild("UpperTorso"),
+                                        distSq = distSq,
+                                        predictedPos = head.Position + velocity * bulletTime
+                                    })
+                                end
                             end
                         end
                         
                         -- Sort by distance (closest first)
-                        table.sort(visibleZombies, function(a, b) return a.distSq < b.distSq end)
+                        table.sort(visibleEnemies, function(a, b) return a.distSq < b.distSq end)
                         
-                        -- Shoot the closest ones (up to MAX_TARGETS_PER_LOOP)
+                        -- Shoot the closest enemies (up to MAX_TARGETS_PER_LOOP)
                         local targetsShot = 0
-                        for _, target in ipairs(visibleZombies) do
+                        for _, target in ipairs(visibleEnemies) do
                             if targetsShot >= MAX_TARGETS_PER_LOOP then break end
                             if not target.torso then continue end
                             
-                            -- Randomized headshot
                             local targetPart = math.random() < HEADSHOT_CHANCE and target.head or target.torso
                             
-                            -- Subtle offset
                             local offset = Vector3.new(
                                 math.random(-15, 15) * 0.05,
                                 math.random(-15, 15) * 0.05,
                                 math.random(-15, 15) * 0.05
                             )
                             
-                            -- Fire with predicted position
                             shootRemote:FireServer(
-                                target.zombie,
+                                target.enemy,
                                 targetPart,
                                 target.predictedPos + offset,
                                 math.random(1, 3),
@@ -173,7 +206,6 @@ CombatTab:CreateToggle({
                             shotsFired = shotsFired + 1
                             targetsShot = targetsShot + 1
                             
-                            -- Tiny delay between shots in burst
                             task.wait(math.random(1, 5) * 0.005)
                         end
                         
