@@ -329,29 +329,21 @@ CombatTab:CreateToggle({
     end
 })
 
--- Boss Auto Kill Toggle
-CombatTab:CreateToggle({
-    Name = "👹 Auto Kill Bosses",
-    CurrentValue = false,
-    Flag = "AutoKillBosses",
-    Callback = function(state)
-        autoKillBosses = state
-        Rayfield:Notify({
-            Title = "Boss Auto Kill",
-            Content = "Automatically target and kill bosses " .. (state and "enabled" or "disabled"),
-            Duration = 3,
-            Image = 4483362458
-        })
-    end
-})
 
 CombatTab:CreateToggle({
-    Name = "🔪 Auto Headshots (STEALTH)",
+    Name = "🔪 Auto Headshots (ZOMBIES + BOSSES)",
     CurrentValue = false,
     Flag = "AutoKillZombies",
     Callback = function(state)
         autoKill = state
+        autoKillBosses = state -- Boss targeting is always enabled with auto headshots
         if state then
+            Rayfield:Notify({
+                Title = "Auto Headshots + Boss Kill",
+                Content = "Stealth auto headshots enabled - Targets zombies and bosses with detection resistance",
+                Duration = 4,
+                Image = 4483362458
+            })
             task.spawn(function()
                 while autoKill do
                     -- Check if we can shoot (cooldown validation)
