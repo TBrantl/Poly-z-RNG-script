@@ -35,6 +35,35 @@ local humanBehaviorPattern = {
     missChance = {0.05, 0.15}
 }
 
+-- Weapon fire rates (moved to top to prevent nil reference errors)
+local weaponFireRates = {
+    ["M1911"] = 0.133,
+    ["AK47"] = 0.120,
+    ["M4A1"] = 0.100,
+    ["MP5"] = 0.080,
+    ["UMP45"] = 0.090,
+    ["P90"] = 0.067,
+    ["AUG"] = 0.110,
+    ["G36C"] = 0.105,
+    ["SCAR-H"] = 0.130,
+    ["AWM"] = 0.150,
+    ["AWP"] = 1.714,  -- Sniper rifle
+    ["M249"] = 0.075,
+    ["RPG"] = 0.200,
+    ["Grenade"] = 0.300,
+    ["Knife"] = 0.500,
+    ["MAC10"] = 0.075,
+    ["FAMAS"] = 0.069,
+    ["SCAR"] = 0.109,
+    ["G3"] = 0.133,
+    ["M16"] = 0.109,
+    -- Additional fallback weapons
+    ["Pistol"] = 0.133,
+    ["Rifle"] = 0.100,
+    ["SMG"] = 0.080,
+    ["Sniper"] = 0.150
+}
+
 -- Enhanced weapon validation (matches game exactly)
 local function getEquippedWeaponName()
     local success, result = pcall(function()
@@ -46,7 +75,7 @@ local function getEquippedWeaponName()
                 local PlayerData = ReplicatedStorage:FindFirstChild("PlayerData")
                 if PlayerData then
                     local weaponData = PlayerData:FindFirstChild("equipped_" .. string.lower(equippedSlot))
-                    if weaponData then
+                    if weaponData and weaponData.Value then
                         return weaponData.Value
                     end
                 end
@@ -55,36 +84,49 @@ local function getEquippedWeaponName()
         
         -- Method 2: Check workspace Players (fallback)
         local model = workspace:FindFirstChild("Players")
-    if model then
+        if model then
             local playerModel = model:FindFirstChild(player.Name)
             if playerModel then
                 for _, child in ipairs(playerModel:GetChildren()) do
-            if child:IsA("Model") then
-                return child.Name
+                    if child:IsA("Model") and child.Name then
+                        return child.Name
+                    end
+                end
             end
-        end
-    end
         end
         
         return "M1911" -- Default fallback
     end)
     
-    return success and result or "M1911"
+    -- Ensure we always return a valid weapon name
+    local weaponName = success and result or "M1911"
+    
+    -- Validate weapon exists in fire rates table
+    if not weaponFireRates[weaponName] then
+        return "M1911" -- Fallback to default weapon
+    end
+    
+    return weaponName
 end
 
--- Human-like timing validation
+-- Human-like timing validation (with error handling)
 local function validateShotTiming()
-    local currentTime = tick()
-    local timeSinceLastShot = currentTime - lastShotTime
+    local success, result = pcall(function()
+        local currentTime = tick()
+        local timeSinceLastShot = currentTime - lastShotTime
+        
+        -- Get weapon-specific minimum delay with error handling
+        local weapon = getEquippedWeaponName()
+        local minDelay = weaponFireRates[weapon] or 0.12
+        
+        -- Add human reaction time variation
+        local humanDelay = math.random(humanBehaviorPattern.reactionTime[1] * 100, humanBehaviorPattern.reactionTime[2] * 100) / 100
+        
+        return timeSinceLastShot >= (minDelay + humanDelay)
+    end)
     
-    -- Get weapon-specific minimum delay
-    local weapon = getEquippedWeaponName()
-    local minDelay = weaponFireRates[weapon] or 0.12
-    
-    -- Add human reaction time variation
-    local humanDelay = math.random(humanBehaviorPattern.reactionTime[1] * 100, humanBehaviorPattern.reactionTime[2] * 100) / 100
-    
-    return timeSinceLastShot >= (minDelay + humanDelay)
+    -- Return false if there's an error (safer default)
+    return success and result or false
 end
 
 -- Behavioral pattern analysis
@@ -190,23 +232,6 @@ local lastShotTime = 0
 local shotsFired = 0
 local roundsSurvived = 0
 local detectionRisk = 0
-local weaponFireRates = {
-    ["M1911"] = 0.133,
-    ["AK47"] = 0.120,
-    ["M4A1"] = 0.100,
-    ["G36C"] = 0.086,
-    ["MAC10"] = 0.075,
-    ["UMP45"] = 0.080,
-    ["MP5"] = 0.086,
-    ["AUG"] = 0.086,
-    ["FAMAS"] = 0.069,
-    ["P90"] = 0.075,
-    ["SCAR"] = 0.109,
-    ["G3"] = 0.133,
-    ["M249"] = 0.133,
-    ["AWP"] = 1.714,
-    ["M16"] = 0.109
-}
 
 -- Get weapon fire rate with adaptive jitter (increases with rounds)
 local function getWeaponFireDelay(weaponName)
