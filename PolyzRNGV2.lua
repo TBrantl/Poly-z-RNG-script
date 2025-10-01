@@ -46,22 +46,22 @@ task.spawn(function()
     end
 end)
 
--- Ultra-Optimized Auto Headshots with Predictive AI (Anti-Detection, Zombies & Bosses)
+-- Ultra-Optimized Auto Headshots with Predictive AI (Enhanced Anti-Detection, Zombies & Bosses)
 local autoKill = false
-local lastShotTime = 0
 local shotsFired = 0
 local cachedRemotes = {}
 local cachedWeapon = nil
 local weaponCacheTime = 0
 local rayParams = RaycastParams.new()
 
--- Configurable parameters for anti-detection and AI
-local MAX_TARGETS_PER_LOOP = 3 -- Shoot up to 3 closest enemies per cycle
-local SHOT_VARIATION = {min = 0.01, max = 0.025} -- Fast randomized delay
-local BURST_VARIATION = {min = 6, max = 12} -- Quick bursts
-local PAUSE_VARIATION = {min = 0.05, max = 0.15} -- Short pauses
-local HEADSHOT_CHANCE = 0.99 -- Near-perfect headshots
-local BULLET_SPEED = 500 -- Assumed bullet speed for prediction
+-- Configurable parameters for anti-detection and speed
+local MAX_TARGETS_PER_LOOP = 5 -- Increased for faster clearing
+local SHOT_VARIATION = {min = 0.008, max = 0.02} -- Tighter delay for speed
+local BURST_VARIATION = {min = 5, max = 10} -- Shorter bursts
+local PAUSE_VARIATION = {min = 0.03, max = 0.1} -- Minimal pauses
+local HEADSHOT_CHANCE = 0.97 -- Slightly less predictable
+local BULLET_SPEED = 500 -- Assumed bullet speed
+local MAX_DISTANCE = 200 -- Max distance to scan (studs) for performance
 
 CombatTab:CreateToggle({
     Name = "Auto Headshot Enemies",
@@ -72,8 +72,8 @@ CombatTab:CreateToggle({
         if state then
             task.spawn(function()
                 -- Initialize caches with obfuscated keys
-                local enemyKey = math.random(1000, 9999)
-                local remoteKey = math.random(1000, 9999)
+                local enemyKey = math.random(10000, 99999)
+                local remoteKey = math.random(10000, 99999)
                 cachedRemotes[enemyKey] = workspace:FindFirstChild("Enemies")
                 cachedRemotes[remoteKey] = Remotes:FindFirstChild("ShootEnemy")
                 
@@ -97,14 +97,12 @@ CombatTab:CreateToggle({
                         
                         -- Dynamic weapon caching
                         local currentTime = tick()
-                        if not cachedWeapon or currentTime - weaponCacheTime > math.random(0.8, 1.2) then
+                        if not cachedWeapon or currentTime - weaponCacheTime > math.random(0.6, 1.0) then
                             cachedWeapon = getEquippedWeaponName()
                             weaponCacheTime = currentTime
                         end
                         
                         local playerPos = primaryPart.Position
-                        
-                        -- Collect all enemies (zombies and bosses)
                         local visibleEnemies = {}
                         rayParams.FilterDescendantsInstances = {char}
                         rayParams.FilterType = Enum.RaycastFilterType.Blacklist
@@ -117,6 +115,7 @@ CombatTab:CreateToggle({
                                 
                                 local delta = head.Position - playerPos
                                 local distSq = delta.X * delta.X + delta.Y * delta.Y + delta.Z * delta.Z
+                                if distSq > MAX_DISTANCE * MAX_DISTANCE then continue end
                                 
                                 local enemyRoot = enemy:FindFirstChild("HumanoidRootPart") or enemy:FindFirstChild("Torso")
                                 local velocity = enemyRoot and enemyRoot.Velocity or Vector3.new(0, 0, 0)
@@ -125,9 +124,9 @@ CombatTab:CreateToggle({
                                 local predictedDelta = delta + velocity * bulletTime
                                 
                                 local rayDirection = predictedDelta + Vector3.new(
-                                    math.random(-2, 2) * 0.1,
-                                    math.random(-2, 2) * 0.1,
-                                    math.random(-2, 2) * 0.1
+                                    math.random(-3, 3) * 0.08,
+                                    math.random(-3, 3) * 0.08,
+                                    math.random(-3, 3) * 0.08
                                 )
                                 local rayResult = workspace:Raycast(playerPos, rayDirection, rayParams)
                                 
@@ -152,6 +151,7 @@ CombatTab:CreateToggle({
                                 
                                 local delta = head.Position - playerPos
                                 local distSq = delta.X * delta.X + delta.Y * delta.Y + delta.Z * delta.Z
+                                if distSq > MAX_DISTANCE * MAX_DISTANCE then continue end
                                 
                                 local enemyRoot = potentialEnemy:FindFirstChild("HumanoidRootPart") or potentialEnemy:FindFirstChild("Torso")
                                 local velocity = enemyRoot and enemyRoot.Velocity or Vector3.new(0, 0, 0)
@@ -160,9 +160,9 @@ CombatTab:CreateToggle({
                                 local predictedDelta = delta + velocity * bulletTime
                                 
                                 local rayDirection = predictedDelta + Vector3.new(
-                                    math.random(-2, 2) * 0.1,
-                                    math.random(-2, 2) * 0.1,
-                                    math.random(-2, 2) * 0.1
+                                    math.random(-3, 3) * 0.08,
+                                    math.random(-3, 3) * 0.08,
+                                    math.random(-3, 3) * 0.08
                                 )
                                 local rayResult = workspace:Raycast(playerPos, rayDirection, rayParams)
                                 
@@ -178,46 +178,53 @@ CombatTab:CreateToggle({
                             end
                         end
                         
-                        -- Sort by distance (closest first)
+                        -- Sort by distance and prioritize closer enemies
                         table.sort(visibleEnemies, function(a, b) return a.distSq < b.distSq end)
                         
-                        -- Shoot the closest enemies (up to MAX_TARGETS_PER_LOOP)
+                        -- Shoot closest enemies (up to MAX_TARGETS_PER_LOOP)
                         local targetsShot = 0
-                        for _, target in ipairs(visibleEnemies) do
+                        for i, target in ipairs(visibleEnemies) do
                             if targetsShot >= MAX_TARGETS_PER_LOOP then break end
                             if not target.torso then continue end
+                            
+                            -- Randomize target selection slightly to avoid patterns
+                            if math.random() < 0.1 and #visibleEnemies > 1 then
+                                target = visibleEnemies[math.random(1, math.min(3, #visibleEnemies))]
+                            end
                             
                             local targetPart = math.random() < HEADSHOT_CHANCE and target.head or target.torso
                             
                             local offset = Vector3.new(
-                                math.random(-15, 15) * 0.05,
-                                math.random(-15, 15) * 0.05,
-                                math.random(-15, 15) * 0.05
+                                math.random(-20, 20) * 0.04,
+                                math.random(-20, 20) * 0.04,
+                                math.random(-20, 20) * 0.04
                             )
                             
+                            -- Obfuscated remote call with fake parameters
                             shootRemote:FireServer(
                                 target.enemy,
                                 targetPart,
                                 target.predictedPos + offset,
-                                math.random(1, 3),
-                                cachedWeapon
+                                math.random(1, 3) * (math.random() < 0.9 and 1 or 0.5), -- Randomize damage
+                                cachedWeapon,
+                                math.random() -- Extra parameter to mimic legit calls
                             )
                             
                             shotsFired = shotsFired + 1
                             targetsShot = targetsShot + 1
                             
-                            task.wait(math.random(1, 5) * 0.005)
+                            task.wait(math.random(1, 4) * 0.004) -- Faster intra-burst delay
                         end
                         
-                        -- Burst control
+                        -- Dynamic burst control
                         if shotsFired >= math.random(BURST_VARIATION.min, BURST_VARIATION.max) then
                             task.wait(math.random(PAUSE_VARIATION.min * 100, PAUSE_VARIATION.max * 100) * 0.01)
                             shotsFired = 0
                         end
                     else
-                        -- Re-cache if needed
-                        enemyKey = math.random(1000, 9999)
-                        remoteKey = math.random(1000, 9999)
+                        -- Re-cache with new keys
+                        enemyKey = math.random(10000, 99999)
+                        remoteKey = math.random(10000, 99999)
                         cachedRemotes[enemyKey] = workspace:FindFirstChild("Enemies")
                         cachedRemotes[remoteKey] = Remotes:FindFirstChild("ShootEnemy")
                     end
