@@ -46,25 +46,26 @@ task.spawn(function()
     end
 end)
 
--- Ultra-Optimized Auto Headshots with Predictive AI (Enhanced Anti-Detection, Zombies & Bosses)
+-- Ultra-Stealth Auto Headshots with Predictive AI (Max Anti-Detection, Zombies & Bosses)
 local autoKill = false
 local shotsFired = 0
 local cachedRemotes = {}
 local cachedWeapon = nil
 local weaponCacheTime = 0
 local rayParams = RaycastParams.new()
-local waveCounter = 0 -- Track wave progression
+local waveCounter = 0
 local lastWaveCheck = 0
 
--- Configurable parameters for anti-detection and speed
-local MAX_TARGETS_PER_LOOP = 4 -- Reduced slightly to avoid detection
-local SHOT_VARIATION = {min = 0.01, max = 0.03} -- Wider delay range
-local BURST_VARIATION = {min = 4, max = 9} -- Variable bursts
-local PAUSE_VARIATION = {min = 0.05, max = 0.15} -- Dynamic pauses
-local HEADSHOT_CHANCE = 0.92 -- Lowered for human-like error
-local MISS_CHANCE = 0.15 -- 15% chance to miss
+-- Configurable parameters for anti-detection and balance
+local MAX_TARGETS_PER_LOOP = 3 -- Reduced for stealth
+local SHOT_VARIATION = {min = 0.015, max = 0.04} -- Wider delay for human-like timing
+local BURST_VARIATION = {min = 3, max = 7} -- Smaller bursts
+local PAUSE_VARIATION = {min = 0.08, max = 0.2} -- Longer pauses
+local HEADSHOT_CHANCE = 0.85 -- Lowered for natural error
+local MISS_CHANCE = 0.25 -- 25% chance to miss
+local COOLDOWN_CHANCE = 0.3 -- 30% chance for brief cooldown
 local BULLET_SPEED = 500 -- Assumed bullet speed
-local MAX_DISTANCE = 200 -- Max scan distance (studs)
+local MAX_DISTANCE = 150 -- Reduced scan distance for performance
 
 CombatTab:CreateToggle({
     Name = "🔪 Auto Headshots",
@@ -75,8 +76,8 @@ CombatTab:CreateToggle({
         if state then
             task.spawn(function()
                 -- Initialize caches with obfuscated keys
-                local enemyKey = math.random(10000, 99999)
-                local remoteKey = math.random(10000, 99999)
+                local enemyKey = math.random(100000, 999999)
+                local remoteKey = math.random(100000, 999999)
                 cachedRemotes[enemyKey] = workspace:FindFirstChild("Enemies")
                 cachedRemotes[remoteKey] = Remotes:FindFirstChild("ShootEnemy")
                 
@@ -85,9 +86,9 @@ CombatTab:CreateToggle({
                     local shootRemote = cachedRemotes[remoteKey]
                     local char = player.Character
                     
-                    -- Estimate wave progression based on time
+                    -- Estimate wave progression
                     local currentTime = tick()
-                    if currentTime - lastWaveCheck > 60 then -- Assume wave change every ~60s
+                    if currentTime - lastWaveCheck > 60 then
                         waveCounter = waveCounter + 1
                         lastWaveCheck = currentTime
                     end
@@ -106,7 +107,7 @@ CombatTab:CreateToggle({
                         end
                         
                         -- Dynamic weapon caching
-                        if not cachedWeapon or currentTime - weaponCacheTime > math.random(0.7, 1.1) then
+                        if not cachedWeapon or currentTime - weaponCacheTime > math.random(0.8, 1.2) then
                             cachedWeapon = getEquippedWeaponName()
                             weaponCacheTime = currentTime
                         end
@@ -133,9 +134,9 @@ CombatTab:CreateToggle({
                                 local predictedDelta = delta + velocity * bulletTime
                                 
                                 local rayDirection = predictedDelta + Vector3.new(
-                                    math.random(-4, 4) * 0.1,
-                                    math.random(-4, 4) * 0.1,
-                                    math.random(-4, 4) * 0.1
+                                    math.random(-5, 5) * 0.12,
+                                    math.random(-5, 5) * 0.12,
+                                    math.random(-5, 5) * 0.12
                                 )
                                 local rayResult = workspace:Raycast(playerPos, rayDirection, rayParams)
                                 
@@ -160,18 +161,19 @@ CombatTab:CreateToggle({
                             if targetsShot >= MAX_TARGETS_PER_LOOP then break end
                             if not target.torso then continue end
                             
-                            -- Randomize target selection to avoid patterns
-                            if math.random() < 0.2 and #visibleEnemies > 1 then
-                                target = visibleEnemies[math.random(1, math.min(4, #visibleEnemies))]
+                            -- Randomize target selection to break patterns
+                            if math.random() < 0.3 and #visibleEnemies > 1 then
+                                target = visibleEnemies[math.random(1, math.min(5, #visibleEnemies))]
                             end
                             
+                            -- Simulate human error
+                            local miss = math.random() < MISS_CHANCE
                             local targetPart = math.random() < HEADSHOT_CHANCE and target.head or target.torso
                             
-                            -- Introduce occasional misses
                             local offset = Vector3.new(
-                                math.random(-25, 25) * (math.random() < MISS_CHANCE and 0.2 or 0.05),
-                                math.random(-25, 25) * (math.random() < MISS_CHANCE and 0.2 or 0.05),
-                                math.random(-25, 25) * (math.random() < MISS_CHANCE and 0.2 or 0.05)
+                                math.random(-30, 30) * (miss and 0.3 or 0.06),
+                                math.random(-30, 30) * (miss and 0.3 or 0.06),
+                                math.random(-30, 30) * (miss and 0.3 or 0.06)
                             )
                             
                             -- Fire with obfuscated parameters
@@ -179,42 +181,61 @@ CombatTab:CreateToggle({
                                 target.enemy,
                                 targetPart,
                                 target.predictedPos + offset,
-                                math.random(1, 3) * (math.random() < 0.85 and 1 or 0.4), -- Variable damage
+                                math.random(1, 3) * (math.random() < 0.8 and 1 or 0.3),
                                 cachedWeapon,
-                                math.random(), -- Fake param
-                                tick() * math.random() -- Extra noise
+                                math.random(0, 1000), -- Fake param
+                                tick() * math.random(0.5, 1.5) -- Extra noise
                             }
                             pcall(function() shootRemote:FireServer(unpack(args)) end)
+                            
+                            -- Fake remote call for obfuscation (10% chance)
+                            if math.random() < 0.1 then
+                                pcall(function()
+                                    shootRemote:FireServer(
+                                        target.enemy,
+                                        target.torso,
+                                        target.torso.Position + Vector3.new(math.random(-10, 10), math.random(-10, 10), math.random(-10, 10)),
+                                        0,
+                                        cachedWeapon,
+                                        math.random(0, 1000)
+                                    )
+                                end)
+                            end
                             
                             shotsFired = shotsFired + 1
                             targetsShot = targetsShot + 1
                             
-                            -- Wave-based delay adjustment
-                            local waveDelay = waveCounter >= 5 and math.random(2, 6) * 0.005 or math.random(1, 4) * 0.004
+                            -- Wave-based intra-burst delay
+                            local waveDelay = waveCounter >= 3 and math.random(3, 7) * 0.006 or math.random(2, 5) * 0.005
                             task.wait(waveDelay)
+                            
+                            -- Random cooldown to mimic human breaks
+                            if math.random() < COOLDOWN_CHANCE then
+                                task.wait(math.random(0.1, 0.3))
+                            end
                         end
                         
                         -- Dynamic burst control with wave adjustment
                         if shotsFired >= math.random(BURST_VARIATION.min, BURST_VARIATION.max) then
                             local pause = math.random(PAUSE_VARIATION.min * 100, PAUSE_VARIATION.max * 100) * 0.01
-                            if waveCounter >= 5 then
-                                pause = pause * 1.2 -- Slightly longer pauses after wave 5
+                            if waveCounter >= 3 then
+                                pause = pause * 1.3 -- Longer pauses from wave 3
                             end
                             task.wait(pause)
                             shotsFired = 0
                         end
                     else
                         -- Re-cache with new keys
-                        enemyKey = math.random(10000, 99999)
-                        remoteKey = math.random(10000, 99999)
+                        enemyKey = math.random(100000, 999999)
+                        remoteKey = math.random(100000, 999999)
                         cachedRemotes[enemyKey] = workspace:FindFirstChild("Enemies")
                         cachedRemotes[remoteKey] = Remotes:FindFirstChild("ShootEnemy")
                     end
                     
                     -- Randomized cycle delay with wave adjustment
                     local cycleDelay = math.random(SHOT_VARIATION.min * 1000, SHOT_VARIATION.max * 1000) * 0.001
-                    if waveCounter >= 5 then
-                        cycleDelay = cycleDelay * 1.1 -- Slightly slower after wave 5
+                    if waveCounter >= 3 then
+                        cycleDelay = cycleDelay * 1.2 -- Slower from wave 3
                     end
                     task.wait(cycleDelay)
                 end
@@ -228,7 +249,6 @@ CombatTab:CreateToggle({
         end
     end
 })
-
 -- Auto Skip Round
 local autoSkip = false
 CombatTab:CreateToggle({
