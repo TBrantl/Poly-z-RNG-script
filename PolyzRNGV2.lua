@@ -23,153 +23,39 @@ local Window = Rayfield:CreateWindow({
     }
 })
 
--- CRITICAL DETECTION RESISTANCE SYSTEM
-local lastShotTime = 0
-local shotCount = 0
-local sessionStartTime = tick()
-local humanBehaviorPattern = {
-    reactionTime = {0.1, 0.3},
-    aimVariation = {0.02, 0.05},
-    timingJitter = {0.01, 0.03},
-    breakFrequency = {8, 15},
-    missChance = {0.05, 0.15}
-}
-
--- Enhanced weapon validation (matches game exactly)
+-- Utility Functions
 local function getEquippedWeaponName()
-    local success, result = pcall(function()
-        -- Method 1: Check Variables attribute (game's primary method)
-        local Variables = ReplicatedStorage:FindFirstChild("Variables")
-        if Variables then
-            local equippedSlot = Variables:GetAttribute("Equipped_Slot")
-            if equippedSlot then
-                local PlayerData = ReplicatedStorage:FindFirstChild("PlayerData")
-                if PlayerData then
-                    local weaponData = PlayerData:FindFirstChild("equipped_" .. string.lower(equippedSlot))
-                    if weaponData then
-                        return weaponData.Value
-                    end
-                end
-            end
-        end
-        
-        -- Method 2: Check workspace Players (fallback)
-        local model = workspace:FindFirstChild("Players")
+    local model = workspace:FindFirstChild("Players"):FindFirstChild(player.Name)
     if model then
-            local playerModel = model:FindFirstChild(player.Name)
-            if playerModel then
-                for _, child in ipairs(playerModel:GetChildren()) do
+        for _, child in ipairs(model:GetChildren()) do
             if child:IsA("Model") then
                 return child.Name
             end
         end
     end
-        end
-        
-        return "M1911" -- Default fallback
-    end)
-    
-    return success and result or "M1911"
-end
-
--- Human-like timing validation
-local function validateShotTiming()
-    local currentTime = tick()
-    local timeSinceLastShot = currentTime - lastShotTime
-    
-    -- Get weapon-specific minimum delay
-    local weapon = getEquippedWeaponName()
-    local minDelay = weaponFireRates[weapon] or 0.12
-    
-    -- Add human reaction time variation
-    local humanDelay = math.random(humanBehaviorPattern.reactionTime[1] * 100, humanBehaviorPattern.reactionTime[2] * 100) / 100
-    
-    return timeSinceLastShot >= (minDelay + humanDelay)
-end
-
--- Behavioral pattern analysis
-local function shouldTakeBreak()
-    shotCount = shotCount + 1
-    local breakChance = math.random(1, 100)
-    local breakThreshold = math.random(humanBehaviorPattern.breakFrequency[1], humanBehaviorPattern.breakFrequency[2])
-    
-    return shotCount >= breakThreshold or breakChance <= 5
-end
-
--- Session-based adaptation
-local function getSessionAdaptation()
-    local sessionTime = tick() - sessionStartTime
-    local adaptationFactor = math.min(sessionTime / 300, 1) -- 5 minute adaptation
-    
-    return {
-        missChance = humanBehaviorPattern.missChance[1] + (adaptationFactor * 0.1),
-        aimVariation = humanBehaviorPattern.aimVariation[1] + (adaptationFactor * 0.02),
-        timingJitter = humanBehaviorPattern.timingJitter[1] + (adaptationFactor * 0.01)
-    }
-end
-
--- CRITICAL: Detection monitoring system
-local detectionRisk = 0
-local function updateDetectionRisk()
-    local sessionTime = tick() - sessionStartTime
-    local shotsPerMinute = (shotCount / (sessionTime / 60))
-    
-    -- Calculate risk based on multiple factors
-    local timeRisk = math.min(sessionTime / 600, 1) -- 10 minute risk
-    local shotRisk = math.min(shotsPerMinute / 60, 1) -- 60 shots/minute risk
-    local patternRisk = shotCount % 20 == 0 and 0.1 or 0 -- Pattern detection
-    
-    detectionRisk = (timeRisk + shotRisk + patternRisk) / 3
-    
-    -- Adaptive behavior based on risk
-    if detectionRisk > 0.7 then
-        humanBehaviorPattern.missChance = {0.15, 0.25}
-        humanBehaviorPattern.breakFrequency = {5, 10}
-    elseif detectionRisk > 0.4 then
-        humanBehaviorPattern.missChance = {0.10, 0.20}
-        humanBehaviorPattern.breakFrequency = {6, 12}
-    end
-end
-
--- Anti-pattern detection
-local function shouldVaryBehavior()
-    local currentTime = tick()
-    local timeSinceStart = currentTime - sessionStartTime
-    
-    -- Vary behavior every 30-60 seconds
-    if timeSinceStart % 45 < 1 then
-        return true
-    end
-    
-    -- Random variation
-    return math.random(1, 100) <= 5
+    return "M1911"
 end
 
 -- Combat Tab
 local CombatTab = Window:CreateTab("⚔️ Combat", "Skull")
 
 -- Stealth Information
-CombatTab:CreateLabel("🛡️ CRITICAL DETECTION RESISTANCE:")
-CombatTab:CreateLabel("✅ Human Behavior Simulation | ✅ Server Validation Bypass | ✅ Timing Synchronization")
-CombatTab:CreateLabel("✅ Session Adaptation | ✅ Behavioral Patterns | ✅ Perfect Game Sync")
+CombatTab:CreateLabel("🛡️ ENHANCED RAYCAST SYSTEM:")
+CombatTab:CreateLabel("✅ Multiple Raycast Attempts | ✅ Adaptive Parameters | ✅ Detection Avoidance")
+CombatTab:CreateLabel("✅ Randomized Origins | ✅ Variable Distances | ✅ Fallback System")
 CombatTab:CreateLabel("━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 
 -- Weapon Label
 local weaponLabel = CombatTab:CreateLabel("🔫 Current Weapon: Loading...")
 
 -- Round Counter Label
-local roundLabel = CombatTab:CreateLabel("🎯 Round: 0 | Risk: 0% | Shots: 0")
-
--- Detection Risk Label
-local riskLabel = CombatTab:CreateLabel("🛡️ Detection Risk: 0% | Session: 0m")
+local roundLabel = CombatTab:CreateLabel("🎯 Round: 0 | Risk: 0%")
 
 -- Update labels
 task.spawn(function()
     while true do
-        local sessionTime = math.floor((tick() - sessionStartTime) / 60)
         weaponLabel:Set("🔫 Current Weapon: " .. getEquippedWeaponName())
-        roundLabel:Set("🎯 Round: " .. roundsSurvived .. " | Risk: " .. math.floor(detectionRisk * 100) .. "% | Shots: " .. shotCount)
-        riskLabel:Set("🛡️ Detection Risk: " .. math.floor(detectionRisk * 100) .. "% | Session: " .. sessionTime .. "m")
+        roundLabel:Set("🎯 Round: " .. roundsSurvived .. " | Risk: " .. math.floor(detectionRisk * 100) .. "%")
         task.wait(0.1)
     end
 end)
@@ -387,65 +273,38 @@ CombatTab:CreateToggle({
                             local totalMissChance = getAdaptiveMissChance(minDist)
                             
                             if missChance > totalMissChance then
-                                -- CRITICAL: Update detection risk before shooting
-                                updateDetectionRisk()
-                                
-                                -- ANTI-PATTERN: Vary behavior if needed
-                                if shouldVaryBehavior() then
-                                    local variationDelay = math.random(100, 300) / 1000
-                                    task.wait(variationDelay)
-                                end
-                                
                                 local success = false
                                 
                                 if useSilentAim then
-                                    -- CRITICAL DETECTION RESISTANCE: Validate timing first
-                                    if not validateShotTiming() then
-                                        return -- Skip shot if timing is invalid
-                                    end
-                                    
-                                    -- HUMAN BEHAVIOR: Check if should take break
-                                    if shouldTakeBreak() then
-                                        local breakDuration = math.random(200, 500) / 1000
-                                        task.wait(breakDuration)
-                                        shotCount = 0 -- Reset counter
-                                        return
-                                    end
-                                    
                                     -- SILENT AIM WITH CAMERA HIJACKING (detection avoidance)
                                     AimAssist.Enabled = true
                                     AimAssist.Target = closestZombie
                                     
-                                    -- Session-adapted camera aim time
-                                    local sessionAdaptation = getSessionAdaptation()
-                                    local baseAimTime = math.random(8, 15) + (roundsSurvived * 2)
-                                    local adaptedAimTime = baseAimTime + (sessionAdaptation.timingJitter * 100)
-                                    task.wait(adaptedAimTime * 0.01)
+                                    -- Adaptive camera aim time (longer in higher rounds)
+                                    local aimTime = math.random(8, 15) + (roundsSurvived * 2)
+                                    task.wait(aimTime * 0.01)
                                     
                                     -- ENHANCED RAYCASTING WITH DETECTION AVOIDANCE
                                     local camera = workspace.CurrentCamera
                                     local cameraPos = camera.CFrame.Position
                                     
-                                    -- PERFECT GAME SYNCHRONIZATION: Match exact game raycast parameters
-                                    local sessionAdaptation = getSessionAdaptation()
-                                    
-                                    -- Human-like camera position variation (detection avoidance)
+                                    -- Add slight randomization to raycast origin (detection avoidance)
                                     local randomOffset = Vector3.new(
-                                        math.random(-2, 2) * sessionAdaptation.aimVariation,
-                                        math.random(-2, 2) * sessionAdaptation.aimVariation,
-                                        math.random(-2, 2) * sessionAdaptation.aimVariation
+                                        math.random(-2, 2) * 0.1,
+                                        math.random(-2, 2) * 0.1,
+                                        math.random(-2, 2) * 0.1
                                     )
                                     local adjustedCameraPos = cameraPos + randomOffset
                                     
-                                    -- Calculate direction with human-like aim variation
+                                    -- Calculate direction with slight aim variation (more human-like)
                                     local targetPos = closestHead.Position
                                     local baseDirection = (targetPos - adjustedCameraPos).Unit
                                     
-                                    -- Session-adapted aim variation for realism
+                                    -- Add slight aim variation for realism
                                     local aimVariation = Vector3.new(
-                                        math.random(-3, 3) * sessionAdaptation.aimVariation,
-                                        math.random(-3, 3) * sessionAdaptation.aimVariation,
-                                        math.random(-3, 3) * sessionAdaptation.aimVariation
+                                        math.random(-3, 3) * 0.01,
+                                        math.random(-3, 3) * 0.01,
+                                        math.random(-3, 3) * 0.01
                                     )
                                     local targetDirection = (baseDirection + aimVariation).Unit
                                     
@@ -492,12 +351,9 @@ CombatTab:CreateToggle({
                                         end
                                     end
                                     
-                                    -- SERVER-SIDE VALIDATION BYPASS: Only fire if raycast hits the target
+                                    -- Only fire if raycast hits the target (EXACT GAME VALIDATION)
                                     if raycastResult and raycastResult.Instance:IsDescendantOf(workspace.Enemies) then
-                                        -- CRITICAL: Update shot timing for validation
-                                        lastShotTime = tick()
-                                        
-                                        -- Use EXACT GAME PARAMETERS with timing validation
+                                        -- Use EXACT GAME PARAMETERS
                                     local args = {
                                             raycastResult.Instance.Parent,  -- zombie model
                                             raycastResult.Instance,        -- hit part
@@ -506,16 +362,9 @@ CombatTab:CreateToggle({
                                             weapon                        -- weapon name
                                         }
                                         
-                                        -- Add human-like delay before firing
-                                        local fireDelay = math.random(10, 30) / 1000
-                                        task.wait(fireDelay)
-                                        
                                         success = pcall(function() 
                                             shootRemote:FireServer(unpack(args)) 
                                         end)
-                                        
-                                        -- CRITICAL: Update shot count for behavioral tracking
-                                        shotCount = shotCount + 1
                                     else
                                         -- FALLBACK: Direct shooting if raycast fails (stealth mode)
                                         if roundsSurvived < 3 then -- Only in early rounds
