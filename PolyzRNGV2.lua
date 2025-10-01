@@ -344,9 +344,9 @@ MiscTab:CreateButton({
         }  
 
         for _, attr in ipairs(enchants) do  
-            if vars:GetAttribute(attr) ~= nil then
+            if vars:GetAttribute(attr) ~= nil then  
                 vars:SetAttribute(attr, true)  
-            end
+            end  
         end
         Rayfield:Notify({
             Title = "Enhancement",
@@ -364,10 +364,10 @@ MiscTab:CreateButton({
         local gunData = player:FindFirstChild("GunData")
         if not gunData then return end
 
-        for _, value in ipairs(gunData:GetChildren()) do
-            if value:IsA("StringValue") then
+        for _, value in ipairs(gunData:GetChildren()) do  
+            if value:IsA("StringValue") then  
                 value.Value = "celestial"  
-            end
+            end  
         end
         Rayfield:Notify({
             Title = "Weapons",
@@ -461,13 +461,13 @@ OpenTab:CreateToggle({
 local autoOpenPet = false
 OpenTab:CreateToggle({
     Name = "🐾 Pet Crates",
-        CurrentValue = false,
-        Callback = function(state)
+    CurrentValue = false,
+    Callback = function(state)
         autoOpenPet = state
-            if state then
-                task.spawn(function()
+        if state then
+            task.spawn(function()
                 while autoOpenPet do
-                            pcall(function()
+                    pcall(function()
                         for i = 1, selectedQuantity do
                             ReplicatedStorage.Remotes.OpenPetCrate:InvokeServer(1)
                             task.wait(0.1)
@@ -496,12 +496,12 @@ OpenTab:CreateToggle({
                             task.wait(0.1)
                         end
                     end)
-                        task.wait(0.1)
-                    end
-                end)
-            end
+                    task.wait(0.1)
+                end
+            end)
         end
-    })
+    end
+})
 
 
 -- Mod Tab
