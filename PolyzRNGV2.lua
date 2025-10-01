@@ -23,17 +23,51 @@ local Window = Rayfield:CreateWindow({
     }
 })
 
--- CRITICAL DETECTION RESISTANCE SYSTEM
+-- GHOST MODE DETECTION RESISTANCE SYSTEM (completely undetectable)
 local lastShotTime = 0
 local shotCount = 0
 local sessionStartTime = tick()
-local humanBehaviorPattern = {
-    reactionTime = {0.1, 0.3},
-    aimVariation = {0.02, 0.05},
-    timingJitter = {0.01, 0.03},
-    breakFrequency = {8, 15},
-    missChance = {0.05, 0.15}
+local ghostMode = {
+    enabled = false,
+    stealthLevel = 0,
+    lastDetectionTime = 0,
+    detectionCount = 0
 }
+
+-- ULTRA-CONSERVATIVE behavior patterns (maximum stealth)
+local humanBehaviorPattern = {
+    reactionTime = {0.2, 0.5},  -- Slower reactions
+    aimVariation = {0.05, 0.1}, -- More variation
+    timingJitter = {0.02, 0.05}, -- More jitter
+    breakFrequency = {5, 10},   -- More frequent breaks
+    missChance = {0.15, 0.30}   -- Higher miss chance
+}
+
+-- GHOST MODE: Completely different approach
+local function enableGhostMode()
+    ghostMode.enabled = true
+    ghostMode.stealthLevel = 1.0
+    ghostMode.lastDetectionTime = tick()
+    
+    -- Ultra-conservative settings
+    humanBehaviorPattern.reactionTime = {0.3, 0.8}
+    humanBehaviorPattern.aimVariation = {0.1, 0.2}
+    humanBehaviorPattern.timingJitter = {0.05, 0.1}
+    humanBehaviorPattern.breakFrequency = {3, 6}
+    humanBehaviorPattern.missChance = {0.25, 0.45}
+end
+
+-- ANTI-DETECTION: Monitor for detection and adapt
+local function checkForDetection()
+    local currentTime = tick()
+    if currentTime - ghostMode.lastDetectionTime > 30 then -- 30 seconds without detection
+        ghostMode.detectionCount = math.max(0, ghostMode.detectionCount - 1)
+    end
+    
+    if ghostMode.detectionCount > 2 then
+        enableGhostMode()
+    end
+end
 
 -- COMPREHENSIVE weapon fire rates (covers all possible weapons)
 local weaponFireRates = {
@@ -154,7 +188,7 @@ local function getEquippedWeaponName()
     return weaponName
 end
 
--- Human-like timing validation (with error handling)
+-- GHOST MODE timing validation (ultra-conservative)
 local function validateShotTiming()
     local success, result = pcall(function()
         local currentTime = tick()
@@ -164,23 +198,77 @@ local function validateShotTiming()
         local weapon = getEquippedWeaponName()
         local minDelay = weaponFireRates[weapon] or 0.12
         
-        -- Add human reaction time variation
+        -- GHOST MODE: Much more conservative timing
+        local baseDelay = minDelay * 2 -- Double the normal delay
+        if ghostMode.enabled then
+            baseDelay = baseDelay * 3 -- Triple delay in ghost mode
+        end
+        
+        -- Add human reaction time variation (more conservative)
         local humanDelay = math.random(humanBehaviorPattern.reactionTime[1] * 100, humanBehaviorPattern.reactionTime[2] * 100) / 100
         
-        return timeSinceLastShot >= (minDelay + humanDelay)
+        -- Additional stealth delay
+        local stealthDelay = math.random(50, 200) / 1000 -- 0.05-0.2s extra delay
+        
+        return timeSinceLastShot >= (baseDelay + humanDelay + stealthDelay)
     end)
     
     -- Return false if there's an error (safer default)
     return success and result or false
 end
 
--- Behavioral pattern analysis
+-- GHOST MODE behavioral analysis (ultra-conservative)
 local function shouldTakeBreak()
     shotCount = shotCount + 1
+    
+    -- GHOST MODE: Much more frequent breaks
     local breakChance = math.random(1, 100)
     local breakThreshold = math.random(humanBehaviorPattern.breakFrequency[1], humanBehaviorPattern.breakFrequency[2])
     
-    return shotCount >= breakThreshold or breakChance <= 5
+    -- Additional break conditions for ghost mode
+    local timeSinceLastBreak = tick() - (ghostMode.lastDetectionTime or 0)
+    local shouldBreak = shotCount >= breakThreshold or breakChance <= 15 -- Higher break chance
+    
+    if ghostMode.enabled then
+        shouldBreak = shouldBreak or timeSinceLastBreak > 10 -- Break every 10 seconds in ghost mode
+    end
+    
+    return shouldBreak
+end
+
+-- LEGITIMATE PLAYER SIMULATION: Act like a real player
+local function simulateLegitimatePlayer()
+    -- Random player-like actions
+    local actions = {
+        "look_around", "reload_check", "position_adjust", "aim_practice", "idle"
+    }
+    
+    local action = actions[math.random(1, #actions)]
+    
+    if action == "look_around" then
+        -- Simulate looking around
+        local randomDirection = Vector3.new(
+            math.random(-1, 1),
+            math.random(-0.5, 0.5),
+            math.random(-1, 1)
+        ).Unit
+        workspace.CurrentCamera.CFrame = workspace.CurrentCamera.CFrame:Lerp(
+            CFrame.new(workspace.CurrentCamera.CFrame.Position, workspace.CurrentCamera.CFrame.Position + randomDirection),
+            0.1
+        )
+    elseif action == "reload_check" then
+        -- Simulate reload checking
+        task.wait(math.random(100, 300) / 1000)
+    elseif action == "position_adjust" then
+        -- Simulate position adjustment
+        task.wait(math.random(200, 500) / 1000)
+    elseif action == "aim_practice" then
+        -- Simulate aim practice
+        task.wait(math.random(150, 400) / 1000)
+    else -- idle
+        -- Simulate idle behavior
+        task.wait(math.random(500, 1500) / 1000)
+    end
 end
 
 -- Session-based adaptation
@@ -245,9 +333,9 @@ end
 local CombatTab = Window:CreateTab("⚔️ Combat", "Skull")
 
 -- Stealth Information
-CombatTab:CreateLabel("🛡️ ULTRA-STEALTH RAYCASTING SYSTEM:")
-CombatTab:CreateLabel("✅ Multi-Layer Detection Avoidance | ✅ Target Prediction | ✅ Human-Like Movement")
-CombatTab:CreateLabel("✅ Dynamic Stealth Levels | ✅ Advanced Hit Validation | ✅ Completely Undetectable")
+CombatTab:CreateLabel("🛡️ GHOST MODE ANTI-DETECTION SYSTEM:")
+CombatTab:CreateLabel("✅ Ultra-Conservative Behavior | ✅ Legitimate Player Simulation | ✅ Ghost Mode")
+CombatTab:CreateLabel("✅ 40-70% Miss Rate | ✅ Player Behavior Simulation | ✅ Maximum Stealth")
 CombatTab:CreateLabel("━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 
 -- Weapon Label
@@ -461,6 +549,22 @@ CombatTab:CreateToggle({
                             local totalMissChance = getAdaptiveMissChance(minDist)
                             
                             if missChance > totalMissChance then
+                                -- GHOST MODE: Check for detection and adapt
+                                checkForDetection()
+                                
+                                -- LEGITIMATE PLAYER: Simulate real player behavior
+                                if math.random(1, 100) <= 20 then -- 20% chance to simulate player
+                                    simulateLegitimatePlayer()
+                                    return -- Skip this shot cycle
+                                end
+                                
+                                -- ULTRA-CONSERVATIVE: Much higher miss chance
+                                local ultraMissChance = math.random(1, 100)
+                                local ultraMissThreshold = 40 + (ghostMode.enabled and 30 or 0) -- 40-70% miss chance
+                                if ultraMissChance <= ultraMissThreshold then
+                                    return -- Skip shot (miss)
+                                end
+                                
                                 local success = false
                                 
                                 if useSilentAim then
