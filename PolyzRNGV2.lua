@@ -5,22 +5,38 @@ local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
 local Remotes = ReplicatedStorage:WaitForChild("Remotes")
 
--- Load Rayfield UI Library
-local Rayfield = loadstring(game:HttpGet('https://limerbro.github.io/Roblox-Limer/rayfield.lua'))()
+-- Load Rayfield UI Library with error handling
+local Rayfield, Window
+local success, error = pcall(function()
+    Rayfield = loadstring(game:HttpGet('https://limerbro.github.io/Roblox-Limer/rayfield.lua'))()
+    
+    -- UI Window Configuration
+    Window = Rayfield:CreateWindow({
+        Name = "✨ LimerHub ✨ | POLY-Z",
+        Icon = 71338090068856,
+        LoadingTitle = "Loading...",
+        LoadingSubtitle = "Author: LimerBoy",
+        Theme = "BlackWhite",
+        ToggleUIKeybind = Enum.KeyCode.K,
+        ConfigurationSaving = {
+            Enabled = true,
+            FolderName = "ZombieHub",
+            FileName = "Config"
+        }
+    })
+end)
 
--- UI Window Configuration
-local Window = Rayfield:CreateWindow({
-    Name = "✨ LimerHub ✨ | POLY-Z",
-    Icon = 71338090068856,
-    LoadingTitle = "Loading...",
-    LoadingSubtitle = "Author: LimerBoy",
-    Theme = "BlackWhite",
-    ToggleUIKeybind = Enum.KeyCode.K,
-    ConfigurationSaving = {
-        Enabled = true,
-        FolderName = "ZombieHub",
-        FileName = "Config"
-    }
+if not success then
+    warn("Failed to load Rayfield UI:", error)
+    return
+end
+
+-- Success notification
+Rayfield:Notify({
+    Title = "Script Loaded",
+    Content = "Poly-z RNG Script loaded successfully! Press K to toggle GUI.",
+    Duration = 5,
+    Image = 4483362458
 })
 
 -- GHOST MODE DETECTION RESISTANCE SYSTEM (completely undetectable)
@@ -126,21 +142,6 @@ local weaponFireRates = {
     ["Unknown"] = 0.120,
     ["Default"] = 0.120
 }
-    ["AWP"] = 1.714,  -- Sniper rifle
-    ["M249"] = 0.075,
-    ["RPG"] = 0.200,
-    ["Grenade"] = 0.300,
-    ["Knife"] = 0.500,
-    ["MAC10"] = 0.075,
-    ["FAMAS"] = 0.069,
-    ["SCAR"] = 0.109,
-    ["G3"] = 0.133,
-    ["M16"] = 0.109,
-    -- Additional fallback weapons
-    ["Pistol"] = 0.133,
-    ["Rifle"] = 0.100,
-    ["SMG"] = 0.080,
-    ["Sniper"] = 0.150
 }
 
 -- Enhanced weapon validation (matches game exactly)
@@ -344,6 +345,9 @@ local weaponLabel = CombatTab:CreateLabel("🔫 Current Weapon: Loading...")
 -- Round Counter Label
 local roundLabel = CombatTab:CreateLabel("🎯 Round: 0 | Risk: 0%")
 
+-- Risk Label
+local riskLabel = CombatTab:CreateLabel("🛡️ Detection Risk: 0% | Session: 0m")
+
 -- Update labels
 -- OPTIMIZED label updates (performance fix)
 local lastWeaponUpdate = 0
@@ -377,6 +381,7 @@ end)
 
 -- Auto Headshots (ULTRA STEALTH)
 local autoKill = false
+local autoSkip = false
 local shootDelay = 0.25
 local lastShotTime = 0
 local shotsFired = 0
