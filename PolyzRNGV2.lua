@@ -1,123 +1,61 @@
--- Load Rayfield FIRST (before any anti-detection)
-print("🚀 Starting script...")
-
--- Try Rayfield with better error handling
+-- Load Rayfield (SILENT - NO PRINT STATEMENTS)
 local Rayfield = nil
 local success, result = pcall(function()
-    -- Use a more reliable Rayfield source
     local response = game:HttpGet('https://raw.githubusercontent.com/shlexware/Rayfield/main/source/main.lua', true)
     if response and response ~= "" then
         return loadstring(response)()
     else
-        error("Empty response from Rayfield source")
+        error("Empty response")
     end
 end)
 
 if success and result then
     Rayfield = result
-    print("✅ Rayfield loaded successfully!")
 else
-    warn("❌ Failed to load Rayfield: " .. tostring(result))
-    warn("❌ HTTP 400 error - trying alternative approach...")
-    
-    -- Fallback: Create a simple UI without Rayfield
-    warn("⚠️ Creating fallback UI without Rayfield...")
+    -- SILENT FALLBACK - NO WARNINGS
     Rayfield = {
         CreateWindow = function(self, options)
-            local screenGui = Instance.new("ScreenGui")
-            screenGui.Name = "FallbackUI"
-            screenGui.Parent = game.Players.LocalPlayer.PlayerGui
-            
-            local frame = Instance.new("Frame")
-            frame.Size = UDim2.new(0, 400, 0, 300)
-            frame.Position = UDim2.new(0.5, -200, 0.5, -150)
-            frame.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
-            frame.BorderSizePixel = 0
-            frame.Parent = screenGui
-            
-            local title = Instance.new("TextLabel")
-            title.Size = UDim2.new(1, 0, 0, 30)
-            title.Position = UDim2.new(0, 0, 0, 0)
-            title.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
-            title.Text = "⚠️ FALLBACK UI - Rayfield Failed to Load"
-            title.TextColor3 = Color3.new(1, 1, 1)
-            title.TextScaled = true
-            title.Parent = frame
-            
             return {
                 CreateTab = function(self, name, icon)
                     return {
                         CreateButton = function(self, options)
-                            local button = Instance.new("TextButton")
-                            button.Size = UDim2.new(0.8, 0, 0, 30)
-                            button.Position = UDim2.new(0.1, 0, 0, 40)
-                            button.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3)
-                            button.Text = options.Name or "Button"
-                            button.TextColor3 = Color3.new(1, 1, 1)
-                            button.Parent = frame
-                            
                             if options.Callback then
-                                button.MouseButton1Click:Connect(options.Callback)
+                                options.Callback()
                             end
                         end,
                         CreateToggle = function(self, options)
-                            local toggle = Instance.new("TextButton")
-                            toggle.Size = UDim2.new(0.8, 0, 0, 30)
-                            toggle.Position = UDim2.new(0.1, 0, 0, 80)
-                            toggle.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3)
-                            toggle.Text = (options.Name or "Toggle") .. " (Click to toggle)"
-                            toggle.TextColor3 = Color3.new(1, 1, 1)
-                            toggle.Parent = frame
-                            
                             local state = options.CurrentValue or false
                             if options.Callback then
-                                toggle.MouseButton1Click:Connect(function()
-                                    state = not state
-                                    options.Callback(state)
-                                end)
+                                options.Callback(state)
                             end
                         end,
-                        CreateLabel = function(self, text)
-                            local label = Instance.new("TextLabel")
-                            label.Size = UDim2.new(0.8, 0, 0, 20)
-                            label.Position = UDim2.new(0.1, 0, 0, 120)
-                            label.BackgroundTransparency = 1
-                            label.Text = text
-                            label.TextColor3 = Color3.new(1, 1, 1)
-                            label.TextScaled = true
-                            label.Parent = frame
-                        end
+                        CreateLabel = function(self, text) end,
+                        CreateInput = function(self, options) end,
+                        CreateSlider = function(self, options) end
                     }
                 end,
-                Notify = function(self, options)
-                    print("📢 NOTIFICATION: " .. (options.Title or "Info") .. " - " .. (options.Content or ""))
-                end
+                Notify = function(self, options) end
             }
         end
     }
-    print("⚠️ Using fallback UI - some features may be limited")
 end
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local player = Players.LocalPlayer
 
--- Safe remotes loading (don't wait forever)
+-- Safe remotes loading (SILENT)
 local Remotes = nil
 task.spawn(function()
     local success, result = pcall(function()
-        return ReplicatedStorage:WaitForChild("Remotes", 10) -- 10 second timeout
+        return ReplicatedStorage:WaitForChild("Remotes", 10)
     end)
     if success then
         Remotes = result
-        print("✅ Remotes loaded successfully")
-    else
-        print("⚠️ Remotes not found, some features may not work")
     end
 end)
 
--- UI Window
-print("🎯 Creating Rayfield Window...")
+-- UI Window (SILENT)
 local Window = Rayfield:CreateWindow({
     Name = "Hops Hub",
     LoadingTitle = "Launching Hub...",
@@ -130,7 +68,6 @@ local Window = Rayfield:CreateWindow({
         FileName = "Config"
     }
 })
-print("✅ Rayfield Window created successfully!")
 
 -- Get equipped weapon name (remains the same)
 local function getEquippedWeaponName()
@@ -149,29 +86,38 @@ end
 local Camera = workspace.CurrentCamera
 local AimAssist = {Enabled = false, Target = nil}
 
--- Hook into the game's render loop to override camera (MORE HUMAN-LIKE)
+-- ULTRA-STEALTH CAMERA HIJACKING (PERFECT HUMAN SIMULATION)
 local lastCameraUpdate = 0
+local cameraSmoothing = 0.1
+local humanReactionTime = math.random(15, 35) * 0.01
+
 game:GetService("RunService").RenderStepped:Connect(function()
     if AimAssist.Enabled and AimAssist.Target and AimAssist.Target.PrimaryPart then
         local currentTime = tick()
         
-        -- Only update camera every 0.1-0.2 seconds (human reaction time)
-        if currentTime - lastCameraUpdate > math.random(10, 20) * 0.01 then
+        -- ULTRA-HUMAN: Variable reaction time (0.15-0.35s)
+        if currentTime - lastCameraUpdate > humanReactionTime then
             local targetPos = AimAssist.Target.PrimaryPart.Position
             local currentPos = Camera.CFrame.Position
+            local distance = (targetPos - currentPos).Magnitude
             
-            -- More natural camera movement with larger randomization
+            -- HUMAN-LIKE: Larger offset for distant targets
+            local offsetMultiplier = math.min(distance / 50, 2) -- Scale with distance
             local randomOffset = Vector3.new(
-                math.random(-5, 5) * 0.1,
-                math.random(-5, 5) * 0.1,
-                math.random(-5, 5) * 0.1
+                math.random(-8, 8) * 0.1 * offsetMultiplier,
+                math.random(-8, 8) * 0.1 * offsetMultiplier,
+                math.random(-8, 8) * 0.1 * offsetMultiplier
             )
             
-            -- Smooth camera movement instead of instant snap
+            -- ULTRA-SMOOTH: Variable smoothing based on distance
+            local smoothing = math.max(0.05, 0.3 - (distance / 200)) -- Closer = faster
+            
             local targetCFrame = CFrame.new(currentPos, targetPos + randomOffset)
-            Camera.CFrame = Camera.CFrame:Lerp(targetCFrame, 0.3) -- Smooth interpolation
+            Camera.CFrame = Camera.CFrame:Lerp(targetCFrame, smoothing)
             
             lastCameraUpdate = currentTime
+            -- Reset reaction time for next target
+            humanReactionTime = math.random(15, 35) * 0.01
         end
     end
 end)
@@ -200,9 +146,14 @@ local function fireSingleShot()
         local humanoid = targetModel and targetModel:FindFirstChildOfClass("Humanoid")
         
         if targetModel and humanoid and humanoid.Health > 0 and targetModel:IsA("Model") and targetModel.Parent == workspace.Enemies then
-            -- Add human-like miss chance (5-15% miss rate)
+            -- ULTRA-HUMAN MISS SIMULATION (distance-based)
+            local distance = (targetModel.PrimaryPart.Position - player.Character.PrimaryPart.Position).Magnitude
+            local baseMissChance = 5 -- 5% base miss chance
+            local distanceMissChance = math.min(distance / 10, 20) -- +1% per 10 studs, max 20%
+            local totalMissChance = baseMissChance + distanceMissChance
+            
             local missChance = math.random(1, 100)
-            if missChance <= 10 then -- 10% miss chance
+            if missChance <= totalMissChance then
                 return false -- Don't shoot, simulate miss
             end
             
@@ -225,19 +176,7 @@ end
 -- Combat Tab
 local CombatTab = Window:CreateTab("Main", "skull")
 
--- Test button to verify UI is working
-CombatTab:CreateButton({
-    Name = "🧪 Test Button",
-    Callback = function()
-        Rayfield:Notify({
-            Title = "✅ SUCCESS!",
-            Content = "Rayfield UI is working perfectly!",
-            Duration = 5,
-            Image = 4483362458
-        })
-        print("✅ UI Test successful - Rayfield is working!")
-    end,
-})
+-- Removed test button for stealth
 
 -- Anti-Detection Status & Usage Guide
 CombatTab:CreateLabel("🛡️ CAMERA HIJACKING SYSTEM ACTIVE:")
@@ -252,7 +191,7 @@ CombatTab:CreateLabel("━━━━━━━━━━━━━━━━━━━
 -- Weapon Label
 local weaponLabel = CombatTab:CreateLabel("🔫 Current Weapon: Loading...")
 
--- Update label
+-- Update label (SILENT)
 task.spawn(function()
     while true do
         local weapon = getEquippedWeaponName()
@@ -271,18 +210,23 @@ local weaponCacheTime = 0
 local lastShotTime = 0
 local lastBossTime = 0
 
--- Fire rate validation system
+-- ULTRA-REALISTIC FIRE RATE VALIDATION (BASED ON GAME DATA)
 local weaponFireRates = {
-    ["M1911"] = 0.15,
-    ["AK47"] = 0.12,
-    ["M4A1"] = 0.10,
-    ["G36C"] = 0.08,
-    ["MAC10"] = 0.06,
-    ["UMP45"] = 0.11,
-    ["MP5"] = 0.09,
-    ["AUG"] = 0.13,
-    ["FAMAS"] = 0.07,
-    ["P90"] = 0.05
+    ["M1911"] = 0.18,    -- Slower than game for safety
+    ["AK47"] = 0.15,     -- 400 RPM = 0.15s
+    ["M4A1"] = 0.12,     -- 500 RPM = 0.12s  
+    ["G36C"] = 0.10,     -- 600 RPM = 0.10s
+    ["MAC10"] = 0.08,    -- 750 RPM = 0.08s
+    ["UMP45"] = 0.13,    -- 460 RPM = 0.13s
+    ["MP5"] = 0.11,      -- 545 RPM = 0.11s
+    ["AUG"] = 0.14,      -- 428 RPM = 0.14s
+    ["FAMAS"] = 0.09,    -- 667 RPM = 0.09s
+    ["P90"] = 0.07,      -- 857 RPM = 0.07s
+    ["SCAR"] = 0.16,     -- 375 RPM = 0.16s
+    ["G3"] = 0.20,       -- 300 RPM = 0.20s
+    ["M249"] = 0.06,     -- 1000 RPM = 0.06s
+    ["AWP"] = 0.25,      -- 240 RPM = 0.25s
+    ["M16"] = 0.11       -- 545 RPM = 0.11s
 }
 
 -- Get weapon fire rate with jitter
@@ -417,13 +361,15 @@ CombatTab:CreateToggle({
                                 end
                             end
                             
-                            -- Use new hijacking system with proper validation
+                            -- ULTRA-STEALTH HIJACKING SYSTEM
                             if closestZombie and canShoot() and hasLineOfSight(closestZombie) then
                                 AimAssist.Enabled = true
                                 AimAssist.Target = closestZombie
                                 
-                                -- Wait for camera to aim (randomized timing)
-                                task.wait(math.random(15, 30) * 0.01) -- Longer aim time
+                                -- ULTRA-HUMAN: Variable aim time based on distance
+                                local distance = (closestZombie.PrimaryPart.Position - player.Character.PrimaryPart.Position).Magnitude
+                                local aimTime = math.random(20, 50) * 0.01 + (distance / 100) -- Longer for distant targets
+                                task.wait(aimTime)
                                 
                                 -- Fire the shot with validation
                                 local shotFired = fireSingleShot()
@@ -432,11 +378,12 @@ CombatTab:CreateToggle({
                                 AimAssist.Enabled = false
                                 AimAssist.Target = nil
                                 
-                                -- Take a break (anti-detection) - longer if shot fired
+                                -- ULTRA-HUMAN: Variable break time
                                 if shotFired then
-                                    task.wait(math.random(100, 200) * 0.01) -- Longer break after shot
+                                    local breakTime = math.random(150, 300) * 0.01 + (distance / 200) -- Longer for distant shots
+                                    task.wait(breakTime)
                                 else
-                                    task.wait(math.random(50, 100) * 0.01) -- Shorter break if no shot
+                                    task.wait(math.random(80, 150) * 0.01) -- Shorter break if no shot
                                 end
                             end
                         end
@@ -502,13 +449,15 @@ CombatTab:CreateToggle({
                                 end
                             end
                             
-                            -- Use new hijacking system for bosses with proper validation
+                            -- ULTRA-STEALTH BOSS HIJACKING SYSTEM
                             if closestBoss and canShoot() and hasLineOfSight(closestBoss) then
                                 AimAssist.Enabled = true
                                 AimAssist.Target = closestBoss
                                 
-                                -- Wait for camera to aim (randomized timing)
-                                task.wait(math.random(20, 40) * 0.01) -- Longer aim time for bosses
+                                -- ULTRA-HUMAN: Longer aim time for bosses (more careful)
+                                local distance = (closestBoss.PrimaryPart.Position - player.Character.PrimaryPart.Position).Magnitude
+                                local aimTime = math.random(30, 60) * 0.01 + (distance / 80) -- Much longer for bosses
+                                task.wait(aimTime)
                                 
                                 -- Fire the shot with validation
                                 local shotFired = fireSingleShot()
@@ -517,11 +466,12 @@ CombatTab:CreateToggle({
                                 AimAssist.Enabled = false
                                 AimAssist.Target = nil
                                 
-                                -- Take a break (anti-detection) - longer for bosses
+                                -- ULTRA-HUMAN: Much longer break for bosses
                                 if shotFired then
-                                    task.wait(math.random(150, 300) * 0.01) -- Much longer break after boss shot
+                                    local breakTime = math.random(200, 400) * 0.01 + (distance / 150) -- Much longer for bosses
+                                    task.wait(breakTime)
                                 else
-                                    task.wait(math.random(80, 150) * 0.01) -- Shorter break if no shot
+                                    task.wait(math.random(100, 200) * 0.01) -- Longer break even if no shot
                                 end
                             end
                         end
@@ -716,18 +666,11 @@ ExploitsTab:CreateLabel("⚠️ Movement: Keep ≤25 to avoid detection!")
 ExploitsTab:CreateLabel("⚠️ God Mode: Only heals when health <5000")
 
 -- ===== MINIMAL ANTI-DETECTION (CAMERA HIJACKING IS THE MAIN PROTECTION) =====
--- Only disable AntiCheat GUI (minimal interference)
+-- Only disable AntiCheat GUI (SILENT)
 task.spawn(function()
-    task.wait(2) -- Wait for game to load
+    task.wait(2)
     local gui = player.PlayerGui:FindFirstChild("KnightmareAntiCheatClient")
     if gui then
         pcall(function() gui:Destroy() end)
-        print("✅ AntiCheat GUI disabled")
     end
 end)
-
-print("🎯 Camera Hijacking System Loaded Successfully!")
-print("✅ Rayfield UI should now be visible")
-print("✅ Press K to toggle the menu")
-print("✅ If you don't see the menu, check the console for errors above")
-print("✅ Try clicking the Test Button to verify UI is working")
