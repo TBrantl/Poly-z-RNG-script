@@ -149,31 +149,42 @@ end
 local Camera = workspace.CurrentCamera
 local AimAssist = {Enabled = false, Target = nil}
 
--- Hook into the game's render loop to override camera
+-- Hook into the game's render loop to override camera (MORE HUMAN-LIKE)
+local lastCameraUpdate = 0
 game:GetService("RunService").RenderStepped:Connect(function()
     if AimAssist.Enabled and AimAssist.Target and AimAssist.Target.PrimaryPart then
-        -- Force the game's camera to look at our target with slight randomization
-        local targetPos = AimAssist.Target.PrimaryPart.Position
-        local currentPos = Camera.CFrame.Position
+        local currentTime = tick()
         
-        -- Add slight randomization to make it look more natural
-        local randomOffset = Vector3.new(
-            math.random(-2, 2) * 0.1,
-            math.random(-2, 2) * 0.1,
-            math.random(-2, 2) * 0.1
-        )
-        
-        Camera.CFrame = CFrame.new(currentPos, targetPos + randomOffset)
+        -- Only update camera every 0.1-0.2 seconds (human reaction time)
+        if currentTime - lastCameraUpdate > math.random(10, 20) * 0.01 then
+            local targetPos = AimAssist.Target.PrimaryPart.Position
+            local currentPos = Camera.CFrame.Position
+            
+            -- More natural camera movement with larger randomization
+            local randomOffset = Vector3.new(
+                math.random(-5, 5) * 0.1,
+                math.random(-5, 5) * 0.1,
+                math.random(-5, 5) * 0.1
+            )
+            
+            -- Smooth camera movement instead of instant snap
+            local targetCFrame = CFrame.new(currentPos, targetPos + randomOffset)
+            Camera.CFrame = Camera.CFrame:Lerp(targetCFrame, 0.3) -- Smooth interpolation
+            
+            lastCameraUpdate = currentTime
+        end
     end
 end)
 
 -- This is the new, fully undetectable shooting function
 local function fireSingleShot()
-    -- We hijack the camera, then fire a remote based on a raycast from that camera.
-    -- This makes the shot appear 100% legitimate to server-side checks.
+    -- Validate cooldown first
+    if not canShoot() then
+        return false
+    end
     
     local shootRemote = Remotes:FindFirstChild("ShootEnemy")
-    if not shootRemote then return end
+    if not shootRemote then return false end
 
     -- Perform a raycast from the (now aimed) camera
     local raycastParams = RaycastParams.new()
@@ -189,13 +200,26 @@ local function fireSingleShot()
         local humanoid = targetModel and targetModel:FindFirstChildOfClass("Humanoid")
         
         if targetModel and humanoid and humanoid.Health > 0 and targetModel:IsA("Model") and targetModel.Parent == workspace.Enemies then
+            -- Add human-like miss chance (5-15% miss rate)
+            local missChance = math.random(1, 100)
+            if missChance <= 10 then -- 10% miss chance
+                return false -- Don't shoot, simulate miss
+            end
+            
             -- This call is now VALID because it's based on a legitimate camera angle
             local weaponName = getEquippedWeaponName()
-            pcall(function()
+            local success = pcall(function()
                 shootRemote:FireServer(targetModel, result.Instance, result.Position, 0, weaponName)
             end)
+            
+            if success then
+                lastShotTime = tick() -- Update cooldown
+                return true
+            end
         end
     end
+    
+    return false
 end
 
 -- Combat Tab
@@ -246,6 +270,57 @@ local cachedWeapon = nil
 local weaponCacheTime = 0
 local lastShotTime = 0
 local lastBossTime = 0
+
+-- Fire rate validation system
+local weaponFireRates = {
+    ["M1911"] = 0.15,
+    ["AK47"] = 0.12,
+    ["M4A1"] = 0.10,
+    ["G36C"] = 0.08,
+    ["MAC10"] = 0.06,
+    ["UMP45"] = 0.11,
+    ["MP5"] = 0.09,
+    ["AUG"] = 0.13,
+    ["FAMAS"] = 0.07,
+    ["P90"] = 0.05
+}
+
+-- Get weapon fire rate with jitter
+local function getWeaponFireDelay(weaponName)
+    local baseDelay = weaponFireRates[weaponName] or 0.12
+    local jitter = math.random(80, 120) * 0.01 -- ±20% jitter
+    return baseDelay * jitter
+end
+
+-- Check if we can shoot (cooldown validation)
+local function canShoot()
+    local currentTime = tick()
+    local weaponName = getEquippedWeaponName()
+    local requiredDelay = getWeaponFireDelay(weaponName)
+    
+    return (currentTime - lastShotTime) >= requiredDelay
+end
+
+-- Check line of sight (critical for server validation)
+local function hasLineOfSight(target)
+    if not target or not target.PrimaryPart then return false end
+    
+    local char = player.Character
+    if not char or not char.PrimaryPart then return false end
+    
+    local origin = char.PrimaryPart.Position + Vector3.new(0, 1.5, 0) -- Eye level
+    local direction = (target.PrimaryPart.Position - origin).Unit
+    local distance = (target.PrimaryPart.Position - origin).Magnitude
+    
+    local raycastParams = RaycastParams.new()
+    raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
+    raycastParams.FilterDescendantsInstances = {char}
+    
+    local result = workspace:Raycast(origin, direction * distance, raycastParams)
+    
+    -- If raycast hits the target, we have line of sight
+    return result and result.Instance:IsDescendantOf(target)
+end
 
 -- Stealth Settings
 CombatTab:CreateLabel("🎯 CAMERA HIJACKING: 100% Undetectable")
@@ -342,23 +417,27 @@ CombatTab:CreateToggle({
                                 end
                             end
                             
-                            -- Use new hijacking system
-                            if closestZombie then
+                            -- Use new hijacking system with proper validation
+                            if closestZombie and canShoot() and hasLineOfSight(closestZombie) then
                                 AimAssist.Enabled = true
                                 AimAssist.Target = closestZombie
                                 
                                 -- Wait for camera to aim (randomized timing)
-                                task.wait(math.random(8, 15) * 0.01)
+                                task.wait(math.random(15, 30) * 0.01) -- Longer aim time
                                 
-                                -- Fire the shot
-                                fireSingleShot()
+                                -- Fire the shot with validation
+                                local shotFired = fireSingleShot()
                                 
                                 -- Disable aim assist
                                 AimAssist.Enabled = false
                                 AimAssist.Target = nil
                                 
-                                -- Take a break (anti-detection)
-                                task.wait(math.random(50, 120) * 0.01)
+                                -- Take a break (anti-detection) - longer if shot fired
+                                if shotFired then
+                                    task.wait(math.random(100, 200) * 0.01) -- Longer break after shot
+                                else
+                                    task.wait(math.random(50, 100) * 0.01) -- Shorter break if no shot
+                                end
                             end
                         end
                     end
@@ -423,23 +502,27 @@ CombatTab:CreateToggle({
                                 end
                             end
                             
-                            -- Use new hijacking system for bosses
-                            if closestBoss then
+                            -- Use new hijacking system for bosses with proper validation
+                            if closestBoss and canShoot() and hasLineOfSight(closestBoss) then
                                 AimAssist.Enabled = true
                                 AimAssist.Target = closestBoss
                                 
                                 -- Wait for camera to aim (randomized timing)
-                                task.wait(math.random(10, 20) * 0.01)
+                                task.wait(math.random(20, 40) * 0.01) -- Longer aim time for bosses
                                 
-                                -- Fire the shot
-                                fireSingleShot()
+                                -- Fire the shot with validation
+                                local shotFired = fireSingleShot()
                                 
                                 -- Disable aim assist
                                 AimAssist.Enabled = false
                                 AimAssist.Target = nil
                                 
-                                -- Take a break (anti-detection)
-                                task.wait(math.random(80, 150) * 0.01)
+                                -- Take a break (anti-detection) - longer for bosses
+                                if shotFired then
+                                    task.wait(math.random(150, 300) * 0.01) -- Much longer break after boss shot
+                                else
+                                    task.wait(math.random(80, 150) * 0.01) -- Shorter break if no shot
+                                end
                             end
                         end
                     end
