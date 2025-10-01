@@ -4,19 +4,25 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local player = Players.LocalPlayer
 local Remotes = ReplicatedStorage:WaitForChild("Remotes")
 
--- UI Window (SILENT)
+-- Debug: Check if Rayfield loaded
+print("Rayfield loaded:", Rayfield ~= nil)
+
+-- UI Window with debugging
 local Window = Rayfield:CreateWindow({
-    Name = "Hops Hub",
-    LoadingTitle = "Launching Hub...",
+    Name = "PolyzRNG V2",
+    LoadingTitle = "Loading PolyzRNG...",
     LoadingSubtitle = "powered by Rayfield",
     Theme = "DarkBlue",
     ToggleUIKeybind = "K",
     ConfigurationSaving = {
         Enabled = true,
-        FolderName = "ZombieHub",
+        FolderName = "PolyzRNG",
         FileName = "Config"
     }
 })
+
+-- Debug: Check if Window created
+print("Window created:", Window ~= nil)
 
 -- Get equipped weapon name (EXACT GAME METHOD WITH ERROR HANDLING)
 local function getEquippedWeaponName()
@@ -166,7 +172,19 @@ end
 -- Combat Tab
 local CombatTab = Window:CreateTab("Main", "skull")
 
--- Removed test button for stealth
+-- Test button to verify GUI is working
+CombatTab:CreateButton({
+    Name = "🧪 Test Button",
+    Callback = function()
+        print("✅ GUI is working! Test button clicked.")
+        Rayfield:Notify({
+            Title = "Test",
+            Content = "GUI is working correctly!",
+            Duration = 3,
+            Image = 4483362458
+        })
+    end
+})
 
 -- Anti-Detection Status & Usage Guide
 CombatTab:CreateLabel("🛡️ CAMERA HIJACKING SYSTEM ACTIVE:")
@@ -732,3 +750,8 @@ task.spawn(function()
         task.wait(1) -- Check every second
     end
 end)
+
+-- Debug: Script loaded successfully
+print("✅ PolyzRNG V2 Script loaded successfully!")
+print("✅ Press K to toggle the GUI")
+print("✅ If you don't see the GUI, check the console for errors above")
