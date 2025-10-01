@@ -333,9 +333,9 @@ end
 local CombatTab = Window:CreateTab("⚔️ Combat", "Skull")
 
 -- Stealth Information
-CombatTab:CreateLabel("🛡️ SAFE CONFLICT-FREE SYSTEM:")
-CombatTab:CreateLabel("✅ 360° Auto Headshots | ✅ Conflict-Free Operation | ✅ Safe Camera")
-CombatTab:CreateLabel("✅ 40-70% Miss Rate | ✅ Minimal System Interference | ✅ Maximum Safety")
+CombatTab:CreateLabel("🛡️ OPTIMIZED SAFE SYSTEM:")
+CombatTab:CreateLabel("✅ 360° Auto Headshots | ✅ Performance Optimized | ✅ Error Protected")
+CombatTab:CreateLabel("✅ Cached Operations | ✅ Memory Leak Prevention | ✅ Maximum Safety")
 CombatTab:CreateLabel("━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 
 -- Weapon Label
@@ -345,11 +345,33 @@ local weaponLabel = CombatTab:CreateLabel("🔫 Current Weapon: Loading...")
 local roundLabel = CombatTab:CreateLabel("🎯 Round: 0 | Risk: 0%")
 
 -- Update labels
+-- OPTIMIZED label updates (performance fix)
+local lastWeaponUpdate = 0
+local cachedWeapon = "M1911"
+local cachedWeaponDelay = 0.12
+
 task.spawn(function()
     while true do
-        weaponLabel:Set("🔫 Current Weapon: " .. getEquippedWeaponName())
-        roundLabel:Set("🎯 Round: " .. roundsSurvived .. " | Risk: " .. math.floor(detectionRisk * 100) .. "%")
-        task.wait(0.1)
+        local currentTime = tick()
+        
+        -- Only update weapon info every 2 seconds (performance optimization)
+        if currentTime - lastWeaponUpdate > 2 then
+            local success, weapon = pcall(getEquippedWeaponName)
+            if success and weapon then
+                cachedWeapon = weapon
+                cachedWeaponDelay = weaponFireRates[weapon] or 0.12
+            end
+            lastWeaponUpdate = currentTime
+        end
+        
+        local sessionTime = math.floor((currentTime - sessionStartTime) / 60)
+        
+        -- Update labels with cached data
+        weaponLabel:Set("🔫 Current Weapon: " .. cachedWeapon .. " (Delay: " .. string.format("%.3f", cachedWeaponDelay) .. "s)")
+        roundLabel:Set("🎯 Round: " .. roundsSurvived .. " | Risk: " .. math.floor(detectionRisk * 100) .. "% | Shots: " .. shotCount)
+        riskLabel:Set("🛡️ Detection Risk: " .. math.floor(detectionRisk * 100) .. "% | Session: " .. sessionTime .. "m")
+        
+        task.wait(0.5) -- Much slower updates
     end
 end)
 
@@ -453,13 +475,29 @@ local function safeCameraUpdate()
     end
 end
 
--- Safe update loop (much slower to avoid conflicts)
-task.spawn(function()
+-- Safe update loop with cleanup (much slower to avoid conflicts)
+local cameraUpdateThread = task.spawn(function()
     while true do
         safeCameraUpdate()
         task.wait(0.1) -- Much slower update rate
     end
 end)
+
+-- CLEANUP SYSTEM: Prevent memory leaks
+local function cleanup()
+    if cameraUpdateThread then
+        task.cancel(cameraUpdateThread)
+        cameraUpdateThread = nil
+    end
+    
+    -- Disable all systems
+    AimAssist.Enabled = false
+    AimAssist.Target = nil
+    autoKill = false
+end
+
+-- Cleanup on script end
+game:BindToClose(cleanup)
 
 -- Text input for shot delay (STEALTH)
 CombatTab:CreateInput({
@@ -514,17 +552,20 @@ CombatTab:CreateToggle({
         if state then
             task.spawn(function()
                 while autoKill do
-                    -- Check if we can shoot (cooldown validation)
-                    if not canShoot() then
-                        task.wait(0.05)
-                        continue
-                    end
-                    
-                    local enemies = workspace:FindFirstChild("Enemies")
-                    local shootRemote = Remotes:FindFirstChild("ShootEnemy")
+                    -- ERROR HANDLING: Wrap main loop in pcall
+                    local success, error = pcall(function()
+                        -- Check if we can shoot (cooldown validation)
+                        if not canShoot() then
+                            task.wait(0.05)
+                            return
+                        end
+                        
+                        local enemies = workspace:FindFirstChild("Enemies")
+                        local shootRemote = Remotes:FindFirstChild("ShootEnemy")
                     
                     if enemies and shootRemote then
-                        local weapon = getEquippedWeaponName()
+                        -- PERFORMANCE FIX: Use cached weapon to avoid excessive calls
+                        local weapon = cachedWeapon
                         local closestZombie = nil
                         local closestHead = nil
                         local minDist = math.huge
@@ -744,8 +785,15 @@ CombatTab:CreateToggle({
                     local jitterRange = math.min(5 + roundsSurvived, 15) -- More jitter in higher rounds
                     local delay = baseDelay + math.random(-jitterRange, jitterRange) * 0.01
                     task.wait(math.max(0.1, delay))
+                    end)
+                    
+                    -- ERROR HANDLING: Handle any errors in the main loop
+                    if not success then
+                        -- Log error and continue (don't crash the script)
+                        print("Auto-kill error:", error)
+                        task.wait(1) -- Wait longer on error
+                    end
                 end
-            end)
         end
     end
 })
