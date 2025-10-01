@@ -69,21 +69,30 @@ local Window = Rayfield:CreateWindow({
     }
 })
 
--- Get equipped weapon name (EXACT GAME METHOD)
+-- Get equipped weapon name (EXACT GAME METHOD WITH ERROR HANDLING)
 local function getEquippedWeaponName()
-    local variables = player:WaitForChild("Variables")
-    local equippedSlot = variables:GetAttribute("Equipped_Slot")
-    
-    if equippedSlot then
-        local playerData = player:WaitForChild("PlayerData")
-        local equippedWeapon = playerData:FindFirstChild("equipped_" .. string.lower(equippedSlot))
+    local success, result = pcall(function()
+        local variables = player:WaitForChild("Variables")
+        local equippedSlot = variables:GetAttribute("Equipped_Slot")
         
-        if equippedWeapon and equippedWeapon:IsA("StringValue") then
-            return equippedWeapon.Value
+        if equippedSlot then
+            local playerData = player:WaitForChild("PlayerData")
+            local equippedWeapon = playerData:FindFirstChild("equipped_" .. string.lower(equippedSlot))
+            
+            if equippedWeapon and equippedWeapon:IsA("StringValue") then
+                return equippedWeapon.Value
+            end
         end
+        
+        return nil
+    end)
+    
+    if success and result then
+        return result
     end
     
-    -- Fallback method
+    -- Fallback method with error handling
+    local success2, result2 = pcall(function()
     local model = workspace:FindFirstChild("Players"):FindFirstChild(player.Name)
     if model then
         for _, child in ipairs(model:GetChildren()) do
@@ -92,7 +101,14 @@ local function getEquippedWeaponName()
             end
         end
     end
-    return "M1911"
+        return nil
+    end)
+    
+    if success2 and result2 then
+        return result2
+    end
+    
+    return "M1911" -- Ultimate fallback
 end
 
 -- ===== CORE HIJACKING SYSTEM (NEW) =====
@@ -145,14 +161,20 @@ local function fireSingleShot()
     local shootRemote = Remotes:FindFirstChild("ShootEnemy")
     if not shootRemote then return false end
 
-    -- Perform a raycast EXACTLY like the game does
-    local raycastParams = RaycastParams.new()
-    raycastParams.FilterType = Enum.RaycastFilterType.Include
-    raycastParams.FilterDescendantsInstances = {workspace.Enemies, workspace.Misc, workspace.BossArena.Decorations}
+    -- Perform a raycast EXACTLY like the game does with error handling
+    local success, result = pcall(function()
+        local raycastParams = RaycastParams.new()
+        raycastParams.FilterType = Enum.RaycastFilterType.Include
+        raycastParams.FilterDescendantsInstances = {workspace.Enemies, workspace.Misc, workspace.BossArena.Decorations}
+        
+        local origin = Camera.CFrame.Position
+        local direction = Camera.CFrame.LookVector * 250 -- EXACT game distance
+        return workspace:Raycast(origin, direction, raycastParams)
+    end)
     
-    local origin = Camera.CFrame.Position
-    local direction = Camera.CFrame.LookVector * 250 -- EXACT game distance
-    local result = workspace:Raycast(origin, direction, raycastParams)
+    if not success or not result then
+        return false
+    end
     
     if result and result.Instance then
         local targetModel = result.Instance:FindFirstAncestorOfClass("Model")
@@ -271,8 +293,23 @@ local function getWeaponFireDelay(weaponName)
     return baseDelay * jitter
 end
 
--- Check if we can shoot (cooldown validation)
+-- Check if we can shoot (cooldown validation + game state)
 local function canShoot()
+    -- Check if game is in valid state
+    if not player.Character or not player.Character:FindFirstChild("Humanoid") then
+        return false
+    end
+    
+    if player.Character.Humanoid.Health <= 0 then
+        return false
+    end
+    
+    -- Check if remotes are available
+    if not Remotes or not Remotes:FindFirstChild("ShootEnemy") then
+        return false
+    end
+    
+    -- Check cooldown
     local currentTime = tick()
     local weaponName = getEquippedWeaponName()
     local requiredDelay = getWeaponFireDelay(weaponName)
@@ -280,7 +317,7 @@ local function canShoot()
     return (currentTime - lastShotTime) >= requiredDelay
 end
 
--- Check line of sight (critical for server validation)
+-- Check line of sight (EXACT GAME METHOD)
 local function hasLineOfSight(target)
     if not target or not target.PrimaryPart then return false end
     
@@ -291,9 +328,10 @@ local function hasLineOfSight(target)
     local direction = (target.PrimaryPart.Position - origin).Unit
     local distance = (target.PrimaryPart.Position - origin).Magnitude
     
+    -- EXACT GAME RAYCAST PARAMETERS
     local raycastParams = RaycastParams.new()
-    raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
-    raycastParams.FilterDescendantsInstances = {char}
+    raycastParams.FilterType = Enum.RaycastFilterType.Exclude
+    raycastParams.FilterDescendantsInstances = {workspace.Borders, workspace.Players, workspace.Enemies, workspace.DyingEnemies, workspace.Pickups, char, workspace.CurrentCamera}
     
     local result = workspace:Raycast(origin, direction * distance, raycastParams)
     
@@ -392,38 +430,45 @@ CombatTab:CreateToggle({
                                             closestDist = dist
                                             closestZombie = zombie
                                         end
-                                    end
-                                end
-                            end
-                            
-                            -- ULTRA-STEALTH HIJACKING SYSTEM
-                            if closestZombie and canShoot() and hasLineOfSight(closestZombie) then
-                                AimAssist.Enabled = true
-                                AimAssist.Target = closestZombie
-                                
-                                -- ULTRA-HUMAN: Variable aim time based on distance
-                                local distance = (closestZombie.PrimaryPart.Position - player.Character.PrimaryPart.Position).Magnitude
-                                local aimTime = math.random(20, 50) * 0.01 + (distance / 100) -- Longer for distant targets
-                                task.wait(aimTime)
-                                
-                                -- Fire the shot with validation
-                                local shotFired = fireSingleShot()
-                                
-                                -- Disable aim assist
-                                AimAssist.Enabled = false
-                                AimAssist.Target = nil
-                                
-                                -- ULTRA-HUMAN: Variable break time
-                                if shotFired then
-                                    local breakTime = math.random(150, 300) * 0.01 + (distance / 200) -- Longer for distant shots
-                                    task.wait(breakTime)
-                                else
-                                    task.wait(math.random(80, 150) * 0.01) -- Shorter break if no shot
                                 end
                             end
                         end
-                    end
-                    
+                        
+                            -- ULTRA-STEALTH HIJACKING SYSTEM WITH ERROR HANDLING
+                            if closestZombie and canShoot() and hasLineOfSight(closestZombie) then
+                                local success = pcall(function()
+                                    AimAssist.Enabled = true
+                                    AimAssist.Target = closestZombie
+                                    
+                                    -- ULTRA-HUMAN: Variable aim time based on distance
+                                    local distance = (closestZombie.PrimaryPart.Position - player.Character.PrimaryPart.Position).Magnitude
+                                    local aimTime = math.random(20, 50) * 0.01 + (distance / 100) -- Longer for distant targets
+                                    task.wait(aimTime)
+                                    
+                                    -- Fire the shot with validation
+                                    local shotFired = fireSingleShot()
+                                    
+                                    -- Disable aim assist
+                                    AimAssist.Enabled = false
+                                    AimAssist.Target = nil
+                                    
+                                    -- ULTRA-HUMAN: Variable break time
+                                    if shotFired then
+                                        local breakTime = math.random(150, 300) * 0.01 + (distance / 200) -- Longer for distant shots
+                                        task.wait(breakTime)
+                                    else
+                                        task.wait(math.random(80, 150) * 0.01) -- Shorter break if no shot
+                                    end
+                                end)
+                                
+                                -- If error occurred, disable aim assist
+                                if not success then
+                                    AimAssist.Enabled = false
+                                    AimAssist.Target = nil
+                                end
+                            end
+                        end
+                        
                     -- Slow polling for stealth
                     task.wait(0.2)
                 end
@@ -484,29 +529,37 @@ CombatTab:CreateToggle({
                                 end
                             end
                             
-                            -- ULTRA-STEALTH BOSS HIJACKING SYSTEM
+                            -- ULTRA-STEALTH BOSS HIJACKING SYSTEM WITH ERROR HANDLING
                             if closestBoss and canShoot() and hasLineOfSight(closestBoss) then
-                                AimAssist.Enabled = true
-                                AimAssist.Target = closestBoss
+                                local success = pcall(function()
+                                    AimAssist.Enabled = true
+                                    AimAssist.Target = closestBoss
+                                    
+                                    -- ULTRA-HUMAN: Longer aim time for bosses (more careful)
+                                    local distance = (closestBoss.PrimaryPart.Position - player.Character.PrimaryPart.Position).Magnitude
+                                    local aimTime = math.random(30, 60) * 0.01 + (distance / 80) -- Much longer for bosses
+                                    task.wait(aimTime)
+                                    
+                                    -- Fire the shot with validation
+                                    local shotFired = fireSingleShot()
+                                    
+                                    -- Disable aim assist
+                                    AimAssist.Enabled = false
+                                    AimAssist.Target = nil
+                                    
+                                    -- ULTRA-HUMAN: Much longer break for bosses
+                                    if shotFired then
+                                        local breakTime = math.random(200, 400) * 0.01 + (distance / 150) -- Much longer for bosses
+                                        task.wait(breakTime)
+                                    else
+                                        task.wait(math.random(100, 200) * 0.01) -- Longer break even if no shot
+                                    end
+                                end)
                                 
-                                -- ULTRA-HUMAN: Longer aim time for bosses (more careful)
-                                local distance = (closestBoss.PrimaryPart.Position - player.Character.PrimaryPart.Position).Magnitude
-                                local aimTime = math.random(30, 60) * 0.01 + (distance / 80) -- Much longer for bosses
-                                task.wait(aimTime)
-                                
-                                -- Fire the shot with validation
-                                local shotFired = fireSingleShot()
-                                
-                                -- Disable aim assist
-                                AimAssist.Enabled = false
-                                AimAssist.Target = nil
-                                
-                                -- ULTRA-HUMAN: Much longer break for bosses
-                                if shotFired then
-                                    local breakTime = math.random(200, 400) * 0.01 + (distance / 150) -- Much longer for bosses
-                                    task.wait(breakTime)
-                                else
-                                    task.wait(math.random(100, 200) * 0.01) -- Longer break even if no shot
+                                -- If error occurred, disable aim assist
+                                if not success then
+                                    AimAssist.Enabled = false
+                                    AimAssist.Target = nil
                                 end
                             end
                         end
@@ -625,19 +678,19 @@ local infiniteStamina = false
 
 ExploitsTab:CreateToggle({
     Name = "🔥 Infinite Stamina",
-    CurrentValue = false,
+        CurrentValue = false,
     Flag = "InfiniteStamina",
-    Callback = function(state)
+        Callback = function(state)
         infiniteStamina = state
-        if state then
-            task.spawn(function()
+            if state then
+                task.spawn(function()
                 while infiniteStamina do
                     local vars = player:WaitForChild("Variables")
                     vars:SetAttribute("Stamina", 9999)
-                    task.wait(0.1)
-                end
-            end)
-        end
+                        task.wait(0.1)
+                    end
+                end)
+            end
     end,
 })
 
@@ -707,5 +760,26 @@ task.spawn(function()
     local gui = player.PlayerGui:FindFirstChild("KnightmareAntiCheatClient")
     if gui then
         pcall(function() gui:Destroy() end)
+    end
+end)
+
+-- Game state monitoring for compatibility
+task.spawn(function()
+    while true do
+        -- Monitor for character respawn
+        if not player.Character then
+            AimAssist.Enabled = false
+            AimAssist.Target = nil
+        end
+        
+        -- Monitor for game state changes
+        if player.Character and player.Character:FindFirstChild("Humanoid") then
+            if player.Character.Humanoid.Health <= 0 then
+                AimAssist.Enabled = false
+                AimAssist.Target = nil
+            end
+        end
+        
+        task.wait(1) -- Check every second
     end
 end)
