@@ -69,8 +69,21 @@ local Window = Rayfield:CreateWindow({
     }
 })
 
--- Get equipped weapon name (remains the same)
+-- Get equipped weapon name (EXACT GAME METHOD)
 local function getEquippedWeaponName()
+    local variables = player:WaitForChild("Variables")
+    local equippedSlot = variables:GetAttribute("Equipped_Slot")
+    
+    if equippedSlot then
+        local playerData = player:WaitForChild("PlayerData")
+        local equippedWeapon = playerData:FindFirstChild("equipped_" .. string.lower(equippedSlot))
+        
+        if equippedWeapon and equippedWeapon:IsA("StringValue") then
+            return equippedWeapon.Value
+        end
+    end
+    
+    -- Fallback method
     local model = workspace:FindFirstChild("Players"):FindFirstChild(player.Name)
     if model then
         for _, child in ipairs(model:GetChildren()) do
@@ -132,40 +145,46 @@ local function fireSingleShot()
     local shootRemote = Remotes:FindFirstChild("ShootEnemy")
     if not shootRemote then return false end
 
-    -- Perform a raycast from the (now aimed) camera
+    -- Perform a raycast EXACTLY like the game does
     local raycastParams = RaycastParams.new()
-    raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
-    raycastParams.FilterDescendantsInstances = {player.Character}
+    raycastParams.FilterType = Enum.RaycastFilterType.Include
+    raycastParams.FilterDescendantsInstances = {workspace.Enemies, workspace.Misc, workspace.BossArena.Decorations}
     
     local origin = Camera.CFrame.Position
-    local direction = Camera.CFrame.LookVector * 1000 -- Long distance ray
+    local direction = Camera.CFrame.LookVector * 250 -- EXACT game distance
     local result = workspace:Raycast(origin, direction, raycastParams)
     
     if result and result.Instance then
         local targetModel = result.Instance:FindFirstAncestorOfClass("Model")
         local humanoid = targetModel and targetModel:FindFirstChildOfClass("Humanoid")
         
-        if targetModel and humanoid and humanoid.Health > 0 and targetModel:IsA("Model") and targetModel.Parent == workspace.Enemies then
-            -- ULTRA-HUMAN MISS SIMULATION (distance-based)
-            local distance = (targetModel.PrimaryPart.Position - player.Character.PrimaryPart.Position).Magnitude
-            local baseMissChance = 5 -- 5% base miss chance
-            local distanceMissChance = math.min(distance / 10, 20) -- +1% per 10 studs, max 20%
-            local totalMissChance = baseMissChance + distanceMissChance
+        -- EXACT GAME VALIDATION: Check if target is descendant of workspace.Enemies
+        if result.Instance:IsDescendantOf(workspace.Enemies) then
+            local targetModel = result.Instance.Parent
+            local humanoid = targetModel:FindFirstChildOfClass("Humanoid")
             
-            local missChance = math.random(1, 100)
-            if missChance <= totalMissChance then
-                return false -- Don't shoot, simulate miss
-            end
-            
-            -- This call is now VALID because it's based on a legitimate camera angle
-            local weaponName = getEquippedWeaponName()
-            local success = pcall(function()
-                shootRemote:FireServer(targetModel, result.Instance, result.Position, 0, weaponName)
-            end)
-            
-            if success then
-                lastShotTime = tick() -- Update cooldown
-                return true
+            if humanoid and humanoid.Health > 0 then
+                -- ULTRA-HUMAN MISS SIMULATION (distance-based)
+                local distance = (targetModel.PrimaryPart.Position - player.Character.PrimaryPart.Position).Magnitude
+                local baseMissChance = 5 -- 5% base miss chance
+                local distanceMissChance = math.min(distance / 10, 20) -- +1% per 10 studs, max 20%
+                local totalMissChance = baseMissChance + distanceMissChance
+                
+                local missChance = math.random(1, 100)
+                if missChance <= totalMissChance then
+                    return false -- Don't shoot, simulate miss
+                end
+                
+                -- EXACT GAME CALL: Same parameters as game
+                local weaponName = getEquippedWeaponName()
+                local success = pcall(function()
+                    shootRemote:FireServer(targetModel, result.Instance, result.Position, 0, weaponName)
+                end)
+                
+                if success then
+                    lastShotTime = tick() -- Update cooldown
+                    return true
+                end
             end
         end
     end
@@ -210,23 +229,39 @@ local weaponCacheTime = 0
 local lastShotTime = 0
 local lastBossTime = 0
 
--- ULTRA-REALISTIC FIRE RATE VALIDATION (BASED ON GAME DATA)
+-- EXACT GAME FIRE RATES (CONVERTED FROM RPM TO SECONDS)
 local weaponFireRates = {
-    ["M1911"] = 0.18,    -- Slower than game for safety
-    ["AK47"] = 0.15,     -- 400 RPM = 0.15s
-    ["M4A1"] = 0.12,     -- 500 RPM = 0.12s  
-    ["G36C"] = 0.10,     -- 600 RPM = 0.10s
-    ["MAC10"] = 0.08,    -- 750 RPM = 0.08s
-    ["UMP45"] = 0.13,    -- 460 RPM = 0.13s
-    ["MP5"] = 0.11,      -- 545 RPM = 0.11s
-    ["AUG"] = 0.14,      -- 428 RPM = 0.14s
-    ["FAMAS"] = 0.09,    -- 667 RPM = 0.09s
-    ["P90"] = 0.07,      -- 857 RPM = 0.07s
-    ["SCAR"] = 0.16,     -- 375 RPM = 0.16s
-    ["G3"] = 0.20,       -- 300 RPM = 0.20s
-    ["M249"] = 0.06,     -- 1000 RPM = 0.06s
-    ["AWP"] = 0.25,      -- 240 RPM = 0.25s
-    ["M16"] = 0.11       -- 545 RPM = 0.11s
+    ["M1911"] = 0.133,   -- 450 RPM = 60/450 = 0.133s
+    ["AK47"] = 0.120,    -- 500 RPM = 60/500 = 0.120s
+    ["M4A1"] = 0.100,    -- 600 RPM = 60/600 = 0.100s
+    ["G36C"] = 0.086,    -- 700 RPM = 60/700 = 0.086s
+    ["MAC10"] = 0.075,   -- 800 RPM = 60/800 = 0.075s
+    ["UMP45"] = 0.080,   -- 750 RPM = 60/750 = 0.080s
+    ["MP5"] = 0.086,     -- 700 RPM = 60/700 = 0.086s
+    ["AUG"] = 0.086,     -- 700 RPM = 60/700 = 0.086s
+    ["FAMAS"] = 0.069,   -- 875 RPM = 60/875 = 0.069s
+    ["P90"] = 0.075,     -- 800 RPM = 60/800 = 0.075s
+    ["SCAR"] = 0.109,    -- 550 RPM = 60/550 = 0.109s
+    ["G3"] = 0.133,      -- 450 RPM = 60/450 = 0.133s
+    ["M249"] = 0.133,    -- 450 RPM = 60/450 = 0.133s
+    ["AWP"] = 1.714,    -- 35 RPM = 60/35 = 1.714s
+    ["M16"] = 0.109,     -- 550 RPM = 60/550 = 0.109s
+    ["UMP"] = 0.080,     -- 750 RPM = 60/750 = 0.080s
+    ["MP7"] = 0.092,     -- 650 RPM = 60/650 = 0.092s
+    ["TOMMY"] = 0.071,   -- 850 RPM = 60/850 = 0.071s
+    ["Vector"] = 0.069,  -- 875 RPM = 60/875 = 0.069s
+    ["Bizon"] = 0.089,   -- 675 RPM = 60/675 = 0.089s
+    ["PKM"] = 0.150,     -- 400 RPM = 60/400 = 0.150s
+    ["RPK"] = 0.100,     -- 600 RPM = 60/600 = 0.100s
+    ["BELLENI"] = 0.480, -- 125 RPM = 60/125 = 0.480s
+    ["M870"] = 0.800,    -- 75 RPM = 60/75 = 0.800s
+    ["SAPS12"] = 0.462,  -- 130 RPM = 60/130 = 0.462s
+    ["DRAGONUV"] = 0.500,-- 120 RPM = 60/120 = 0.500s
+    ["M24"] = 0.800,     -- 75 RPM = 60/75 = 0.800s
+    ["B9"] = 0.100,      -- 600 RPM = 60/600 = 0.100s
+    ["G17"] = 0.120,     -- 500 RPM = 60/500 = 0.120s
+    ["Tec9"] = 0.133,    -- 450 RPM = 60/450 = 0.133s
+    ["DEAGLE"] = 0.600   -- 100 RPM = 60/100 = 0.600s
 }
 
 -- Get weapon fire rate with jitter
