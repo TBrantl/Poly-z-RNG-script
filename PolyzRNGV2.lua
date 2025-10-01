@@ -40,9 +40,9 @@ end
 local CombatTab = Window:CreateTab("⚔️ Combat", "Skull")
 
 -- Stealth Information
-CombatTab:CreateLabel("🛡️ ADAPTIVE STEALTH SYSTEM:")
-CombatTab:CreateLabel("✅ Round-Based Adaptation | ✅ Risk Assessment | ✅ Dynamic Miss Chance")
-CombatTab:CreateLabel("✅ Adaptive Breaks | ✅ Progressive Delays | ✅ Detection Avoidance")
+CombatTab:CreateLabel("🛡️ ENHANCED RAYCAST SYSTEM:")
+CombatTab:CreateLabel("✅ Multiple Raycast Attempts | ✅ Adaptive Parameters | ✅ Detection Avoidance")
+CombatTab:CreateLabel("✅ Randomized Origins | ✅ Variable Distances | ✅ Fallback System")
 CombatTab:CreateLabel("━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 
 -- Weapon Label
@@ -280,28 +280,81 @@ CombatTab:CreateToggle({
                                     AimAssist.Enabled = true
                                     AimAssist.Target = closestZombie
                                     
-                                    -- Brief camera aim time for detection avoidance
-                                    task.wait(math.random(8, 15) * 0.01)
+                                    -- Adaptive camera aim time (longer in higher rounds)
+                                    local aimTime = math.random(8, 15) + (roundsSurvived * 2)
+                                    task.wait(aimTime * 0.01)
                                     
-                                    -- SILENT AIM: Raycast directly to target regardless of crosshair
+                                    -- ENHANCED RAYCASTING WITH DETECTION AVOIDANCE
                                     local camera = workspace.CurrentCamera
                                     local cameraPos = camera.CFrame.Position
                                     
-                                    -- Calculate direction directly to target (SILENT AIM)
-                                    local targetDirection = (closestHead.Position - cameraPos).Unit
+                                    -- Add slight randomization to raycast origin (detection avoidance)
+                                    local randomOffset = Vector3.new(
+                                        math.random(-2, 2) * 0.1,
+                                        math.random(-2, 2) * 0.1,
+                                        math.random(-2, 2) * 0.1
+                                    )
+                                    local adjustedCameraPos = cameraPos + randomOffset
                                     
-                                    -- EXACT GAME RAYCAST PARAMETERS
+                                    -- Calculate direction with slight aim variation (more human-like)
+                                    local targetPos = closestHead.Position
+                                    local baseDirection = (targetPos - adjustedCameraPos).Unit
+                                    
+                                    -- Add slight aim variation for realism
+                                    local aimVariation = Vector3.new(
+                                        math.random(-3, 3) * 0.01,
+                                        math.random(-3, 3) * 0.01,
+                                        math.random(-3, 3) * 0.01
+                                    )
+                                    local targetDirection = (baseDirection + aimVariation).Unit
+                                    
+                                    -- ADAPTIVE RAYCAST PARAMETERS (round-based detection avoidance)
                                     local raycastParams = RaycastParams.new()
                                     raycastParams.FilterType = Enum.RaycastFilterType.Include
-                                    raycastParams.FilterDescendantsInstances = {workspace.Enemies, workspace.Misc, workspace.BossArena.Decorations}
                                     
-                                    -- Perform raycast directly to target (SILENT AIM)
-                                    local raycastResult = workspace:Raycast(cameraPos, targetDirection * 250, raycastParams)
+                                    -- Adaptive filter instances based on rounds (more conservative in higher rounds)
+                                    local filterInstances = {workspace.Enemies, workspace.Misc}
+                                    if roundsSurvived >= 5 then
+                                        table.insert(filterInstances, workspace.BossArena.Decorations)
+                                    end
+                                    raycastParams.FilterDescendantsInstances = filterInstances
+                                    
+                                    -- Variable raycast distance (more realistic)
+                                    local raycastDistance = math.random(200, 300)
+                                    
+                                    -- MULTIPLE RAYCAST ATTEMPTS (detection avoidance)
+                                    local raycastResult = nil
+                                    local maxAttempts = 3
+                                    
+                                    for attempt = 1, maxAttempts do
+                                        -- Slightly different raycast each attempt
+                                        local attemptOffset = Vector3.new(
+                                            math.random(-1, 1) * 0.05,
+                                            math.random(-1, 1) * 0.05,
+                                            math.random(-1, 1) * 0.05
+                                        )
+                                        local attemptPos = adjustedCameraPos + attemptOffset
+                                        
+                                        local attemptDirection = (targetPos - attemptPos).Unit
+                                        local attemptDistance = math.random(200, 300)
+                                        
+                                        raycastResult = workspace:Raycast(attemptPos, attemptDirection * attemptDistance, raycastParams)
+                                        
+                                        -- If we hit an enemy, use this result
+                                        if raycastResult and raycastResult.Instance:IsDescendantOf(workspace.Enemies) then
+                                            break
+                                        end
+                                        
+                                        -- Small delay between attempts
+                                        if attempt < maxAttempts then
+                                            task.wait(math.random(1, 3) * 0.01)
+                                        end
+                                    end
                                     
                                     -- Only fire if raycast hits the target (EXACT GAME VALIDATION)
                                     if raycastResult and raycastResult.Instance:IsDescendantOf(workspace.Enemies) then
                                         -- Use EXACT GAME PARAMETERS
-                                        local args = {
+                                    local args = {
                                             raycastResult.Instance.Parent,  -- zombie model
                                             raycastResult.Instance,        -- hit part
                                             raycastResult.Position,        -- hit position
@@ -312,6 +365,14 @@ CombatTab:CreateToggle({
                                         success = pcall(function() 
                                             shootRemote:FireServer(unpack(args)) 
                                         end)
+                                    else
+                                        -- FALLBACK: Direct shooting if raycast fails (stealth mode)
+                                        if roundsSurvived < 3 then -- Only in early rounds
+                                            local fallbackArgs = {closestZombie, closestHead, closestHead.Position, 0, weapon}
+                                            success = pcall(function() 
+                                                shootRemote:FireServer(unpack(fallbackArgs)) 
+                                            end)
+                                        end
                                     end
                                     
                                     -- Disable camera hijacking immediately
@@ -324,7 +385,7 @@ CombatTab:CreateToggle({
                                     -- SIMPLE DIRECT SHOOTING (no camera hijacking)
                                     local args = {closestZombie, closestHead, closestHead.Position, 0, weapon}
                                     success = pcall(function() 
-                                        shootRemote:FireServer(unpack(args)) 
+                                        shootRemote:FireServer(unpack(args))
                                     end)
                                 end
                                 
@@ -339,8 +400,8 @@ CombatTab:CreateToggle({
                                         if shotsFired >= breakFrequency then
                                             task.wait(breakDuration)
                                             shotsFired = 0
-                                        end
-                                    end
+                            end
+                        end
                             end
                         end
                     end
