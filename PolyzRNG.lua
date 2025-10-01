@@ -1,5 +1,23 @@
--- Load Rayfield
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+-- Load Rayfield with error handling
+local Rayfield = nil
+local success, result = pcall(function()
+    return loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+end)
+
+if success and result then
+    Rayfield = result
+else
+    -- Fallback to GitHub source
+    local success2, result2 = pcall(function()
+        return loadstring(game:HttpGet('https://raw.githubusercontent.com/shlexware/Rayfield/main/source/main.lua'))()
+    end)
+    
+    if success2 and result2 then
+        Rayfield = result2
+    else
+        error("Failed to load Rayfield from all sources")
+    end
+end
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local player = Players.LocalPlayer
