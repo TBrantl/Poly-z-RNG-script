@@ -1,23 +1,4 @@
--- Load Rayfield with reliable source
-local Rayfield = nil
-local success, result = pcall(function()
-    return loadstring(game:HttpGet('https://raw.githubusercontent.com/shlexware/Rayfield/main/source/main.lua'))()
-end)
-
-if success and result then
-    Rayfield = result
-else
-    -- Try alternative source
-    local success2, result2 = pcall(function()
-        return loadstring(game:HttpGet('https://raw.githubusercontent.com/itsyoboizkzl/Rayfield/main/source/main.lua'))()
-    end)
-    
-    if success2 and result2 then
-        Rayfield = result2
-    else
-        error("Failed to load Rayfield from all sources")
-    end
-end
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local player = Players.LocalPlayer
