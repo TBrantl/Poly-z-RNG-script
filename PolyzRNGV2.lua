@@ -39,6 +39,12 @@ end
 -- Combat Tab
 local CombatTab = Window:CreateTab("⚔️ Combat", "Skull")
 
+-- Stealth Information
+CombatTab:CreateLabel("🛡️ STEALTH MODE ACTIVE:")
+CombatTab:CreateLabel("✅ Weapon-specific fire rates | ✅ Human-like miss chance")
+CombatTab:CreateLabel("✅ Aim offset | ✅ Break patterns | ✅ Cooldown validation")
+CombatTab:CreateLabel("━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+
 -- Weapon Label
 local weaponLabel = CombatTab:CreateLabel("🔫 Current Weapon: Loading...")
 
@@ -50,18 +56,52 @@ task.spawn(function()
     end
 end)
 
--- Auto Headshots
+-- Auto Headshots (STEALTH)
 local autoKill = false
-local shootDelay = 0.1
+local shootDelay = 0.15
+local lastShotTime = 0
+local shotsFired = 0
+local weaponFireRates = {
+    ["M1911"] = 0.133,
+    ["AK47"] = 0.120,
+    ["M4A1"] = 0.100,
+    ["G36C"] = 0.086,
+    ["MAC10"] = 0.075,
+    ["UMP45"] = 0.080,
+    ["MP5"] = 0.086,
+    ["AUG"] = 0.086,
+    ["FAMAS"] = 0.069,
+    ["P90"] = 0.075,
+    ["SCAR"] = 0.109,
+    ["G3"] = 0.133,
+    ["M249"] = 0.133,
+    ["AWP"] = 1.714,
+    ["M16"] = 0.109
+}
 
--- Text input for shot delay
+-- Get weapon fire rate with jitter
+local function getWeaponFireDelay(weaponName)
+    local baseDelay = weaponFireRates[weaponName] or 0.12
+    local jitter = math.random(90, 110) * 0.01 -- ±10% jitter
+    return baseDelay * jitter
+end
+
+-- Check if we can shoot (cooldown validation)
+local function canShoot()
+    local currentTime = tick()
+    local weaponName = getEquippedWeaponName()
+    local requiredDelay = getWeaponFireDelay(weaponName)
+    return (currentTime - lastShotTime) >= requiredDelay
+end
+
+-- Text input for shot delay (STEALTH)
 CombatTab:CreateInput({
-    Name = "⏱️ Shot delay (0-2 sec)",
-    PlaceholderText = "0.1",
+    Name = "⏱️ Shot delay (0.15-2 sec)",
+    PlaceholderText = "0.15",
     RemoveTextAfterFocusLost = false,
     Callback = function(text)
         local num = tonumber(text)
-        if num and num >= 0 and num <= 2 then
+        if num and num >= 0.15 and num <= 2 then
             shootDelay = num
             Rayfield:Notify({
                 Title = "Success",
@@ -72,7 +112,7 @@ CombatTab:CreateInput({
         else
             Rayfield:Notify({
                 Title = "Error",
-                Content = "Please enter a number between 0 and 2",
+                Content = "Please enter a number between 0.15 and 2",
                 Duration = 3,
                 Image = 4483362458
             })
@@ -81,7 +121,7 @@ CombatTab:CreateInput({
 })
 
 CombatTab:CreateToggle({
-    Name = "🔪 Auto Headshots",
+    Name = "🔪 Auto Headshots (STEALTH)",
     CurrentValue = false,
     Flag = "AutoKillZombies",
     Callback = function(state)
@@ -89,21 +129,88 @@ CombatTab:CreateToggle({
         if state then
             task.spawn(function()
                 while autoKill do
+                    -- Check if we can shoot (cooldown validation)
+                    if not canShoot() then
+                        task.wait(0.05)
+                        continue
+                    end
+                    
                     local enemies = workspace:FindFirstChild("Enemies")
                     local shootRemote = Remotes:FindFirstChild("ShootEnemy")
+                    
                     if enemies and shootRemote then
                         local weapon = getEquippedWeaponName()
+                        local closestZombie = nil
+                        local closestHead = nil
+                        local minDist = math.huge
+                        local playerPos = player.Character and player.Character.PrimaryPart and player.Character.PrimaryPart.Position
+                        
+                        if not playerPos then
+                            task.wait(0.1)
+                            continue
+                        end
+                        
+                        -- Find closest zombie (more human-like)
                         for _, zombie in pairs(enemies:GetChildren()) do
-                            if zombie:IsA("Model") then
-                                local head = zombie:FindFirstChild("Head")
-                                if head then
-                                    local args = {zombie, head, head.Position, 0.5, weapon}
-                                    pcall(function() shootRemote:FireServer(unpack(args)) end)
+                            if zombie:IsA("Model") and zombie:FindFirstChild("Head") then
+                                local head = zombie.Head
+                                local humanoid = zombie:FindFirstChildOfClass("Humanoid")
+                                
+                                -- Check if zombie is alive
+                                if humanoid and humanoid.Health > 0 then
+                                    local distance = (head.Position - playerPos).Magnitude
+                                    
+                                    -- Only target zombies within reasonable range
+                                    if distance < 200 and distance < minDist then
+                                        minDist = distance
+                                        closestZombie = zombie
+                                        closestHead = head
+                                    end
+                                end
+                            end
+                        end
+                        
+                        -- Shoot closest zombie with stealth features
+                        if closestZombie and closestHead then
+                            -- Add human-like miss chance (5-15% based on distance)
+                            local missChance = math.random(1, 100)
+                            local distanceMissChance = math.min(minDist / 10, 15) -- +1% per 10 studs, max 15%
+                            local totalMissChance = 5 + distanceMissChance
+                            
+                            if missChance > totalMissChance then
+                                -- Add slight aim offset for realism
+                                local offset = Vector3.new(
+                                    math.random(-2, 2) * 0.1,
+                                    math.random(-2, 2) * 0.1,
+                                    math.random(-2, 2) * 0.1
+                                )
+                                
+                                local targetPos = closestHead.Position + offset
+                                
+                                -- Use correct parameters (4th parameter should be 0, not 0.5)
+                                local args = {closestZombie, closestHead, targetPos, 0, weapon}
+                                
+                                local success = pcall(function() 
+                                    shootRemote:FireServer(unpack(args)) 
+                                end)
+                                
+                                if success then
+                                    lastShotTime = tick()
+                                    shotsFired = shotsFired + 1
+                                    
+                                    -- Take breaks occasionally (human-like behavior)
+                                    if shotsFired >= math.random(8, 15) then
+                                        task.wait(math.random(20, 50) * 0.01) -- 0.2-0.5s break
+                                        shotsFired = 0
+                                    end
                                 end
                             end
                         end
                     end
-                    task.wait(shootDelay)
+                    
+                    -- Variable delay for stealth
+                    local delay = shootDelay + math.random(-5, 5) * 0.01 -- ±0.05s jitter
+                    task.wait(math.max(0.05, delay))
                 end
             end)
         end
