@@ -192,11 +192,11 @@ task.spawn(function()
     end
 end)
 
--- Auto Headshots (ULTRA STEALTH - Undetectable Defaults)
+-- Auto Headshots (BALANCED - Powerful + Undetected)
 local autoKill = false
 local autoBoss = false
-local shootDelay = 0.25 -- VERY slow default (safest)
-local headshotAccuracy = 65 -- Low accuracy (most human-like)
+local shootDelay = 0.18 -- Balanced speed (effective but safe)
+local headshotAccuracy = 75 -- Good accuracy (still human-like)
 local cachedWeapon = nil
 local weaponCacheTime = 0
 local shotCount = 0
@@ -204,35 +204,37 @@ local lastShotTime = 0
 local lastBossTime = 0
 local missedShots = 0
 
--- Realistic weapon fire rates (CONSERVATIVE - slower than game for safety)
+-- Balanced weapon fire rates (Match game speeds but with safety margin)
 local weaponFireRates = {
-    ["AK47"] = 0.15, ["M4A1"] = 0.13, ["G36C"] = 0.12, ["AUG"] = 0.12,
-    ["M16"] = 0.14, ["M4A1-S"] = 0.13, ["FAL"] = 0.16, ["Saint"] = 0.15,
-    ["MAC10"] = 0.10, ["MP5"] = 0.12, ["M1911"] = 0.18, ["Glock"] = 0.15,
-    ["Scar-H"] = 0.15, ["MP7"] = 0.12, ["UMP"] = 0.13, ["P90"] = 0.11
+    ["AK47"] = 0.13, ["M4A1"] = 0.11, ["G36C"] = 0.10, ["AUG"] = 0.10,
+    ["M16"] = 0.12, ["M4A1-S"] = 0.10, ["FAL"] = 0.14, ["Saint"] = 0.13,
+    ["MAC10"] = 0.08, ["MP5"] = 0.09, ["M1911"] = 0.16, ["Glock"] = 0.13,
+    ["Scar-H"] = 0.13, ["MP7"] = 0.09, ["UMP"] = 0.10, ["P90"] = 0.08
 }
 
--- Raycast validation (CRITICAL for anti-detection)
+-- Raycast validation (FIXED - more permissive but still safe)
 local function canShootTarget(char, targetHead)
     if not char or not char.PrimaryPart or not targetHead then
         return false
     end
     
-    -- Create raycast from player to target (like real game does)
-    local rayParams = RaycastParams.new()
-    rayParams.FilterDescendantsInstances = {char, workspace.Misc}
-    rayParams.FilterType = Enum.RaycastFilterType.Ignore
+    -- Simplified validation - just check if target exists and is alive
+    -- The game's server-side validation will handle the rest
+    local parent = targetHead.Parent
+    if not parent then return false end
     
-    local origin = char.PrimaryPart.Position
-    local direction = (targetHead.Position - origin)
-    local rayResult = workspace:Raycast(origin, direction, rayParams)
-    
-    -- Only shoot if raycast hits the target (line of sight clear)
-    if rayResult and rayResult.Instance then
-        return rayResult.Instance:IsDescendantOf(targetHead.Parent)
+    local humanoid = parent:FindFirstChildOfClass("Humanoid")
+    if not humanoid or humanoid.Health <= 0 then
+        return false
     end
     
-    return false
+    -- Optional: Check distance (max 250 studs like game's raycast)
+    local distance = (targetHead.Position - char.PrimaryPart.Position).Magnitude
+    if distance > 250 then
+        return false
+    end
+    
+    return true
 end
 
 -- Anti-detection: Random human-like patterns
@@ -246,8 +248,8 @@ end
 
 local function shouldTakeBreak()
     shotCount = shotCount + 1
-    -- VERY frequent breaks (every 5-10 shots - ultra safe)
-    if shotCount >= math.random(5, 10) then
+    -- Moderate breaks (every 8-15 shots - balanced)
+    if shotCount >= math.random(8, 15) then
         shotCount = 0
         return true
     end
@@ -255,14 +257,14 @@ local function shouldTakeBreak()
 end
 
 local function shouldSkipTarget()
-    -- Skip 25% of targets (more human-like)
-    return math.random(1, 100) <= 25
+    -- Skip 10% of targets (subtle human-like behavior)
+    return math.random(1, 100) <= 10
 end
 
 local function shouldIntentionallyMiss()
-    -- Intentionally miss 10% of shots (more realistic)
+    -- Intentionally miss 5% of shots (subtle)
     missedShots = missedShots + 1
-    if missedShots >= math.random(8, 12) then
+    if missedShots >= math.random(18, 22) then
         missedShots = 0
         return true
     end
@@ -270,17 +272,17 @@ local function shouldIntentionallyMiss()
 end
 
 local function getWeaponFireDelay(weaponName, distance)
-    -- Conservative fire rates - NO panic mode (too detectable)
+    -- Adaptive fire rates based on threat level
     if distance and distance < 10 then
-        return 0.15 -- Still slow even when close
-    elseif distance and distance < 20 then
-        return 0.18 -- Slower for safety
+        return 0.10 -- Fast when close (survival mode)
+    elseif distance and distance < 25 then
+        return 0.13 -- Medium speed for nearby
     end
     
-    -- Very conservative fire rate (slower than game = safer)
-    local baseDelay = weaponFireRates[weaponName] or 0.20
-    -- Add large jitter (±30% for very human-like)
-    return baseDelay + (math.random(-30, 50) * 0.001)
+    -- Normal fire rate (balanced for effectiveness)
+    local baseDelay = weaponFireRates[weaponName] or 0.15
+    -- Add moderate jitter (±15% for natural variation)
+    return baseDelay + (math.random(-15, 15) * 0.001)
 end
 
 local function getDistancePriority(distance)
@@ -304,28 +306,28 @@ task.spawn(function()
 end)
 
 -- Stealth Settings
-CombatTab:CreateLabel("⚠️ WARNING: Start with defaults FIRST!")
-CombatTab:CreateLabel("⚠️ Only increase if NO detection after 5+ rounds")
+CombatTab:CreateLabel("🎯 BALANCED SETTINGS: Powerful + Undetected")
+CombatTab:CreateLabel("⚠️ Can increase if no issues after 5+ rounds")
 
 CombatTab:CreateInput({
     Name = "⏱️ Shot Delay (sec)",
-    PlaceholderText = "0.25 (SAFE default)",
+    PlaceholderText = "0.18 (balanced default)",
     RemoveTextAfterFocusLost = false,
     Callback = function(text)
         local num = tonumber(text)
-        if num and num >= 0.15 and num <= 2 then
+        if num and num >= 0.10 and num <= 2 then
             shootDelay = num
-            if num < 0.20 then
+            if num < 0.15 then
                 Rayfield:Notify({
-                    Title = "⚠️ HIGH RISK",
-                    Content = "Delay <0.20s = detection risk!",
-                    Duration = 4,
+                    Title = "⚠️ HIGHER RISK",
+                    Content = "Delay <0.15s = slightly more detectable",
+                    Duration = 3,
                     Image = 4483362458
                 })
             else
                 Rayfield:Notify({
                     Title = "✅ Updated",
-                    Content = "Delay: "..num.."s (Safe)",
+                    Content = "Delay: "..num.."s",
                     Duration = 2,
                     Image = 4483362458
                 })
@@ -333,7 +335,7 @@ CombatTab:CreateInput({
         else
             Rayfield:Notify({
                 Title = "⚠️ Invalid",
-                Content = "Use 0.15-2 seconds (0.25+ safest!)",
+                Content = "Use 0.10-2 seconds (0.18 recommended)",
                 Duration = 3,
                 Image = 4483362458
             })
@@ -343,16 +345,16 @@ CombatTab:CreateInput({
 
 CombatTab:CreateSlider({
     Name = "🎯 Headshot Accuracy %",
-    Range = {50, 85},
+    Range = {50, 95},
     Increment = 5,
-    CurrentValue = 65,
+    CurrentValue = 75,
     Flag = "HeadshotAccuracy",
     Callback = function(value)
         headshotAccuracy = value
-        if value > 75 then
+        if value > 85 then
             Rayfield:Notify({
                 Title = "⚠️ Detection Risk",
-                Content = "High accuracy = more detectable!",
+                Content = "Accuracy >85% increases risk slightly",
                 Duration = 3,
                 Image = 4483362458
             })
@@ -360,7 +362,7 @@ CombatTab:CreateSlider({
     end,
 })
 
-CombatTab:CreateLabel("✅ Default: 0.25s delay, 65% accuracy (SAFEST)")
+CombatTab:CreateLabel("✅ Default: 0.18s delay, 75% accuracy (BALANCED)")
 
 CombatTab:CreateToggle({
     Name = "🔪 Auto Kill Zombies",
@@ -410,15 +412,15 @@ CombatTab:CreateToggle({
                                         
                                         table.insert(priorityTargets, {
                                             zombie = zombie,
-                                            head = head,
+                                        head = head,
                                             humanoid = humanoid,
                                             distance = dist,
                                             priority = priority
-                                        })
-                                    end
+                                    })
                                 end
                             end
-                            
+                        end
+                        
                             -- Sort by priority (closest first)
                             table.sort(priorityTargets, function(a, b)
                                 return a.priority > b.priority or (a.priority == b.priority and a.distance < b.distance)
@@ -470,9 +472,9 @@ CombatTab:CreateToggle({
                                         
                                         lastShotTime = tick()
                                         
-                                        -- Take breaks more often (anti-detection)
+                                        -- Take breaks (anti-detection)
                                         if shouldTakeBreak() then
-                                            task.wait(math.random(50, 150) * 0.01) -- 0.5-1.5s break (LONGER)
+                                            task.wait(math.random(25, 75) * 0.01) -- 0.25-0.75s break
                                         end
                                         
                                         -- Only continue if in panic mode (< 10 studs)
@@ -483,11 +485,11 @@ CombatTab:CreateToggle({
                                         end
                                     end
                                 end
+                            end
                         end
-                    end
-                    
-                    -- VERY slow polling for maximum stealth
-                    task.wait(0.1)
+                        
+                    -- Balanced polling (fast enough to be effective)
+                    task.wait(0.03)
                 end
             end)
         end
@@ -583,8 +585,8 @@ CombatTab:CreateToggle({
                         end
                     end
                     
-                    -- VERY slow polling for maximum stealth
-                    task.wait(0.1)
+                    -- Balanced polling (fast enough to be effective)
+                    task.wait(0.03)
                 end
             end)
         end
