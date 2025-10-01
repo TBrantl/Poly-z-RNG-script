@@ -40,27 +40,33 @@ end
 local CombatTab = Window:CreateTab("⚔️ Combat", "Skull")
 
 -- Stealth Information
-CombatTab:CreateLabel("🛡️ SILENT AIM + CAMERA SYSTEM:")
-CombatTab:CreateLabel("✅ Crosshair Independent | ✅ Camera Hijacking | ✅ Detection Avoidance")
-CombatTab:CreateLabel("✅ Legitimate Raycasts | ✅ Anti-Cheat Bypass | ✅ Human Behavior")
+CombatTab:CreateLabel("🛡️ ADAPTIVE STEALTH SYSTEM:")
+CombatTab:CreateLabel("✅ Round-Based Adaptation | ✅ Risk Assessment | ✅ Dynamic Miss Chance")
+CombatTab:CreateLabel("✅ Adaptive Breaks | ✅ Progressive Delays | ✅ Detection Avoidance")
 CombatTab:CreateLabel("━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 
 -- Weapon Label
 local weaponLabel = CombatTab:CreateLabel("🔫 Current Weapon: Loading...")
 
--- Update label
+-- Round Counter Label
+local roundLabel = CombatTab:CreateLabel("🎯 Round: 0 | Risk: 0%")
+
+-- Update labels
 task.spawn(function()
     while true do
         weaponLabel:Set("🔫 Current Weapon: " .. getEquippedWeaponName())
+        roundLabel:Set("🎯 Round: " .. roundsSurvived .. " | Risk: " .. math.floor(detectionRisk * 100) .. "%")
         task.wait(0.1)
     end
 end)
 
--- Auto Headshots (STEALTH)
+-- Auto Headshots (ULTRA STEALTH)
 local autoKill = false
-local shootDelay = 0.15
+local shootDelay = 0.25
 local lastShotTime = 0
 local shotsFired = 0
+local roundsSurvived = 0
+local detectionRisk = 0
 local weaponFireRates = {
     ["M1911"] = 0.133,
     ["AK47"] = 0.120,
@@ -79,11 +85,18 @@ local weaponFireRates = {
     ["M16"] = 0.109
 }
 
--- Get weapon fire rate with jitter
+-- Get weapon fire rate with adaptive jitter (increases with rounds)
 local function getWeaponFireDelay(weaponName)
     local baseDelay = weaponFireRates[weaponName] or 0.12
-    local jitter = math.random(90, 110) * 0.01 -- ±10% jitter
-    return baseDelay * jitter
+    
+    -- Increase jitter as rounds progress (more human-like)
+    local jitterRange = math.min(80 + roundsSurvived * 2, 95) -- 80-95% based on rounds
+    local jitter = math.random(jitterRange, 110) * 0.01
+    
+    -- Add extra delay for higher rounds
+    local extraDelay = roundsSurvived * 0.01 -- +0.01s per round
+    
+    return (baseDelay + extraDelay) * jitter
 end
 
 -- Check if we can shoot (cooldown validation)
@@ -92,6 +105,27 @@ local function canShoot()
     local weaponName = getEquippedWeaponName()
     local requiredDelay = getWeaponFireDelay(weaponName)
     return (currentTime - lastShotTime) >= requiredDelay
+end
+
+-- Round detection and adaptive stealth
+local function updateRoundInfo()
+    local roundInfo = workspace:FindFirstChild("RoundInfo")
+    if roundInfo then
+        local currentRound = roundInfo:GetAttribute("Round") or 0
+        if currentRound > roundsSurvived then
+            roundsSurvived = currentRound
+            detectionRisk = math.min(roundsSurvived * 0.1, 0.8) -- Increase risk with rounds
+        end
+    end
+end
+
+-- Adaptive miss chance (increases with rounds)
+local function getAdaptiveMissChance(distance)
+    local baseMissChance = 5 + (distance / 10) -- Base miss chance
+    local roundMissChance = roundsSurvived * 2 -- +2% per round
+    local riskMissChance = detectionRisk * 20 -- +20% based on detection risk
+    
+    return math.min(baseMissChance + roundMissChance + riskMissChance, 50) -- Max 50%
 end
 
 -- Camera hijacking system for silent aim (detection avoidance)
@@ -229,12 +263,14 @@ CombatTab:CreateToggle({
                             end
                         end
                         
-                        -- Shoot closest zombie with OPTIMIZED CAMERA SYSTEM
+                        -- Update round info for adaptive stealth
+                        updateRoundInfo()
+                        
+                        -- Shoot closest zombie with ADAPTIVE STEALTH SYSTEM
                         if closestZombie and closestHead then
-                            -- Add human-like miss chance (5-15% based on distance)
+                            -- Adaptive miss chance (increases with rounds and risk)
                             local missChance = math.random(1, 100)
-                            local distanceMissChance = math.min(minDist / 10, 15) -- +1% per 10 studs, max 15%
-                            local totalMissChance = 5 + distanceMissChance
+                            local totalMissChance = getAdaptiveMissChance(minDist)
                             
                             if missChance > totalMissChance then
                                 local success = false
@@ -292,23 +328,28 @@ CombatTab:CreateToggle({
                                     end)
                                 end
                                 
-                                if success then
-                                    lastShotTime = tick()
-                                    shotsFired = shotsFired + 1
-                                    
-                                    -- Take breaks occasionally (human-like behavior)
-                                    if shotsFired >= math.random(8, 15) then
-                                        task.wait(math.random(20, 50) * 0.01) -- 0.2-0.5s break
-                                        shotsFired = 0
+                                    if success then
+                                        lastShotTime = tick()
+                                        shotsFired = shotsFired + 1
+                                        
+                                        -- Adaptive break patterns (more frequent in higher rounds)
+                                        local breakFrequency = math.max(8 - roundsSurvived, 3) -- More frequent breaks
+                                        local breakDuration = math.random(20 + roundsSurvived * 5, 50 + roundsSurvived * 10) * 0.01
+                                        
+                                        if shotsFired >= breakFrequency then
+                                            task.wait(breakDuration)
+                                            shotsFired = 0
+                                        end
                                     end
-                                end
                             end
                         end
                     end
                     
-                    -- Variable delay for stealth
-                    local delay = shootDelay + math.random(-5, 5) * 0.01 -- ±0.05s jitter
-                    task.wait(math.max(0.05, delay))
+                    -- Adaptive delay for stealth (increases with rounds)
+                    local baseDelay = shootDelay + (roundsSurvived * 0.02) -- +0.02s per round
+                    local jitterRange = math.min(5 + roundsSurvived, 15) -- More jitter in higher rounds
+                    local delay = baseDelay + math.random(-jitterRange, jitterRange) * 0.01
+                    task.wait(math.max(0.1, delay))
                 end
             end)
         end
