@@ -1,3 +1,58 @@
+-- ===== ANTI-DETECTION SYSTEM =====
+-- Namecall Hook (Intercept Remote Calls)
+pcall(function()
+    local oldNamecall
+    oldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
+        local method = getnamecallmethod()
+        local args = {...}
+        
+        if method == "FireServer" or method == "InvokeServer" then
+            local remoteName = self.Name
+            
+            -- Add micro-delays to shooting (anti-pattern detection)
+            if remoteName == "ShootEnemy" then
+                task.wait(math.random(1, 3) * 0.001) -- 1-3ms jitter
+            end
+            
+            -- Block anti-cheat remotes
+            if remoteName:find("AntiCheat") or remoteName:find("KM_") then
+                warn("[Blocked] Anti-cheat remote: " .. remoteName)
+                return
+            end
+        end
+        
+        return oldNamecall(self, ...)
+    end)
+    print("✅ Namecall hook active")
+end)
+
+-- Anti-Kick Protection
+pcall(function()
+    local mt = getrawmetatable(game)
+    local oldNamecall = mt.__namecall
+    setreadonly(mt, false)
+    mt.__namecall = newcclosure(function(self, ...)
+        local method = getnamecallmethod()
+        if method == "Kick" then
+            warn("⚠️ BLOCKED KICK ATTEMPT!")
+            return
+        end
+        return oldNamecall(self, ...)
+    end)
+    setreadonly(mt, true)
+    print("✅ Anti-kick protection active")
+end)
+
+-- Environment Spoofing (Hide executor traces)
+pcall(function()
+    local suspiciousGlobals = {"syn", "KRNL", "Synapse", "Fluxus", "Arceus"}
+    for _, g in ipairs(suspiciousGlobals) do
+        if _G[g] then _G[g] = nil end
+        if getgenv()[g] then getgenv()[g] = nil end
+    end
+    print("✅ Environment spoofed")
+end)
+
 -- Load Rayfield
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 local Players = game:GetService("Players")
@@ -34,6 +89,10 @@ end
 
 -- Combat Tab
 local CombatTab = Window:CreateTab("Main", "skull")
+
+-- Anti-Detection Status
+CombatTab:CreateLabel("🛡️ Anti-Detection: ACTIVE (Namecall + Anti-Kick)")
+CombatTab:CreateLabel("━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 
 -- Weapon Label
 local weaponLabel = CombatTab:CreateLabel("🔫 Current Weapon: Loading...")
