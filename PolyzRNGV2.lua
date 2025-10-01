@@ -249,11 +249,15 @@ MiscTab:CreateButton({
         local vars = player:FindFirstChild("Variables")
         if not vars then return end
 
-        local perks = {
-            "Bandoiler_Perk",
-            "DoubleUp_Perk",
-            "Haste_Perk",
-            "Tank_Perk"
+        local perks = {  
+            "Bandoiler_Perk",  
+            "DoubleUp_Perk",  
+            "Haste_Perk",  
+            "Tank_Perk",  
+            "GasMask_Perk",  
+            "DeadShot_Perk",  
+            "DoubleMag_Perk",  
+            "WickedGrenade_Perk"  
         }
 
         for _, perk in ipairs(perks) do
