@@ -541,12 +541,16 @@ ExploitsTab:CreateButton({
         local vars = player:FindFirstChild("Variables")
         if vars then
             pcall(function() 
-                vars:SetAttribute("Health", 9999)
-                vars:SetAttribute("MaxHealth", 9999)
+                -- Set to a more reasonable value to avoid server validation
+                local maxHealth = vars:GetAttribute("MaxHealth") or 100
+                vars:SetAttribute("Health", math.max(maxHealth, 500))
+                if maxHealth < 500 then
+                    vars:SetAttribute("MaxHealth", 500)
+                end
             end)
             Rayfield:Notify({
-                Title = "✅ Health Maxed",
-                Content = "Health set to 9999!",
+                Title = "✅ Health Boosted",
+                Content = "Health set to safe max!",
                 Duration = 3,
                 Image = 4483362458
             })
@@ -573,23 +577,33 @@ ExploitsTab:CreateButton({
     end
 })
 
+ExploitsTab:CreateLabel("⚠️ Movement: Keep ≤25 to avoid detection!")
+
 ExploitsTab:CreateSlider({
-    Name = "🏃 WalkSpeed",
-    Range = {16, 200},
-    Increment = 2,
+    Name = "🏃 WalkSpeed (16=Normal, 25=Sprint)",
+    Range = {16, 50},
+    Increment = 1,
     CurrentValue = 16,
     Flag = "WalkSpeed",
     Callback = function(value)
         local char = player.Character
         if char and char:FindFirstChild("Humanoid") then
             char.Humanoid.WalkSpeed = value
+            if value > 25 then
+                Rayfield:Notify({
+                    Title = "⚠️ Detection Risk",
+                    Content = "WalkSpeed > 25 is risky!",
+                    Duration = 3,
+                    Image = 4483362458
+                })
+            end
         end
     end,
 })
 
 ExploitsTab:CreateSlider({
-    Name = "🦘 JumpPower",
-    Range = {50, 300},
+    Name = "🦘 JumpPower (Safe ≤100)",
+    Range = {50, 150},
     Increment = 5,
     CurrentValue = 50,
     Flag = "JumpPower",
@@ -597,6 +611,14 @@ ExploitsTab:CreateSlider({
         local char = player.Character
         if char and char:FindFirstChild("Humanoid") then
             char.Humanoid.JumpPower = value
+            if value > 100 then
+                Rayfield:Notify({
+                    Title = "⚠️ Detection Risk",
+                    Content = "JumpPower > 100 is risky!",
+                    Duration = 3,
+                    Image = 4483362458
+                })
+            end
         end
     end,
 })
@@ -623,7 +645,7 @@ ExploitsTab:CreateToggle({
 })
 
 ExploitsTab:CreateToggle({
-    Name = "⚡ God Mode (Auto Heal)",
+    Name = "⚡ God Mode (Smart Heal)",
     CurrentValue = false,
     Flag = "GodMode",
     Callback = function(state)
@@ -634,21 +656,28 @@ ExploitsTab:CreateToggle({
                     local char = player.Character
                     if vars and char then
                         pcall(function()
-                            -- Keep health high but not constant updates (stealth)
+                            -- Smart healing: only heal when damaged (less detectable)
                             local currentHealth = vars:GetAttribute("Health") or 0
-                            if currentHealth < 5000 then
-                                vars:SetAttribute("Health", 9999)
-                                vars:SetAttribute("MaxHealth", 9999)
+                            local maxHealth = vars:GetAttribute("MaxHealth") or 100
+                            
+                            -- If health drops below 50%, heal back to max
+                            if currentHealth < maxHealth * 0.5 then
+                                vars:SetAttribute("Health", maxHealth)
                             end
                             
-                            -- Also heal humanoid if low
+                            -- Set reasonable max health if too low
+                            if maxHealth < 300 then
+                                vars:SetAttribute("MaxHealth", 300)
+                            end
+                            
+                            -- Also protect humanoid health
                             local humanoid = char:FindFirstChildOfClass("Humanoid")
-                            if humanoid and humanoid.Health < humanoid.MaxHealth * 0.8 then
+                            if humanoid and humanoid.Health < humanoid.MaxHealth * 0.5 then
                                 humanoid.Health = humanoid.MaxHealth
                             end
                         end)
                     end
-                    task.wait(0.2) -- Less frequent updates (stealth)
+                    task.wait(0.1) -- Check every 0.1s for faster response
                 end
             end)
         end
@@ -723,6 +752,22 @@ CameraTab:CreateSlider({
             player.CameraMaxZoomDistance = value
             player.CameraMinZoomDistance = value
         end)
+    end,
+})
+
+CameraTab:CreateLabel("⚠️ FOV resets when aiming (70→50 by game)")
+
+CameraTab:CreateSlider({
+    Name = "🔭 Camera FOV (Default: 70)",
+    Range = {70, 120},
+    Increment = 5,
+    CurrentValue = 70,
+    Flag = "CameraFOV",
+    Callback = function(value)
+        local camera = workspace.CurrentCamera
+        if camera then
+            camera.FieldOfView = value
+        end
     end,
 })
 
