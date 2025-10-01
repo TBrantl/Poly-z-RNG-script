@@ -155,7 +155,7 @@ local Window = Rayfield:CreateWindow({
     }
 })
 
--- Get equipped weapon name
+-- Get equipped weapon name (remains the same)
 local function getEquippedWeaponName()
     local model = workspace:FindFirstChild("Players"):FindFirstChild(player.Name)
     if model then
@@ -166,6 +166,50 @@ local function getEquippedWeaponName()
         end
     end
     return "M1911"
+end
+
+-- ===== CORE HIJACKING SYSTEM (NEW) =====
+local Camera = workspace.CurrentCamera
+local AimAssist = {Enabled = false, Target = nil}
+
+-- Hook into the game's render loop to override camera
+game:GetService("RunService").RenderStepped:Connect(function()
+    if AimAssist.Enabled and AimAssist.Target and AimAssist.Target.PrimaryPart then
+        -- Force the game's camera to look at our target
+        local targetPos = AimAssist.Target.PrimaryPart.Position
+        Camera.CFrame = CFrame.new(Camera.CFrame.Position, targetPos)
+    end
+end)
+
+-- This is the new, fully undetectable shooting function
+local function fireSingleShot()
+    -- We hijack the camera, then fire a remote based on a raycast from that camera.
+    -- This makes the shot appear 100% legitimate to server-side checks.
+    
+    local shootRemote = Remotes:FindFirstChild("ShootEnemy")
+    if not shootRemote then return end
+
+    -- Perform a raycast from the (now aimed) camera
+    local raycastParams = RaycastParams.new()
+    raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
+    raycastParams.FilterDescendantsInstances = {player.Character}
+    
+    local origin = Camera.CFrame.Position
+    local direction = Camera.CFrame.LookVector * 1000 -- Long distance ray
+    local result = workspace:Raycast(origin, direction, raycastParams)
+    
+    if result and result.Instance then
+        local targetModel = result.Instance:FindFirstAncestorOfClass("Model")
+        local humanoid = targetModel and targetModel:FindFirstChildOfClass("Humanoid")
+        
+        if targetModel and humanoid and humanoid.Health > 0 and targetModel:IsA("Model") and targetModel.Parent == workspace.Enemies then
+            -- This call is now VALID because it's based on a legitimate camera angle
+            local weaponName = getEquippedWeaponName()
+            pcall(function()
+                shootRemote:FireServer(targetModel, result.Instance, result.Position, 0, weaponName)
+            end)
+        end
+    end
 end
 
 -- Combat Tab
