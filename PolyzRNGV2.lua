@@ -40,9 +40,9 @@ end
 local CombatTab = Window:CreateTab("⚔️ Combat", "Skull")
 
 -- Stealth Information
-CombatTab:CreateLabel("🛡️ OPTIMIZED STEALTH MODE:")
-CombatTab:CreateLabel("✅ 360° Camera Coverage | ✅ Smooth Movement | ✅ Toggleable System")
-CombatTab:CreateLabel("✅ Anti-Cheat Bypass | ✅ Weapon Fire Rates | ✅ Human Behavior")
+CombatTab:CreateLabel("🛡️ SILENT AIM MODE:")
+CombatTab:CreateLabel("✅ Crosshair Independent | ✅ Direct Target Raycast | ✅ Anti-Cheat Bypass")
+CombatTab:CreateLabel("✅ Weapon Fire Rates | ✅ Human Miss Chance | ✅ Break Patterns")
 CombatTab:CreateLabel("━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 
 -- Weapon Label
@@ -94,47 +94,7 @@ local function canShoot()
     return (currentTime - lastShotTime) >= requiredDelay
 end
 
--- Optimized camera hijacking system for legitimate raycasts
-local AimAssist = {Enabled = false, Target = nil}
-local lastCameraUpdate = 0
-local cameraSmoothing = 0.15
-local humanReactionTime = math.random(8, 15) * 0.01
-
--- Optimized camera system with 360-degree coverage
-game:GetService("RunService").RenderStepped:Connect(function()
-    if AimAssist.Enabled and AimAssist.Target and AimAssist.Target.PrimaryPart then
-        local currentTime = tick()
-        
-        -- Variable reaction time for human-like behavior
-        if currentTime - lastCameraUpdate > humanReactionTime then
-            local targetPos = AimAssist.Target.PrimaryPart.Position
-            local currentPos = workspace.CurrentCamera.CFrame.Position
-            local distance = (targetPos - currentPos).Magnitude
-            
-            -- Calculate direction with 360-degree coverage
-            local direction = (targetPos - currentPos).Unit
-            local currentLookDirection = workspace.CurrentCamera.CFrame.LookVector
-            
-            -- Smooth interpolation for natural movement
-            local interpolatedDirection = currentLookDirection:Lerp(direction, cameraSmoothing)
-            
-            -- Add slight randomization for realism (reduced for smoother movement)
-            local randomOffset = Vector3.new(
-                math.random(-1, 1) * 0.05,
-                math.random(-1, 1) * 0.05,
-                math.random(-1, 1) * 0.05
-            )
-            
-            -- Create smooth camera movement
-            local targetCFrame = CFrame.new(currentPos, currentPos + interpolatedDirection + randomOffset)
-            workspace.CurrentCamera.CFrame = workspace.CurrentCamera.CFrame:Lerp(targetCFrame, 0.2)
-            
-            lastCameraUpdate = currentTime
-            -- Reset reaction time for next update
-            humanReactionTime = math.random(8, 15) * 0.01
-        end
-    end
-end)
+-- Silent aim system (no camera hijacking needed)
 
 -- Text input for shot delay (STEALTH)
 CombatTab:CreateInput({
@@ -162,19 +122,19 @@ CombatTab:CreateInput({
     end,
 })
 
--- Camera hijacking toggle
-local useCameraHijacking = true
+-- Silent aim toggle
+local useSilentAim = true
 
 CombatTab:CreateToggle({
-    Name = "📹 Camera Hijacking",
+    Name = "🎯 Silent Aim",
     CurrentValue = true,
-    Flag = "CameraHijacking",
+    Flag = "SilentAim",
     Callback = function(state)
-        useCameraHijacking = state
+        useSilentAim = state
         Rayfield:Notify({
-            Title = "Camera System",
-            Content = "Camera hijacking " .. (state and "enabled" or "disabled"),
-            Duration = 2,
+            Title = "Silent Aim",
+            Content = "Silent aim " .. (state and "enabled" or "disabled") .. " - Crosshair doesn't need to face target",
+            Duration = 3,
             Image = 4483362458
         })
     end
@@ -240,26 +200,21 @@ CombatTab:CreateToggle({
                             if missChance > totalMissChance then
                                 local success = false
                                 
-                                if useCameraHijacking then
-                                    -- OPTIMIZED CAMERA HIJACKING (shorter duration)
-                                    AimAssist.Enabled = true
-                                    AimAssist.Target = closestZombie
-                                    
-                                    -- Shorter aim time for better performance
-                                    task.wait(math.random(8, 15) * 0.01)
-                                    
-                                    -- PERFORM EXACT GAME RAYCAST (CRITICAL FOR ANTI-CHEAT BYPASS)
+                                if useSilentAim then
+                                    -- SILENT AIM: Raycast directly to target regardless of crosshair
                                     local camera = workspace.CurrentCamera
                                     local cameraPos = camera.CFrame.Position
-                                    local lookDirection = camera.CFrame.LookVector
+                                    
+                                    -- Calculate direction directly to target (SILENT AIM)
+                                    local targetDirection = (closestHead.Position - cameraPos).Unit
                                     
                                     -- EXACT GAME RAYCAST PARAMETERS
                                     local raycastParams = RaycastParams.new()
                                     raycastParams.FilterType = Enum.RaycastFilterType.Include
                                     raycastParams.FilterDescendantsInstances = {workspace.Enemies, workspace.Misc, workspace.BossArena.Decorations}
                                     
-                                    -- Perform raycast from camera (EXACT GAME METHOD)
-                                    local raycastResult = workspace:Raycast(cameraPos, lookDirection * 250, raycastParams)
+                                    -- Perform raycast directly to target (SILENT AIM)
+                                    local raycastResult = workspace:Raycast(cameraPos, targetDirection * 250, raycastParams)
                                     
                                     -- Only fire if raycast hits the target (EXACT GAME VALIDATION)
                                     if raycastResult and raycastResult.Instance:IsDescendantOf(workspace.Enemies) then
@@ -277,11 +232,7 @@ CombatTab:CreateToggle({
                                         end)
                                     end
                                     
-                                    -- Immediately disable camera hijacking for better performance
-                                    AimAssist.Enabled = false
-                                    AimAssist.Target = nil
-                                    
-                                    -- Add small delay to prevent rapid camera switching
+                                    -- Add small delay for stealth
                                     task.wait(math.random(5, 10) * 0.01)
                                 else
                                     -- SIMPLE DIRECT SHOOTING (no camera hijacking)
