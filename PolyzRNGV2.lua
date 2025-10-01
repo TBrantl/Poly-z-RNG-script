@@ -344,6 +344,7 @@ CombatTab:CreateToggle({
                 Duration = 4,
                 Image = 4483362458
             })
+            print("Auto headshot enabled - autoKill:", autoKill, "autoKillBosses:", autoKillBosses)
             task.spawn(function()
                 while autoKill do
                     -- Check if we can shoot (cooldown validation)
@@ -351,6 +352,8 @@ CombatTab:CreateToggle({
                         task.wait(0.05)
                         continue
                     end
+                    
+                    print("Auto headshot loop running - looking for targets...")
                     
                     local enemies = workspace:FindFirstChild("Enemies")
                     local shootRemote = Remotes:FindFirstChild("ShootEnemy")
@@ -439,6 +442,7 @@ CombatTab:CreateToggle({
                         
                         -- Shoot closest target (zombie or boss) with ADAPTIVE STEALTH SYSTEM
                         if closestTarget and closestHead then
+                            print("Target found:", closestTarget.Name, "Distance:", minDist)
                             -- Adaptive miss chance (increases with rounds and risk)
                             local missChance = math.random(1, 100)
                             local totalMissChance = getAdaptiveMissChance(minDist)
