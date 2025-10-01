@@ -40,9 +40,9 @@ end
 local CombatTab = Window:CreateTab("⚔️ Combat", "Skull")
 
 -- Stealth Information
-CombatTab:CreateLabel("🛡️ STEALTH MODE ACTIVE:")
-CombatTab:CreateLabel("✅ Weapon-specific fire rates | ✅ Human-like miss chance")
-CombatTab:CreateLabel("✅ Aim offset | ✅ Break patterns | ✅ Cooldown validation")
+CombatTab:CreateLabel("🛡️ ULTRA-STEALTH MODE ACTIVE:")
+CombatTab:CreateLabel("✅ Camera Hijacking | ✅ Legitimate Raycasts | ✅ Anti-Cheat Bypass")
+CombatTab:CreateLabel("✅ Weapon Fire Rates | ✅ Human Miss Chance | ✅ Break Patterns")
 CombatTab:CreateLabel("━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 
 -- Weapon Label
@@ -93,6 +93,35 @@ local function canShoot()
     local requiredDelay = getWeaponFireDelay(weaponName)
     return (currentTime - lastShotTime) >= requiredDelay
 end
+
+-- Camera hijacking system for legitimate raycasts
+local AimAssist = {Enabled = false, Target = nil}
+local lastCameraUpdate = 0
+
+-- Hook into the game's render loop to override camera
+game:GetService("RunService").RenderStepped:Connect(function()
+    if AimAssist.Enabled and AimAssist.Target and AimAssist.Target.PrimaryPart then
+        local currentTime = tick()
+        
+        -- Only update camera every 0.1-0.2 seconds (human reaction time)
+        if currentTime - lastCameraUpdate > math.random(10, 20) * 0.01 then
+            local targetPos = AimAssist.Target.PrimaryPart.Position
+            local currentPos = workspace.CurrentCamera.CFrame.Position
+            
+            -- Smooth camera movement with slight randomization
+            local randomOffset = Vector3.new(
+                math.random(-3, 3) * 0.1,
+                math.random(-3, 3) * 0.1,
+                math.random(-3, 3) * 0.1
+            )
+            
+            local targetCFrame = CFrame.new(currentPos, targetPos + randomOffset)
+            workspace.CurrentCamera.CFrame = workspace.CurrentCamera.CFrame:Lerp(targetCFrame, 0.3)
+            
+            lastCameraUpdate = currentTime
+        end
+    end
+end)
 
 -- Text input for shot delay (STEALTH)
 CombatTab:CreateInput({
@@ -170,7 +199,7 @@ CombatTab:CreateToggle({
                             end
                         end
                         
-                        -- Shoot closest zombie with stealth features
+                        -- Shoot closest zombie with EXACT GAME VALIDATION
                         if closestZombie and closestHead then
                             -- Add human-like miss chance (5-15% based on distance)
                             local missChance = math.random(1, 100)
@@ -178,32 +207,56 @@ CombatTab:CreateToggle({
                             local totalMissChance = 5 + distanceMissChance
                             
                             if missChance > totalMissChance then
-                                -- Add slight aim offset for realism
-                                local offset = Vector3.new(
-                                    math.random(-2, 2) * 0.1,
-                                    math.random(-2, 2) * 0.1,
-                                    math.random(-2, 2) * 0.1
-                                )
+                                -- HIJACK CAMERA TO AIM AT TARGET
+                                AimAssist.Enabled = true
+                                AimAssist.Target = closestZombie
                                 
-                                local targetPos = closestHead.Position + offset
+                                -- Wait for camera to aim (human reaction time)
+                                task.wait(math.random(15, 30) * 0.01)
                                 
-                                -- Use correct parameters (4th parameter should be 0, not 0.5)
-                                local args = {closestZombie, closestHead, targetPos, 0, weapon}
+                                -- PERFORM EXACT GAME RAYCAST (CRITICAL FOR ANTI-CHEAT BYPASS)
+                                local camera = workspace.CurrentCamera
+                                local cameraPos = camera.CFrame.Position
+                                local lookDirection = camera.CFrame.LookVector
                                 
-                                local success = pcall(function() 
-                                    shootRemote:FireServer(unpack(args)) 
-                                end)
+                                -- EXACT GAME RAYCAST PARAMETERS
+                                local raycastParams = RaycastParams.new()
+                                raycastParams.FilterType = Enum.RaycastFilterType.Include
+                                raycastParams.FilterDescendantsInstances = {workspace.Enemies, workspace.Misc, workspace.BossArena.Decorations}
                                 
-                                if success then
-                                    lastShotTime = tick()
-                                    shotsFired = shotsFired + 1
+                                -- Perform raycast from camera (EXACT GAME METHOD)
+                                local raycastResult = workspace:Raycast(cameraPos, lookDirection * 250, raycastParams)
+                                
+                                -- Only fire if raycast hits the target (EXACT GAME VALIDATION)
+                                if raycastResult and raycastResult.Instance:IsDescendantOf(workspace.Enemies) then
+                                    -- Use EXACT GAME PARAMETERS
+                                    local args = {
+                                        raycastResult.Instance.Parent,  -- zombie model
+                                        raycastResult.Instance,        -- hit part
+                                        raycastResult.Position,        -- hit position
+                                        0,                            -- damage multiplier (EXACT GAME VALUE)
+                                        weapon                        -- weapon name
+                                    }
                                     
-                                    -- Take breaks occasionally (human-like behavior)
-                                    if shotsFired >= math.random(8, 15) then
-                                        task.wait(math.random(20, 50) * 0.01) -- 0.2-0.5s break
-                                        shotsFired = 0
+                                    local success = pcall(function() 
+                                        shootRemote:FireServer(unpack(args)) 
+                                    end)
+                                    
+                                    if success then
+                                        lastShotTime = tick()
+                                        shotsFired = shotsFired + 1
+                                        
+                                        -- Take breaks occasionally (human-like behavior)
+                                        if shotsFired >= math.random(8, 15) then
+                                            task.wait(math.random(20, 50) * 0.01) -- 0.2-0.5s break
+                                            shotsFired = 0
+                                        end
                                     end
                                 end
+                                
+                                -- Disable camera hijacking
+                                AimAssist.Enabled = false
+                                AimAssist.Target = nil
                             end
                         end
                     end
