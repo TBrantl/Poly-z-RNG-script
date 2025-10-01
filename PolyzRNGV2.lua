@@ -90,8 +90,12 @@ end
 -- Combat Tab
 local CombatTab = Window:CreateTab("Main", "skull")
 
--- Anti-Detection Status
+-- Anti-Detection Status & Usage Guide
 CombatTab:CreateLabel("🛡️ Anti-Detection: ACTIVE (Namecall + Anti-Kick)")
+CombatTab:CreateLabel("━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+CombatTab:CreateLabel("📖 USAGE: Enable ONE toggle below")
+CombatTab:CreateLabel("📖 Test for 5 rounds at default settings")
+CombatTab:CreateLabel("📖 If no kick, gradually increase settings")
 CombatTab:CreateLabel("━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 
 -- Weapon Label
@@ -105,11 +109,11 @@ task.spawn(function()
     end
 end)
 
--- Auto Headshots (STEALTH MODE - Anti-Detection)
+-- Auto Headshots (ULTRA STEALTH - Undetectable Defaults)
 local autoKill = false
 local autoBoss = false
-local shootDelay = 0.15 -- Slower default to avoid detection
-local headshotAccuracy = 75 -- Lower for more human-like behavior
+local shootDelay = 0.25 -- VERY slow default (safest)
+local headshotAccuracy = 65 -- Low accuracy (most human-like)
 local cachedWeapon = nil
 local weaponCacheTime = 0
 local shotCount = 0
@@ -117,12 +121,12 @@ local lastShotTime = 0
 local lastBossTime = 0
 local missedShots = 0
 
--- Realistic weapon fire rates (matching actual game rates)
+-- Realistic weapon fire rates (CONSERVATIVE - slower than game for safety)
 local weaponFireRates = {
-    ["AK47"] = 0.12, ["M4A1"] = 0.10, ["G36C"] = 0.086, ["AUG"] = 0.086,
-    ["M16"] = 0.109, ["M4A1-S"] = 0.092, ["FAL"] = 0.133, ["Saint"] = 0.12,
-    ["MAC10"] = 0.06, ["MP5"] = 0.075, ["M1911"] = 0.15, ["Glock"] = 0.12,
-    ["Scar-H"] = 0.12, ["MP7"] = 0.08, ["UMP"] = 0.09, ["P90"] = 0.07
+    ["AK47"] = 0.15, ["M4A1"] = 0.13, ["G36C"] = 0.12, ["AUG"] = 0.12,
+    ["M16"] = 0.14, ["M4A1-S"] = 0.13, ["FAL"] = 0.16, ["Saint"] = 0.15,
+    ["MAC10"] = 0.10, ["MP5"] = 0.12, ["M1911"] = 0.18, ["Glock"] = 0.15,
+    ["Scar-H"] = 0.15, ["MP7"] = 0.12, ["UMP"] = 0.13, ["P90"] = 0.11
 }
 
 -- Anti-detection: Random human-like patterns
@@ -136,8 +140,8 @@ end
 
 local function shouldTakeBreak()
     shotCount = shotCount + 1
-    -- More frequent breaks to avoid detection (every 8-15 shots)
-    if shotCount >= math.random(8, 15) then
+    -- VERY frequent breaks (every 5-10 shots - ultra safe)
+    if shotCount >= math.random(5, 10) then
         shotCount = 0
         return true
     end
@@ -145,14 +149,14 @@ local function shouldTakeBreak()
 end
 
 local function shouldSkipTarget()
-    -- Randomly skip 15% of targets (human-like behavior)
-    return math.random(1, 100) <= 15
+    -- Skip 25% of targets (more human-like)
+    return math.random(1, 100) <= 25
 end
 
 local function shouldIntentionallyMiss()
-    -- Intentionally miss 5% of shots (anti-detection)
+    -- Intentionally miss 10% of shots (more realistic)
     missedShots = missedShots + 1
-    if missedShots >= math.random(15, 25) then
+    if missedShots >= math.random(8, 12) then
         missedShots = 0
         return true
     end
@@ -160,17 +164,17 @@ local function shouldIntentionallyMiss()
 end
 
 local function getWeaponFireDelay(weaponName, distance)
-    -- PANIC MODE: Faster if enemy is very close (but not TOO fast)
+    -- Conservative fire rates - NO panic mode (too detectable)
     if distance and distance < 10 then
-        return 0.08 -- Emergency only
+        return 0.15 -- Still slow even when close
     elseif distance and distance < 20 then
-        return 0.10 -- Faster for nearby
+        return 0.18 -- Slower for safety
     end
     
-    -- Normal fire rate for distant enemies (realistic)
-    local baseDelay = weaponFireRates[weaponName] or 0.12
-    -- Add significant jitter (±20% for more human-like)
-    return baseDelay + (math.random(-20, 20) * 0.001)
+    -- Very conservative fire rate (slower than game = safer)
+    local baseDelay = weaponFireRates[weaponName] or 0.20
+    -- Add large jitter (±30% for very human-like)
+    return baseDelay + (math.random(-30, 50) * 0.001)
 end
 
 local function getDistancePriority(distance)
@@ -194,24 +198,36 @@ task.spawn(function()
 end)
 
 -- Stealth Settings
+CombatTab:CreateLabel("⚠️ WARNING: Start with defaults FIRST!")
+CombatTab:CreateLabel("⚠️ Only increase if NO detection after 5+ rounds")
+
 CombatTab:CreateInput({
     Name = "⏱️ Shot Delay (sec)",
-    PlaceholderText = "0.15 (stealth default)",
+    PlaceholderText = "0.25 (SAFE default)",
     RemoveTextAfterFocusLost = false,
     Callback = function(text)
         local num = tonumber(text)
-        if num and num >= 0.08 and num <= 2 then
+        if num and num >= 0.15 and num <= 2 then
             shootDelay = num
-            Rayfield:Notify({
-                Title = "✅ Updated",
-                Content = "Delay: "..num.."s",
-                Duration = 2,
-                Image = 4483362458
-            })
+            if num < 0.20 then
+                Rayfield:Notify({
+                    Title = "⚠️ HIGH RISK",
+                    Content = "Delay <0.20s = detection risk!",
+                    Duration = 4,
+                    Image = 4483362458
+                })
+            else
+                Rayfield:Notify({
+                    Title = "✅ Updated",
+                    Content = "Delay: "..num.."s (Safe)",
+                    Duration = 2,
+                    Image = 4483362458
+                })
+            end
         else
             Rayfield:Notify({
                 Title = "⚠️ Invalid",
-                Content = "Use 0.08-2 seconds (0.15+ recommended)",
+                Content = "Use 0.15-2 seconds (0.25+ safest!)",
                 Duration = 3,
                 Image = 4483362458
             })
@@ -221,16 +237,24 @@ CombatTab:CreateInput({
 
 CombatTab:CreateSlider({
     Name = "🎯 Headshot Accuracy %",
-    Range = {50, 90},
+    Range = {50, 85},
     Increment = 5,
-    CurrentValue = 75,
+    CurrentValue = 65,
     Flag = "HeadshotAccuracy",
     Callback = function(value)
         headshotAccuracy = value
+        if value > 75 then
+            Rayfield:Notify({
+                Title = "⚠️ Detection Risk",
+                Content = "High accuracy = more detectable!",
+                Duration = 3,
+                Image = 4483362458
+            })
+        end
     end,
 })
 
-CombatTab:CreateLabel("⚠️ Stealth Mode Active - Lower settings = safer")
+CombatTab:CreateLabel("✅ Default: 0.25s delay, 65% accuracy (SAFEST)")
 
 CombatTab:CreateToggle({
     Name = "🔪 Auto Kill Zombies",
@@ -337,7 +361,7 @@ CombatTab:CreateToggle({
                                         
                                         -- Take breaks more often (anti-detection)
                                         if shouldTakeBreak() then
-                                            task.wait(math.random(30, 80) * 0.01) -- 0.3-0.8s break
+                                            task.wait(math.random(50, 150) * 0.01) -- 0.5-1.5s break (LONGER)
                                         end
                                         
                                         -- Only continue if in panic mode (< 10 studs)
@@ -351,8 +375,8 @@ CombatTab:CreateToggle({
                         end
                     end
                     
-                    -- Slower polling for stealth (less server stress)
-                    task.wait(0.05)
+                    -- VERY slow polling for maximum stealth
+                    task.wait(0.1)
                 end
             end)
         end
@@ -446,8 +470,8 @@ CombatTab:CreateToggle({
                         end
                     end
                     
-                    -- Slower polling for stealth (less server stress)
-                    task.wait(0.05)
+                    -- VERY slow polling for maximum stealth
+                    task.wait(0.1)
                 end
             end)
         end
@@ -594,6 +618,10 @@ MiscTab:CreateButton({
 -- New Exploits Tab
 local ExploitsTab = Window:CreateTab("Exploits", "skull")
 
+ExploitsTab:CreateLabel("⚠️ DANGER: Exploits have HIGH detection risk!")
+ExploitsTab:CreateLabel("⚠️ Use ONLY if auto-kill alone isn't enough")
+ExploitsTab:CreateLabel("━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+
 ExploitsTab:CreateButton({
     Name = "💰 Max Health (9999)",
     Callback = function()
@@ -636,11 +664,11 @@ ExploitsTab:CreateButton({
     end
 })
 
-ExploitsTab:CreateLabel("⚠️ Movement: Keep ≤25 to avoid detection!")
+ExploitsTab:CreateLabel("⚠️ Movement: Keep at 16 (default) for safety!")
 
 ExploitsTab:CreateSlider({
     Name = "🏃 WalkSpeed (16=Normal, 25=Sprint)",
-    Range = {16, 50},
+    Range = {16, 30},
     Increment = 1,
     CurrentValue = 16,
     Flag = "WalkSpeed",
@@ -648,11 +676,11 @@ ExploitsTab:CreateSlider({
         local char = player.Character
         if char and char:FindFirstChild("Humanoid") then
             char.Humanoid.WalkSpeed = value
-            if value > 25 then
+            if value > 18 then
                 Rayfield:Notify({
-                    Title = "⚠️ Detection Risk",
-                    Content = "WalkSpeed > 25 is risky!",
-                    Duration = 3,
+                    Title = "⚠️ DETECTION RISK",
+                    Content = "WalkSpeed > 18 is very risky!",
+                    Duration = 4,
                     Image = 4483362458
                 })
             end
@@ -661,8 +689,8 @@ ExploitsTab:CreateSlider({
 })
 
 ExploitsTab:CreateSlider({
-    Name = "🦘 JumpPower (Safe ≤100)",
-    Range = {50, 150},
+    Name = "🦘 JumpPower (Keep at 50!)",
+    Range = {50, 100},
     Increment = 5,
     CurrentValue = 50,
     Flag = "JumpPower",
@@ -670,17 +698,19 @@ ExploitsTab:CreateSlider({
         local char = player.Character
         if char and char:FindFirstChild("Humanoid") then
             char.Humanoid.JumpPower = value
-            if value > 100 then
+            if value > 60 then
                 Rayfield:Notify({
-                    Title = "⚠️ Detection Risk",
-                    Content = "JumpPower > 100 is risky!",
-                    Duration = 3,
+                    Title = "⚠️ DETECTION RISK",
+                    Content = "JumpPower > 60 is very risky!",
+                    Duration = 4,
                     Image = 4483362458
                 })
             end
         end
     end,
 })
+
+ExploitsTab:CreateLabel("⚠️ Default 16 WalkSpeed, 50 Jump = SAFEST")
 
 ExploitsTab:CreateToggle({
     Name = "🔥 Infinite Stamina",
