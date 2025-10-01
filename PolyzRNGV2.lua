@@ -46,21 +46,23 @@ task.spawn(function()
     end
 end)
 
--- Auto Headshots (Undetectable + Super Effective)
+-- Auto Headshots (Maximum Speed + Both Modes)
 local autoKill = false
 local autoBoss = false
-local shootDelay = 0.12 -- Matches weapon fire rates (500-600 RPM)
+local shootDelay = 0.06 -- MAC10 speed (fastest weapon)
 local headshotAccuracy = 85
 local cachedWeapon = nil
 local weaponCacheTime = 0
 local shotCount = 0
 local lastShotTime = 0
+local lastBossTime = 0
 
--- Weapon fire rates (RPM to seconds)
+-- Weapon fire rates (RPM to seconds) - ALL SET TO FASTEST
 local weaponFireRates = {
-    ["AK47"] = 0.12, ["M4A1"] = 0.10, ["G36C"] = 0.086, ["AUG"] = 0.086,
-    ["M16"] = 0.109, ["M4A1-S"] = 0.092, ["FAL"] = 0.133, ["Saint"] = 0.12,
-    ["MAC10"] = 0.06, ["MP5"] = 0.075, ["M1911"] = 0.15, ["Glock"] = 0.12
+    ["AK47"] = 0.06, ["M4A1"] = 0.06, ["G36C"] = 0.06, ["AUG"] = 0.06,
+    ["M16"] = 0.06, ["M4A1-S"] = 0.06, ["FAL"] = 0.06, ["Saint"] = 0.06,
+    ["MAC10"] = 0.06, ["MP5"] = 0.06, ["M1911"] = 0.06, ["Glock"] = 0.06,
+    ["Scar-H"] = 0.06, ["MP7"] = 0.06, ["UMP"] = 0.06, ["P90"] = 0.06
 }
 
 -- Anti-detection: Random human-like patterns
@@ -153,7 +155,7 @@ CombatTab:CreateToggle({
                         if timeSinceLastShot >= weaponDelay then
                             local zombieList = enemies:GetChildren()
                             
-                            -- Find closest living zombie (more natural)
+                            -- Find closest living non-boss zombie
                             local closestZombie = nil
                             local closestDist = math.huge
                             local char = player.Character
@@ -166,7 +168,15 @@ CombatTab:CreateToggle({
                                         local head = zombie:FindFirstChild("Head")
                                         local humanoid = zombie:FindFirstChildOfClass("Humanoid")
                                         
-                                        if head and humanoid and humanoid.Health > 0 then
+                                        -- Skip bosses if boss mode is enabled
+                                        local isBoss = false
+                                        if autoBoss and humanoid then
+                                            if humanoid.MaxHealth > 400 then
+                                                isBoss = true
+                                            end
+                                        end
+                                        
+                                        if not isBoss and head and humanoid and humanoid.Health > 0 then
                                             local dist = (head.Position - playerPos).Magnitude
                                             if dist < closestDist then
                                                 closestDist = dist
@@ -197,9 +207,9 @@ CombatTab:CreateToggle({
                                         
                                         lastShotTime = tick()
                                         
-                                        -- Human-like break pattern
+                                        -- Human-like break pattern (less frequent for speed)
                                         if shouldTakeBreak() then
-                                            task.wait(math.random(30, 80) * 0.01) -- 0.3-0.8s break
+                                            task.wait(math.random(15, 40) * 0.01) -- 0.15-0.4s break
                                         end
                                     end
                                 end
@@ -207,8 +217,8 @@ CombatTab:CreateToggle({
                         end
                     end
                     
-                    -- Fast polling but respects fire rate
-                    task.wait(0.03)
+                    -- Minimal polling delay for max speed
+                    task.wait(0.01)
                 end
             end)
         end
@@ -235,11 +245,11 @@ CombatTab:CreateToggle({
                             weaponCacheTime = currentTime
                         end
                         
-                        -- Respect weapon fire rate cooldown
-                        local timeSinceLastShot = currentTime - lastShotTime
+                        -- Separate cooldown for boss shooting
+                        local timeSinceLastBoss = currentTime - lastBossTime
                         local weaponDelay = getWeaponFireDelay(cachedWeapon)
                         
-                        if timeSinceLastShot >= weaponDelay then
+                        if timeSinceLastBoss >= weaponDelay then
                             -- Super effective boss targeting
                             for _, enemy in pairs(enemies:GetChildren()) do
                                 if enemy:IsA("Model") then
@@ -265,9 +275,9 @@ CombatTab:CreateToggle({
                                     if isBoss and humanoid and humanoid.Health > 0 then
                                         local head = enemy:FindFirstChild("Head")
                                         if head then
-                                            -- Higher accuracy for bosses (90%)
+                                            -- Higher accuracy for bosses (95%)
                                             local targetPart = head
-                                            if math.random(1, 100) > 90 then
+                                            if math.random(1, 100) > 95 then
                                                 targetPart = enemy:FindFirstChild("Torso") or enemy:FindFirstChild("UpperTorso") or head
                                             end
                                             
@@ -277,12 +287,7 @@ CombatTab:CreateToggle({
                                             local args = {enemy, targetPart, targetPos, 0, cachedWeapon}
                                             pcall(function() shootRemote:FireServer(unpack(args)) end)
                                             
-                                            lastShotTime = tick()
-                                            
-                                            -- Focus fire on boss (break after shots)
-                                            if shouldTakeBreak() then
-                                                task.wait(math.random(25, 60) * 0.01) -- 0.25-0.6s break
-                                            end
+                                            lastBossTime = tick()
                                             
                                             break -- Focus one boss at a time
                                         end
@@ -292,8 +297,8 @@ CombatTab:CreateToggle({
                         end
                     end
                     
-                    -- Fast polling but respects fire rate
-                    task.wait(0.03)
+                    -- Minimal polling delay for max speed
+                    task.wait(0.01)
                 end
             end)
         end
@@ -427,6 +432,125 @@ MiscTab:CreateButton({
             if value:IsA("StringValue") then
                 value.Value = "immortal"
             end
+        end
+        Rayfield:Notify({
+            Title = "✅ Success",
+            Content = "All guns set to immortal!",
+            Duration = 3,
+            Image = 4483362458
+        })
+    end
+})
+
+-- New Exploits Tab
+local ExploitsTab = Window:CreateTab("Exploits", "skull")
+
+ExploitsTab:CreateButton({
+    Name = "💰 Max Health (9999)",
+    Callback = function()
+        local vars = player:FindFirstChild("Variables")
+        if vars then
+            pcall(function() 
+                vars:SetAttribute("Health", 9999)
+                vars:SetAttribute("MaxHealth", 9999)
+            end)
+            Rayfield:Notify({
+                Title = "✅ Health Maxed",
+                Content = "Health set to 9999!",
+                Duration = 3,
+                Image = 4483362458
+            })
+        end
+    end
+})
+
+ExploitsTab:CreateButton({
+    Name = "⚡ Max Stamina (9999)",
+    Callback = function()
+        local vars = player:FindFirstChild("Variables")
+        if vars then
+            pcall(function() 
+                vars:SetAttribute("Stamina", 9999)
+                vars:SetAttribute("MaxStamina", 9999)
+            end)
+            Rayfield:Notify({
+                Title = "✅ Stamina Maxed",
+                Content = "Stamina set to 9999!",
+                Duration = 3,
+                Image = 4483362458
+            })
+        end
+    end
+})
+
+ExploitsTab:CreateSlider({
+    Name = "🏃 WalkSpeed",
+    Range = {16, 200},
+    Increment = 2,
+    CurrentValue = 16,
+    Flag = "WalkSpeed",
+    Callback = function(value)
+        local char = player.Character
+        if char and char:FindFirstChild("Humanoid") then
+            char.Humanoid.WalkSpeed = value
+        end
+    end,
+})
+
+ExploitsTab:CreateSlider({
+    Name = "🦘 JumpPower",
+    Range = {50, 300},
+    Increment = 5,
+    CurrentValue = 50,
+    Flag = "JumpPower",
+    Callback = function(value)
+        local char = player.Character
+        if char and char:FindFirstChild("Humanoid") then
+            char.Humanoid.JumpPower = value
+        end
+    end,
+})
+
+ExploitsTab:CreateToggle({
+    Name = "🔥 Infinite Stamina",
+    CurrentValue = false,
+    Flag = "InfiniteStamina",
+    Callback = function(state)
+        if state then
+            task.spawn(function()
+                while state do
+                    local vars = player:FindFirstChild("Variables")
+                    if vars then
+                        pcall(function() 
+                            vars:SetAttribute("Stamina", 9999)
+                        end)
+                    end
+                    task.wait(0.1)
+                end
+            end)
+        end
+    end
+})
+
+ExploitsTab:CreateButton({
+    Name = "🛡️ Disable AntiCheat GUI",
+    Callback = function()
+        local gui = player.PlayerGui:FindFirstChild("KnightmareAntiCheatClient")
+        if gui then
+            gui:Destroy()
+            Rayfield:Notify({
+                Title = "✅ Success",
+                Content = "AntiCheat GUI removed!",
+                Duration = 3,
+                Image = 4483362458
+            })
+        else
+            Rayfield:Notify({
+                Title = "❌ Not Found",
+                Content = "AntiCheat GUI not found",
+                Duration = 3,
+                Image = 4483362458
+            })
         end
     end
 })
