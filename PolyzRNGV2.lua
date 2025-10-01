@@ -1,57 +1,61 @@
--- Load Rayfield (SILENT - NO PRINT STATEMENTS)
+-- Load Rayfield with ROBUST ERROR HANDLING
 local Rayfield = nil
-local success, result = pcall(function()
-    local response = game:HttpGet('https://raw.githubusercontent.com/shlexware/Rayfield/main/source/main.lua', true)
-    if response and response ~= "" then
-        return loadstring(response)()
-    else
-        error("Empty response")
-    end
-end)
 
-if success and result then
-    Rayfield = result
-else
-    -- SILENT FALLBACK - NO WARNINGS
-    Rayfield = {
-        CreateWindow = function(self, options)
-            return {
-                CreateTab = function(self, name, icon)
-                    return {
-                        CreateButton = function(self, options)
-                            if options.Callback then
-                                options.Callback()
-                            end
-                        end,
-                        CreateToggle = function(self, options)
-                            local state = options.CurrentValue or false
-                            if options.Callback then
-                                options.Callback(state)
-                            end
-                        end,
-                        CreateLabel = function(self, text) end,
-                        CreateInput = function(self, options) end,
-                        CreateSlider = function(self, options) end
-                    }
-                end,
-                Notify = function(self, options) end
-            }
+-- Try multiple Rayfield sources for maximum reliability
+local rayfieldSources = {
+    'https://raw.githubusercontent.com/shlexware/Rayfield/main/source/main.lua',
+    'https://raw.githubusercontent.com/itsyoboizkzl/Rayfield/main/source/main.lua',
+    'https://raw.githubusercontent.com/RayfieldUI/Rayfield/main/source/main.lua'
+}
+
+for i, source in ipairs(rayfieldSources) do
+    local success, result = pcall(function()
+        local response = game:HttpGet(source, true)
+        if response and response ~= "" then
+            return loadstring(response)()
+        else
+            error("Empty response from source " .. i)
         end
-    }
+    end)
+    
+    if success and result then
+        Rayfield = result
+        break
+    end
+end
+
+-- If Rayfield fails to load, the script will not work
+if not Rayfield then
+    error("Failed to load Rayfield from all sources")
 end
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local player = Players.LocalPlayer
 
--- Safe remotes loading (SILENT)
+-- Safe remotes loading with timeout and fallback
 local Remotes = nil
+local remotesLoaded = false
+
 task.spawn(function()
     local success, result = pcall(function()
-        return ReplicatedStorage:WaitForChild("Remotes", 10)
+        return ReplicatedStorage:WaitForChild("Remotes", 15)
     end)
-    if success then
+    
+    if success and result then
         Remotes = result
+        remotesLoaded = true
+    else
+        -- Try alternative method
+        task.wait(2)
+        local altSuccess, altResult = pcall(function()
+            return ReplicatedStorage:FindFirstChild("Remotes")
+        end)
+        
+        if altSuccess and altResult then
+            Remotes = altResult
+            remotesLoaded = true
+        end
     end
 end)
 
