@@ -1,15 +1,15 @@
--- Load Rayfield with error handling
+-- Load Rayfield with reliable source
 local Rayfield = nil
 local success, result = pcall(function()
-    return loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+    return loadstring(game:HttpGet('https://raw.githubusercontent.com/shlexware/Rayfield/main/source/main.lua'))()
 end)
 
 if success and result then
     Rayfield = result
 else
-    -- Fallback to GitHub source
+    -- Try alternative source
     local success2, result2 = pcall(function()
-        return loadstring(game:HttpGet('https://raw.githubusercontent.com/shlexware/Rayfield/main/source/main.lua'))()
+        return loadstring(game:HttpGet('https://raw.githubusercontent.com/itsyoboizkzl/Rayfield/main/source/main.lua'))()
     end)
     
     if success2 and result2 then
