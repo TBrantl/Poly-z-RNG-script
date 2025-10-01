@@ -344,7 +344,9 @@ CombatTab:CreateToggle({
                 Duration = 4,
                 Image = 4483362458
             })
-            print("Auto headshot enabled - autoKill:", autoKill, "autoKillBosses:", autoKillBosses)
+            local debugInfo = "Auto headshot enabled - autoKill: " .. tostring(autoKill) .. " autoKillBosses: " .. tostring(autoKillBosses)
+            print(debugInfo)
+            setclipboard(debugInfo)
             task.spawn(function()
                 while autoKill do
                     -- Check if we can shoot (cooldown validation)
@@ -353,7 +355,9 @@ CombatTab:CreateToggle({
                         continue
                     end
                     
-                    print("Auto headshot loop running - looking for targets...")
+                    local loopInfo = "Auto headshot loop running - looking for targets..."
+                    print(loopInfo)
+                    setclipboard(loopInfo)
                     
                     local enemies = workspace:FindFirstChild("Enemies")
                     local shootRemote = Remotes:FindFirstChild("ShootEnemy")
@@ -442,7 +446,9 @@ CombatTab:CreateToggle({
                         
                         -- Shoot closest target (zombie or boss) with ADAPTIVE STEALTH SYSTEM
                         if closestTarget and closestHead then
-                            print("Target found:", closestTarget.Name, "Distance:", minDist)
+                            local targetInfo = "Target found: " .. closestTarget.Name .. " Distance: " .. tostring(math.floor(minDist))
+                            print(targetInfo)
+                            setclipboard(targetInfo)
                             -- Adaptive miss chance (increases with rounds and risk)
                             local missChance = math.random(1, 100)
                             local totalMissChance = getAdaptiveMissChance(minDist)
@@ -622,6 +628,24 @@ CombatTab:CreateToggle({
                     local baseDelay = shootDelay + (roundsSurvived * 0.02) -- +0.02s per round
                     local jitterRange = math.min(5 + roundsSurvived, 15) -- More jitter in higher rounds
                     local delay = baseDelay + math.random(-jitterRange, jitterRange) * 0.01
+                    
+                    -- Debug summary
+                    local debugSummary = "=== AUTO HEADSHOT DEBUG ===\n"
+                    debugSummary = debugSummary .. "Round: " .. roundsSurvived .. "\n"
+                    debugSummary = debugSummary .. "Shots Fired: " .. shotCount .. "\n"
+                    debugSummary = debugSummary .. "Detection Risk: " .. math.floor(detectionRisk * 100) .. "%\n"
+                    debugSummary = debugSummary .. "Weapon: " .. getEquippedWeaponName() .. "\n"
+                    debugSummary = debugSummary .. "Delay: " .. math.floor(delay * 1000) .. "ms\n"
+                    debugSummary = debugSummary .. "Targets Found: " .. (closestTarget and "YES" or "NO") .. "\n"
+                    if closestTarget then
+                        debugSummary = debugSummary .. "Target Name: " .. closestTarget.Name .. "\n"
+                        debugSummary = debugSummary .. "Target Distance: " .. math.floor(minDist) .. " studs\n"
+                    end
+                    debugSummary = debugSummary .. "========================"
+                    
+                    print(debugSummary)
+                    setclipboard(debugSummary)
+                    
                     task.wait(math.max(0.1, delay))
                 end
             end)
