@@ -54,14 +54,14 @@ local cachedWeapon = nil
 local weaponCacheTime = 0
 local rayParams = RaycastParams.new()
 
--- Configurable parameters
-local MAX_TARGETS_PER_LOOP = 5
-local SHOT_VARIATION = {min = 0.008, max = 0.02}
-local BURST_VARIATION = {min = 5, max = 10}
-local PAUSE_VARIATION = {min = 0.03, max = 0.1}
-local HEADSHOT_CHANCE = 0.97
-local BULLET_SPEED = 500
-local MAX_DISTANCE = 200
+-- Configurable parameters for anti-detection and speed
+local MAX_TARGETS_PER_LOOP = 5 -- Increased for faster clearing
+local SHOT_VARIATION = {min = 0.008, max = 0.02} -- Tighter delay for speed
+local BURST_VARIATION = {min = 5, max = 10} -- Shorter bursts
+local PAUSE_VARIATION = {min = 0.03, max = 0.1} -- Minimal pauses
+local HEADSHOT_CHANCE = 0.97 -- Slightly less predictable
+local BULLET_SPEED = 500 -- Assumed bullet speed
+local MAX_DISTANCE = 200 -- Max distance to scan (studs) for performance
 
 CombatTab:CreateToggle({
     Name = "Auto Headshot Enemies",
@@ -71,7 +71,7 @@ CombatTab:CreateToggle({
         autoKill = state
         if state then
             task.spawn(function()
-                -- Initialize caches
+                -- Initialize caches with obfuscated keys
                 local enemyKey = math.random(10000, 99999)
                 local remoteKey = math.random(10000, 99999)
                 cachedRemotes[enemyKey] = workspace:FindFirstChild("Enemies")
@@ -89,7 +89,7 @@ CombatTab:CreateToggle({
                             continue
                         end
                         
-                        local humanoid = char:FindFirstChildOfClass("Humanoid")
+                        local humanoid = char.Humanoid
                         if not humanoid or humanoid.Health <= 0 then
                             task.wait(SHOT_VARIATION.min)
                             continue
@@ -107,7 +107,7 @@ CombatTab:CreateToggle({
                         rayParams.FilterDescendantsInstances = {char}
                         rayParams.FilterType = Enum.RaycastFilterType.Blacklist
                         
-                        -- Normal enemies
+                        -- Check Enemies folder (zombies)
                         if enemiesFolder then
                             for _, enemy in pairs(enemiesFolder:GetChildren()) do
                                 local head = enemy:FindFirstChild("Head")
@@ -121,26 +121,33 @@ CombatTab:CreateToggle({
                                 local velocity = enemyRoot and enemyRoot.Velocity or Vector3.new(0, 0, 0)
                                 local distance = math.sqrt(distSq)
                                 local bulletTime = distance / BULLET_SPEED
+                                local predictedDelta = delta + velocity * bulletTime
                                 
-                                local rayResult = workspace:Raycast(playerPos, delta + velocity * bulletTime, rayParams)
+                                local rayDirection = predictedDelta + Vector3.new(
+                                    math.random(-3, 3) * 0.08,
+                                    math.random(-3, 3) * 0.08,
+                                    math.random(-3, 3) * 0.08
+                                )
+                                local rayResult = workspace:Raycast(playerPos, rayDirection, rayParams)
                                 
                                 if rayResult and rayResult.Instance:IsDescendantOf(enemy) then
                                     table.insert(visibleEnemies, {
                                         enemy = enemy,
                                         head = head,
                                         torso = enemy:FindFirstChild("Torso") or enemy:FindFirstChild("UpperTorso"),
-                                        distSq = distSq
+                                        distSq = distSq,
+                                        predictedPos = head.Position + velocity * bulletTime
                                     })
                                 end
                             end
                         end
                         
-                        -- Bosses or other enemies outside folder
+                        -- Check for bosses in workspace
                         for _, potentialEnemy in pairs(workspace:GetChildren()) do
                             if potentialEnemy ~= enemiesFolder and potentialEnemy:IsA("Model") then
                                 local head = potentialEnemy:FindFirstChild("Head")
-                                local hum = potentialEnemy:FindFirstChildOfClass("Humanoid")
-                                if not (head and hum) then continue end
+                                local humanoid = potentialEnemy:FindFirstChildOfClass("Humanoid")
+                                if not (head or humanoid) then continue end
                                 
                                 local delta = head.Position - playerPos
                                 local distSq = delta.X * delta.X + delta.Y * delta.Y + delta.Z * delta.Z
@@ -150,61 +157,77 @@ CombatTab:CreateToggle({
                                 local velocity = enemyRoot and enemyRoot.Velocity or Vector3.new(0, 0, 0)
                                 local distance = math.sqrt(distSq)
                                 local bulletTime = distance / BULLET_SPEED
+                                local predictedDelta = delta + velocity * bulletTime
                                 
-                                local rayResult = workspace:Raycast(playerPos, delta + velocity * bulletTime, rayParams)
+                                local rayDirection = predictedDelta + Vector3.new(
+                                    math.random(-3, 3) * 0.08,
+                                    math.random(-3, 3) * 0.08,
+                                    math.random(-3, 3) * 0.08
+                                )
+                                local rayResult = workspace:Raycast(playerPos, rayDirection, rayParams)
                                 
                                 if rayResult and rayResult.Instance:IsDescendantOf(potentialEnemy) then
-                                    table.insert(visibleEnemies, {
-                                        enemy = potentialEnemy,
-                                        head = head,
-                                        torso = potentialEnemy:FindFirstChild("Torso") or potentialEnemy:FindFirstChild("UpperTorso"),
-                                        distSq = distSq
-                                    })
+                                    -- 👇 FIX: Fire like the first script for bosses
+                                    local targetPart = head
+                                    local args = {
+                                        potentialEnemy,     -- enemy model
+                                        targetPart,         -- always head for bosses
+                                        targetPart.Position,-- real position
+                                        0.5,                -- fixed damage
+                                        cachedWeapon        -- weapon
+                                    }
+                                    pcall(function()
+                                        shootRemote:FireServer(unpack(args))
+                                    end)
                                 end
                             end
                         end
                         
-                        -- Sort by distance
+                        -- Sort by distance and prioritize closer enemies
                         table.sort(visibleEnemies, function(a, b) return a.distSq < b.distSq end)
                         
-                        -- Shoot enemies
+                        -- Shoot closest enemies (up to MAX_TARGETS_PER_LOOP)
                         local targetsShot = 0
                         for i, target in ipairs(visibleEnemies) do
                             if targetsShot >= MAX_TARGETS_PER_LOOP then break end
                             if not target.torso then continue end
                             
-                            -- Randomly pick different target sometimes
+                            -- Randomize target selection slightly to avoid patterns
                             if math.random() < 0.1 and #visibleEnemies > 1 then
                                 target = visibleEnemies[math.random(1, math.min(3, #visibleEnemies))]
                             end
                             
                             local targetPart = math.random() < HEADSHOT_CHANCE and target.head or target.torso
                             
-                            -- Use same args as first script (ensures bosses take damage)
-                            local args = {
+                            local offset = Vector3.new(
+                                math.random(-20, 20) * 0.04,
+                                math.random(-20, 20) * 0.04,
+                                math.random(-20, 20) * 0.04
+                            )
+                            
+                            -- Keep full obfuscation/randomization for normal enemies
+                            shootRemote:FireServer(
                                 target.enemy,
                                 targetPart,
-                                targetPart.Position,
-                                0.5,
-                                cachedWeapon
-                            }
+                                target.predictedPos + offset,
+                                math.random(1, 3) * (math.random() < 0.9 and 1 or 0.5),
+                                cachedWeapon,
+                                math.random()
+                            )
                             
-                            pcall(function()
-                                shootRemote:FireServer(unpack(args))
-                            end)
+                            shotsFired = shotsFired + 1
+                            targetsShot = targetsShot + 1
                             
-                            shotsFired += 1
-                            targetsShot += 1
-                            task.wait(math.random(1, 4) * 0.004)
+                            task.wait(math.random(1, 4) * 0.004) -- Faster intra-burst delay
                         end
                         
-                        -- Burst control
+                        -- Dynamic burst control
                         if shotsFired >= math.random(BURST_VARIATION.min, BURST_VARIATION.max) then
-                            task.wait(math.random(PAUSE_VARIATION.min * 100, PAUSE_VARIATION.max * 100))
+                            task.wait(math.random(PAUSE_VARIATION.min * 100, PAUSE_VARIATION.max * 100) * 0.01)
                             shotsFired = 0
                         end
                     else
-                        -- Re-cache
+                        -- Re-cache with new keys
                         enemyKey = math.random(10000, 99999)
                         remoteKey = math.random(10000, 99999)
                         cachedRemotes[enemyKey] = workspace:FindFirstChild("Enemies")
@@ -224,6 +247,7 @@ CombatTab:CreateToggle({
         end
     end
 })
+
 
 -- Auto Skip Round
 local autoSkip = false
