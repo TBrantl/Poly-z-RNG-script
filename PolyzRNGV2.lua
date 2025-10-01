@@ -1,79 +1,11 @@
--- Load Rayfield - NO FALLBACK UI
-local Rayfield = nil
-
--- Try primary Rayfield source
-local success, result = pcall(function()
-    local response = game:HttpGet('https://raw.githubusercontent.com/shlexware/Rayfield/main/source/main.lua', true)
-    if response and response ~= "" then
-        return loadstring(response)()
-    else
-        error("Empty response from primary source")
-    end
-end)
-
-if success and result then
-    Rayfield = result
-else
-    -- Try alternative source
-    local success2, result2 = pcall(function()
-        local response = game:HttpGet('https://raw.githubusercontent.com/itsyoboizkzl/Rayfield/main/source/main.lua', true)
-        if response and response ~= "" then
-            return loadstring(response)()
-        else
-            error("Empty response from alternative source")
-        end
-    end)
-    
-    if success2 and result2 then
-        Rayfield = result2
-    else
-        -- Final attempt with different source
-        local success3, result3 = pcall(function()
-            local response = game:HttpGet('https://raw.githubusercontent.com/RayfieldUI/Rayfield/main/source/main.lua', true)
-            if response and response ~= "" then
-                return loadstring(response)()
-            else
-                error("Empty response from final source")
-            end
-        end)
-        
-        if success3 and result3 then
-            Rayfield = result3
-        else
-            error("CRITICAL: Failed to load Rayfield from all sources. Script cannot continue.")
-        end
-    end
-end
+-- Load Rayfield (same as PolyzRNG.lua)
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local player = Players.LocalPlayer
 
--- Safe remotes loading with timeout and fallback
-local Remotes = nil
-local remotesLoaded = false
-
-task.spawn(function()
-    local success, result = pcall(function()
-        return ReplicatedStorage:WaitForChild("Remotes", 15)
-    end)
-    
-    if success and result then
-        Remotes = result
-        remotesLoaded = true
-    else
-        -- Try alternative method
-        task.wait(2)
-        local altSuccess, altResult = pcall(function()
-            return ReplicatedStorage:FindFirstChild("Remotes")
-        end)
-        
-        if altSuccess and altResult then
-            Remotes = altResult
-            remotesLoaded = true
-        end
-    end
-end)
+local Remotes = ReplicatedStorage:WaitForChild("Remotes")
 
 -- UI Window (SILENT)
 local Window = Rayfield:CreateWindow({
