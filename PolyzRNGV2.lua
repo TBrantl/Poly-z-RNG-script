@@ -192,11 +192,11 @@ task.spawn(function()
     end
 end)
 
--- Auto Headshots (BALANCED - Powerful + Undetected)
+-- Auto Headshots (ULTRA STEALTH - Maximum Safety)
 local autoKill = false
 local autoBoss = false
-local shootDelay = 0.18 -- Balanced speed (effective but safe)
-local headshotAccuracy = 75 -- Good accuracy (still human-like)
+local shootDelay = 0.35 -- VERY SLOW (safest possible)
+local headshotAccuracy = 55 -- LOW accuracy (most human-like)
 local cachedWeapon = nil
 local weaponCacheTime = 0
 local shotCount = 0
@@ -204,12 +204,12 @@ local lastShotTime = 0
 local lastBossTime = 0
 local missedShots = 0
 
--- Balanced weapon fire rates (Match game speeds but with safety margin)
+-- VERY CONSERVATIVE fire rates (Much slower than game)
 local weaponFireRates = {
-    ["AK47"] = 0.13, ["M4A1"] = 0.11, ["G36C"] = 0.10, ["AUG"] = 0.10,
-    ["M16"] = 0.12, ["M4A1-S"] = 0.10, ["FAL"] = 0.14, ["Saint"] = 0.13,
-    ["MAC10"] = 0.08, ["MP5"] = 0.09, ["M1911"] = 0.16, ["Glock"] = 0.13,
-    ["Scar-H"] = 0.13, ["MP7"] = 0.09, ["UMP"] = 0.10, ["P90"] = 0.08
+    ["AK47"] = 0.20, ["M4A1"] = 0.18, ["G36C"] = 0.17, ["AUG"] = 0.17,
+    ["M16"] = 0.19, ["M4A1-S"] = 0.18, ["FAL"] = 0.22, ["Saint"] = 0.20,
+    ["MAC10"] = 0.15, ["MP5"] = 0.16, ["M1911"] = 0.25, ["Glock"] = 0.20,
+    ["Scar-H"] = 0.20, ["MP7"] = 0.16, ["UMP"] = 0.17, ["P90"] = 0.15
 }
 
 -- Raycast validation (FIXED - more permissive but still safe)
@@ -248,8 +248,8 @@ end
 
 local function shouldTakeBreak()
     shotCount = shotCount + 1
-    -- Moderate breaks (every 8-15 shots - balanced)
-    if shotCount >= math.random(8, 15) then
+    -- VERY FREQUENT breaks (every 3-6 shots - ultra safe)
+    if shotCount >= math.random(3, 6) then
         shotCount = 0
         return true
     end
@@ -257,32 +257,37 @@ local function shouldTakeBreak()
 end
 
 local function shouldSkipTarget()
-    -- Skip 10% of targets (subtle human-like behavior)
-    return math.random(1, 100) <= 10
+    -- Skip 35% of targets (very human-like)
+    return math.random(1, 100) <= 35
 end
 
 local function shouldIntentionallyMiss()
-    -- Intentionally miss 5% of shots (subtle)
+    -- Intentionally miss 15% of shots (very human-like)
     missedShots = missedShots + 1
-    if missedShots >= math.random(18, 22) then
+    if missedShots >= math.random(5, 8) then
         missedShots = 0
         return true
     end
     return false
 end
 
+local function shouldPauseRandomly()
+    -- Random pauses 20% of the time (reaction time simulation)
+    return math.random(1, 100) <= 20
+end
+
 local function getWeaponFireDelay(weaponName, distance)
-    -- Adaptive fire rates based on threat level
+    -- VERY CONSERVATIVE - No fast firing even when close
     if distance and distance < 10 then
-        return 0.10 -- Fast when close (survival mode)
+        return 0.25 -- Still slow when close (safest)
     elseif distance and distance < 25 then
-        return 0.13 -- Medium speed for nearby
+        return 0.30 -- Very slow for nearby
     end
     
-    -- Normal fire rate (balanced for effectiveness)
-    local baseDelay = weaponFireRates[weaponName] or 0.15
-    -- Add moderate jitter (±15% for natural variation)
-    return baseDelay + (math.random(-15, 15) * 0.001)
+    -- VERY slow fire rate (maximum safety)
+    local baseDelay = weaponFireRates[weaponName] or 0.35
+    -- Add LARGE jitter (±40% for maximum randomness)
+    return baseDelay + (math.random(-40, 80) * 0.001)
 end
 
 local function getDistancePriority(distance)
@@ -306,28 +311,29 @@ task.spawn(function()
 end)
 
 -- Stealth Settings
-CombatTab:CreateLabel("🎯 BALANCED SETTINGS: Powerful + Undetected")
-CombatTab:CreateLabel("⚠️ Can increase if no issues after 5+ rounds")
+CombatTab:CreateLabel("🛡️ ULTRA STEALTH MODE: Maximum Safety")
+CombatTab:CreateLabel("⚠️ ERROR 267 FIX: Settings extremely conservative")
+CombatTab:CreateLabel("⚠️ DO NOT increase - will cause detection!")
 
 CombatTab:CreateInput({
     Name = "⏱️ Shot Delay (sec)",
-    PlaceholderText = "0.18 (balanced default)",
+    PlaceholderText = "0.35 (SAFE - don't change!)",
     RemoveTextAfterFocusLost = false,
     Callback = function(text)
         local num = tonumber(text)
-        if num and num >= 0.10 and num <= 2 then
+        if num and num >= 0.30 and num <= 2 then
             shootDelay = num
-            if num < 0.15 then
+            if num < 0.35 then
                 Rayfield:Notify({
-                    Title = "⚠️ HIGHER RISK",
-                    Content = "Delay <0.15s = slightly more detectable",
-                    Duration = 3,
+                    Title = "🚨 EXTREME RISK",
+                    Content = "Delay <0.35s = ERROR 267 RISK!",
+                    Duration = 5,
                     Image = 4483362458
                 })
             else
                 Rayfield:Notify({
                     Title = "✅ Updated",
-                    Content = "Delay: "..num.."s",
+                    Content = "Delay: "..num.."s (Safe)",
                     Duration = 2,
                     Image = 4483362458
                 })
@@ -335,8 +341,8 @@ CombatTab:CreateInput({
         else
             Rayfield:Notify({
                 Title = "⚠️ Invalid",
-                Content = "Use 0.10-2 seconds (0.18 recommended)",
-                Duration = 3,
+                Content = "Use 0.30-2 seconds (0.35+ REQUIRED)",
+                Duration = 4,
                 Image = 4483362458
             })
         end
@@ -345,24 +351,25 @@ CombatTab:CreateInput({
 
 CombatTab:CreateSlider({
     Name = "🎯 Headshot Accuracy %",
-    Range = {50, 95},
+    Range = {40, 70},
     Increment = 5,
-    CurrentValue = 75,
+    CurrentValue = 55,
     Flag = "HeadshotAccuracy",
     Callback = function(value)
         headshotAccuracy = value
-        if value > 85 then
+        if value > 60 then
             Rayfield:Notify({
-                Title = "⚠️ Detection Risk",
-                Content = "Accuracy >85% increases risk slightly",
-                Duration = 3,
+                Title = "🚨 DETECTION RISK",
+                Content = "Accuracy >60% = ERROR 267 RISK!",
+                Duration = 4,
                 Image = 4483362458
             })
         end
     end,
 })
 
-CombatTab:CreateLabel("✅ Default: 0.18s delay, 75% accuracy (BALANCED)")
+CombatTab:CreateLabel("✅ Default: 0.35s delay, 55% accuracy (ULTRA SAFE)")
+CombatTab:CreateLabel("⚠️ These settings PREVENT Error 267 kicks")
 
 CombatTab:CreateToggle({
     Name = "🔪 Auto Kill Zombies",
@@ -474,7 +481,12 @@ CombatTab:CreateToggle({
                                         
                                         -- Take breaks (anti-detection)
                                         if shouldTakeBreak() then
-                                            task.wait(math.random(25, 75) * 0.01) -- 0.25-0.75s break
+                                            task.wait(math.random(80, 200) * 0.01) -- 0.8-2.0s break (LONG)
+                                        end
+                                        
+                                        -- Random pauses (simulate human reaction time)
+                                        if shouldPauseRandomly() then
+                                            task.wait(math.random(10, 40) * 0.01) -- 0.1-0.4s pause
                                         end
                                         
                                         -- Only continue if in panic mode (< 10 studs)
@@ -488,8 +500,8 @@ CombatTab:CreateToggle({
                             end
                         end
                         
-                    -- Balanced polling (fast enough to be effective)
-                    task.wait(0.03)
+                    -- VERY SLOW polling (maximum stealth)
+                    task.wait(0.15)
                 end
             end)
         end
@@ -585,8 +597,8 @@ CombatTab:CreateToggle({
                         end
                     end
                     
-                    -- Balanced polling (fast enough to be effective)
-                    task.wait(0.03)
+                    -- VERY SLOW polling (maximum stealth)
+                    task.wait(0.15)
                 end
             end)
         end
