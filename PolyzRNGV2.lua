@@ -244,27 +244,27 @@ MiscTab:CreateButton({
 })
 
 MiscTab:CreateButton({
-    Name = "Activate All Perks",
+   Name = "🔫 Enhance Weapons",
     Callback = function()
         local vars = player:FindFirstChild("Variables")
         if not vars then return end
 
-        local perks = {  
-            "Bandoiler_Perk",  
-            "DoubleUp_Perk",  
-            "Haste_Perk",  
-            "Tank_Perk",  
-            "GasMask_Perk",  
-            "DeadShot_Perk",  
-            "DoubleMag_Perk",  
-            "WickedGrenade_Perk"  
-        }
+        local enchants = {  
+            "Primary_Enhanced",  
+            "Secondary_Enhanced"  
+        }  
 
-        for _, perk in ipairs(perks) do
-            if vars:GetAttribute(perk) ~= nil then
-                vars:SetAttribute(perk, true)
-            end
+        for _, attr in ipairs(enchants) do  
+            if vars:GetAttribute(attr) ~= nil then  
+                vars:SetAttribute(attr, true)  
+            end  
         end
+        Rayfield:Notify({
+            Title = "Enhancement",
+            Content = "Weapons enhanced!",
+            Duration = 3,
+            Image = 4483362458
+        })
     end
 })
 
