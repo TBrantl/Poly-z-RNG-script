@@ -152,6 +152,7 @@ local CombatTab = Window:CreateTab("⚔️ Combat", "Skull")
 CombatTab:CreateLabel("🛡️ CRITICAL DETECTION RESISTANCE:")
 CombatTab:CreateLabel("✅ Human Behavior Simulation | ✅ Server Validation Bypass | ✅ Timing Synchronization")
 CombatTab:CreateLabel("✅ Session Adaptation | ✅ Behavioral Patterns | ✅ Perfect Game Sync")
+CombatTab:CreateLabel("✅ Boss Targeting | ✅ Zombie + Boss Auto Kill | ✅ Priority System")
 CombatTab:CreateLabel("━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 
 -- Weapon Label
@@ -176,6 +177,7 @@ end)
 
 -- Auto Headshots (ULTRA STEALTH)
 local autoKill = false
+local autoKillBosses = false
 local shootDelay = 0.25
 local lastShotTime = 0
 local shotsFired = 0
@@ -327,6 +329,22 @@ CombatTab:CreateToggle({
     end
 })
 
+-- Boss Auto Kill Toggle
+CombatTab:CreateToggle({
+    Name = "👹 Auto Kill Bosses",
+    CurrentValue = false,
+    Flag = "AutoKillBosses",
+    Callback = function(state)
+        autoKillBosses = state
+        Rayfield:Notify({
+            Title = "Boss Auto Kill",
+            Content = "Automatically target and kill bosses " .. (state and "enabled" or "disabled"),
+            Duration = 3,
+            Image = 4483362458
+        })
+    end
+})
+
 CombatTab:CreateToggle({
     Name = "🔪 Auto Headshots (STEALTH)",
     CurrentValue = false,
@@ -347,7 +365,7 @@ CombatTab:CreateToggle({
                     
                     if enemies and shootRemote then
                         local weapon = getEquippedWeaponName()
-                        local closestZombie = nil
+                        local closestTarget = nil
                         local closestHead = nil
                         local minDist = math.huge
                         local playerPos = player.Character and player.Character.PrimaryPart and player.Character.PrimaryPart.Position
@@ -370,8 +388,55 @@ CombatTab:CreateToggle({
                                     -- Only target zombies within reasonable range
                                     if distance < 200 and distance < minDist then
                                         minDist = distance
-                                        closestZombie = zombie
+                                        closestTarget = zombie
                                         closestHead = head
+                                    end
+                                end
+                            end
+                        end
+                        
+                        -- BOSS TARGETING: Check for bosses if enabled
+                        if autoKillBosses then
+                            local bossArena = workspace:FindFirstChild("BossArena")
+                            if bossArena then
+                                -- Look for boss models in BossArena
+                                for _, boss in pairs(bossArena:GetChildren()) do
+                                    if boss:IsA("Model") and boss:FindFirstChild("Head") then
+                                        local head = boss.Head
+                                        local humanoid = boss:FindFirstChildOfClass("Humanoid")
+                                        
+                                        -- Check if boss is alive
+                                        if humanoid and humanoid.Health > 0 then
+                                            local distance = (head.Position - playerPos).Magnitude
+                                            
+                                            -- Bosses have higher priority (closer range check)
+                                            if distance < 300 and distance < minDist then
+                                                minDist = distance
+                                                closestTarget = boss
+                                                closestHead = head
+                                            end
+                                        end
+                                    end
+                                end
+                                
+                                -- Also check BossArena.Decorations for boss parts
+                                local decorations = bossArena:FindFirstChild("Decorations")
+                                if decorations then
+                                    for _, decoration in pairs(decorations:GetChildren()) do
+                                        if decoration:IsA("Model") and decoration:FindFirstChild("Head") then
+                                            local head = decoration.Head
+                                            local humanoid = decoration:FindFirstChildOfClass("Humanoid")
+                                            
+                                            if humanoid and humanoid.Health > 0 then
+                                                local distance = (head.Position - playerPos).Magnitude
+                                                
+                                                if distance < 300 and distance < minDist then
+                                                    minDist = distance
+                                                    closestTarget = decoration
+                                                    closestHead = head
+                                                end
+                                            end
+                                        end
                                     end
                                 end
                             end
@@ -380,8 +445,8 @@ CombatTab:CreateToggle({
                         -- Update round info for adaptive stealth
                         updateRoundInfo()
                         
-                        -- Shoot closest zombie with ADAPTIVE STEALTH SYSTEM
-                        if closestZombie and closestHead then
+                        -- Shoot closest target (zombie or boss) with ADAPTIVE STEALTH SYSTEM
+                        if closestTarget and closestHead then
                             -- Adaptive miss chance (increases with rounds and risk)
                             local missChance = math.random(1, 100)
                             local totalMissChance = getAdaptiveMissChance(minDist)
@@ -414,7 +479,7 @@ CombatTab:CreateToggle({
                                     
                                     -- SILENT AIM WITH CAMERA HIJACKING (detection avoidance)
                                     AimAssist.Enabled = true
-                                    AimAssist.Target = closestZombie
+                                    AimAssist.Target = closestTarget
                                     
                                     -- Session-adapted camera aim time
                                     local sessionAdaptation = getSessionAdaptation()
@@ -519,7 +584,7 @@ CombatTab:CreateToggle({
                                     else
                                         -- FALLBACK: Direct shooting if raycast fails (stealth mode)
                                         if roundsSurvived < 3 then -- Only in early rounds
-                                            local fallbackArgs = {closestZombie, closestHead, closestHead.Position, 0, weapon}
+                                            local fallbackArgs = {closestTarget, closestHead, closestHead.Position, 0, weapon}
                                             success = pcall(function() 
                                                 shootRemote:FireServer(unpack(fallbackArgs)) 
                                             end)
