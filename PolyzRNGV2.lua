@@ -163,12 +163,12 @@ local function getEquippedWeaponName()
         
         -- Method 2: Check workspace Players (fallback)
         local model = workspace:FindFirstChild("Players")
-        if model then
+    if model then
             local playerModel = model:FindFirstChild(player.Name)
             if playerModel then
                 for _, child in ipairs(playerModel:GetChildren()) do
                     if child:IsA("Model") and child.Name then
-                        return child.Name
+                return child.Name
                     end
                 end
             end
@@ -333,9 +333,9 @@ end
 local CombatTab = Window:CreateTab("⚔️ Combat", "Skull")
 
 -- Stealth Information
-CombatTab:CreateLabel("🛡️ GHOST MODE ANTI-DETECTION SYSTEM:")
-CombatTab:CreateLabel("✅ Ultra-Conservative Behavior | ✅ Legitimate Player Simulation | ✅ Ghost Mode")
-CombatTab:CreateLabel("✅ 40-70% Miss Rate | ✅ Player Behavior Simulation | ✅ Maximum Stealth")
+CombatTab:CreateLabel("🛡️ 360-DEGREE GHOST MODE SYSTEM:")
+CombatTab:CreateLabel("✅ 360° Auto Headshots | ✅ Ultra-Conservative Behavior | ✅ Ghost Mode")
+CombatTab:CreateLabel("✅ 40-70% Miss Rate | ✅ Stealth Target Selection | ✅ Maximum Stealth")
 CombatTab:CreateLabel("━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 
 -- Weapon Label
@@ -404,13 +404,18 @@ local function getAdaptiveMissChance(distance)
     return math.min(baseMissChance + roundMissChance + riskMissChance, 50) -- Max 50%
 end
 
--- Camera hijacking system for silent aim (detection avoidance)
-local AimAssist = {Enabled = false, Target = nil}
+-- 360-DEGREE CAMERA SYSTEM (stealth optimized)
+local AimAssist = {
+    Enabled = false, 
+    Target = nil,
+    Direction = nil -- Store target direction for 360-degree support
+}
 local lastCameraUpdate = 0
 local cameraSmoothing = 0.15
 local humanReactionTime = math.random(8, 15) * 0.01
+local cameraRotationSpeed = 0.08 -- Slower rotation for stealth
 
--- Camera system for silent aim with detection avoidance
+-- 360-DEGREE CAMERA SYSTEM (detection avoidance)
 game:GetService("RunService").RenderStepped:Connect(function()
     if AimAssist.Enabled and AimAssist.Target and AimAssist.Target.PrimaryPart then
         local currentTime = tick()
@@ -420,27 +425,27 @@ game:GetService("RunService").RenderStepped:Connect(function()
             local targetPos = AimAssist.Target.PrimaryPart.Position
             local currentPos = workspace.CurrentCamera.CFrame.Position
             
-            -- Calculate direction with 360-degree coverage
+            -- 360-DEGREE DIRECTION CALCULATION
             local direction = (targetPos - currentPos).Unit
             local currentLookDirection = workspace.CurrentCamera.CFrame.LookVector
             
-            -- Smooth interpolation for natural movement
-            local interpolatedDirection = currentLookDirection:Lerp(direction, cameraSmoothing)
+            -- STEALTH ROTATION: Smooth 360-degree movement
+            local interpolatedDirection = currentLookDirection:Lerp(direction, cameraRotationSpeed)
             
-            -- Add slight randomization for realism
+            -- Add human-like micro-movements for stealth
             local randomOffset = Vector3.new(
-                math.random(-1, 1) * 0.05,
-                math.random(-1, 1) * 0.05,
-                math.random(-1, 1) * 0.05
+                math.random(-2, 2) * 0.003, -- Smaller offset for stealth
+                math.random(-2, 2) * 0.003,
+                math.random(-2, 2) * 0.003
             )
             
-            -- Create smooth camera movement
+            -- 360-DEGREE CAMERA MOVEMENT
             local targetCFrame = CFrame.new(currentPos, currentPos + interpolatedDirection + randomOffset)
-            workspace.CurrentCamera.CFrame = workspace.CurrentCamera.CFrame:Lerp(targetCFrame, 0.2)
+            workspace.CurrentCamera.CFrame = workspace.CurrentCamera.CFrame:Lerp(targetCFrame, cameraSmoothing)
             
             lastCameraUpdate = currentTime
-            -- Reset reaction time for next update
-            humanReactionTime = math.random(8, 15) * 0.01
+            -- Variable reaction time for human-like behavior
+            humanReactionTime = math.random(10, 20) * 0.01
         end
     end
 end)
@@ -519,7 +524,10 @@ CombatTab:CreateToggle({
                             continue
                         end
                         
-                        -- Find closest zombie (more human-like)
+                        -- 360-DEGREE TARGETING SYSTEM (stealth optimized)
+                        local allTargets = {}
+                        local maxRange = ghostMode.enabled and 150 or 200 -- Shorter range in ghost mode
+                        
                         for _, zombie in pairs(enemies:GetChildren()) do
                             if zombie:IsA("Model") and zombie:FindFirstChild("Head") then
                                 local head = zombie.Head
@@ -529,14 +537,35 @@ CombatTab:CreateToggle({
                                 if humanoid and humanoid.Health > 0 then
                                     local distance = (head.Position - playerPos).Magnitude
                                     
-                                    -- Only target zombies within reasonable range
-                                    if distance < 200 and distance < minDist then
-                                        minDist = distance
-                                        closestZombie = zombie
-                                        closestHead = head
+                                    -- 360-degree targeting within range
+                                    if distance < maxRange then
+                                        table.insert(allTargets, {
+                                            zombie = zombie,
+                                        head = head,
+                                        distance = distance,
+                                            direction = (head.Position - playerPos).Unit
+                                    })
                                     end
                                 end
                             end
+                        end
+                        
+                        -- STEALTH TARGET SELECTION: Choose target based on stealth criteria
+                        if #allTargets > 0 then
+                            -- Sort by stealth priority (not just distance)
+                            table.sort(allTargets, function(a, b)
+                                -- Priority: closer targets, but with stealth variation
+                                local stealthFactor = math.random(0.8, 1.2)
+                                return (a.distance * stealthFactor) < (b.distance * stealthFactor)
+                            end)
+                            
+                            -- Select target with stealth randomness
+                            local targetIndex = math.random(1, math.min(3, #allTargets)) -- Consider top 3 targets
+                            local selectedTarget = allTargets[targetIndex]
+                            
+                            closestZombie = selectedTarget.zombie
+                            closestHead = selectedTarget.head
+                            minDist = selectedTarget.distance
                         end
                         
                         -- Update round info for adaptive stealth
@@ -691,7 +720,7 @@ CombatTab:CreateToggle({
                                         task.wait(fireDelay)
                                         
                                         -- Use EXACT GAME PARAMETERS with stealth validation
-                                        local args = {
+                                    local args = {
                                             raycastResult.Instance.Parent,  -- zombie model
                                             raycastResult.Instance,        -- hit part
                                             raycastResult.Position,        -- hit position
