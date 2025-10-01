@@ -1,7 +1,9 @@
--- ===== ANTI-DETECTION SYSTEM =====
--- Namecall Hook (Intercept Remote Calls)
+-- ===== ADVANCED ANTI-DETECTION SYSTEM =====
+-- Namecall Hook (Intercept & Modify ALL Remote Calls)
 pcall(function()
     local oldNamecall
+    local lastRemoteCall = {}
+    
     oldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
         local method = getnamecallmethod()
         local args = {...}
@@ -9,21 +11,33 @@ pcall(function()
         if method == "FireServer" or method == "InvokeServer" then
             local remoteName = self.Name
             
-            -- Add micro-delays to shooting (anti-pattern detection)
-            if remoteName == "ShootEnemy" then
-                task.wait(math.random(1, 3) * 0.001) -- 1-3ms jitter
+            -- Rate limit ALL remotes (prevent spam detection)
+            local now = tick()
+            if lastRemoteCall[remoteName] then
+                local timeSince = now - lastRemoteCall[remoteName]
+                if timeSince < 0.05 then -- Minimum 50ms between same remote calls
+                    task.wait(0.05 - timeSince + math.random(1, 10) * 0.001)
+                end
+            end
+            lastRemoteCall[remoteName] = tick()
+            
+            -- Block ALL anti-cheat communication
+            if remoteName:find("AntiCheat") or remoteName:find("KM_") or 
+               remoteName:find("Report") or remoteName:find("Flag") or
+               remoteName:find("Check") or remoteName:find("Verify") then
+                warn("[BLOCKED] Anti-cheat remote: " .. remoteName)
+                return -- Silently block
             end
             
-            -- Block anti-cheat remotes
-            if remoteName:find("AntiCheat") or remoteName:find("KM_") then
-                warn("[Blocked] Anti-cheat remote: " .. remoteName)
-                return
+            -- Add random jitter to shooting remotes
+            if remoteName == "ShootEnemy" then
+                task.wait(math.random(2, 8) * 0.001) -- 2-8ms realistic network delay
             end
         end
         
         return oldNamecall(self, ...)
     end)
-    print("✅ Namecall hook active")
+    print("✅ Advanced namecall hook active")
 end)
 
 -- Anti-Kick Protection
@@ -45,12 +59,79 @@ end)
 
 -- Environment Spoofing (Hide executor traces)
 pcall(function()
-    local suspiciousGlobals = {"syn", "KRNL", "Synapse", "Fluxus", "Arceus"}
+    local suspiciousGlobals = {
+        "syn", "KRNL", "Synapse", "Fluxus", "Arceus", "Delta", "Sentinel",
+        "WrapGlobal", "is_synapse_function", "issentinelclosure", "OXYGEN_LOADED"
+    }
     for _, g in ipairs(suspiciousGlobals) do
         if _G[g] then _G[g] = nil end
         if getgenv()[g] then getgenv()[g] = nil end
     end
     print("✅ Environment spoofed")
+end)
+
+-- Block Remote Spy Tools
+pcall(function()
+    local player = game.Players.LocalPlayer
+    local playerGui = player:WaitForChild("PlayerGui")
+    
+    -- Monitor and destroy remote spy GUIs
+    playerGui.ChildAdded:Connect(function(child)
+        local suspiciousNames = {"SimpleSpy", "RemoteSpy", "Hydroxide", "Dex", "DarkDex", "Explorer"}
+        for _, name in ipairs(suspiciousNames) do
+            if child.Name:find(name) then
+                task.wait(0.1)
+                child:Destroy()
+                warn("[BLOCKED] Remote spy tool detected and removed: " .. child.Name)
+            end
+        end
+    end)
+    
+    -- Clean existing spy tools
+    for _, child in ipairs(playerGui:GetChildren()) do
+        local suspiciousNames = {"SimpleSpy", "RemoteSpy", "Hydroxide", "Dex", "DarkDex", "Explorer"}
+        for _, name in ipairs(suspiciousNames) do
+            if child.Name:find(name) then
+                child:Destroy()
+                warn("[BLOCKED] Removed existing spy tool: " .. child.Name)
+            end
+        end
+    end
+    
+    print("✅ Remote spy protection active")
+end)
+
+-- Advanced Detection Monitor
+pcall(function()
+    local detectionAttempts = 0
+    local maxDetections = 3
+    
+    -- Monitor Variables attribute changes (health drops = possible detection)
+    task.spawn(function()
+        local player = game.Players.LocalPlayer
+        local vars = player:WaitForChild("Variables")
+        local lastHealth = vars:GetAttribute("Health") or 100
+        
+        vars:GetAttributeChangedSignal("Health"):Connect(function()
+            local currentHealth = vars:GetAttribute("Health") or 0
+            
+            -- If health instantly drops to 0 (detection kill)
+            if currentHealth == 0 and lastHealth > 0 and tick() - (lastHealthChange or 0) < 0.1 then
+                detectionAttempts = detectionAttempts + 1
+                warn("⚠️⚠️⚠️ DETECTION ATTEMPT #" .. detectionAttempts .. " DETECTED!")
+                warn("⚠️ Your health was instantly set to 0!")
+                
+                if detectionAttempts >= maxDetections then
+                    warn("⚠️⚠️⚠️ MULTIPLE DETECTIONS! DISABLE ALL FEATURES NOW!")
+                end
+            end
+            
+            lastHealth = currentHealth
+            lastHealthChange = tick()
+        end)
+    end)
+    
+    print("✅ Detection monitor active")
 end)
 
 -- Load Rayfield
@@ -91,11 +172,13 @@ end
 local CombatTab = Window:CreateTab("Main", "skull")
 
 -- Anti-Detection Status & Usage Guide
-CombatTab:CreateLabel("🛡️ Anti-Detection: ACTIVE (Namecall + Anti-Kick)")
+CombatTab:CreateLabel("🛡️ FULL PROTECTION ACTIVE:")
+CombatTab:CreateLabel("✅ Rate Limiting | ✅ Raycast Validation")
+CombatTab:CreateLabel("✅ Anti-Kick | ✅ Spy Blocker | ✅ Detection Alert")
 CombatTab:CreateLabel("━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 CombatTab:CreateLabel("📖 USAGE: Enable ONE toggle below")
 CombatTab:CreateLabel("📖 Test for 5 rounds at default settings")
-CombatTab:CreateLabel("📖 If no kick, gradually increase settings")
+CombatTab:CreateLabel("📖 Watch console for '⚠️ DETECTION' warnings")
 CombatTab:CreateLabel("━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 
 -- Weapon Label
@@ -128,6 +211,29 @@ local weaponFireRates = {
     ["MAC10"] = 0.10, ["MP5"] = 0.12, ["M1911"] = 0.18, ["Glock"] = 0.15,
     ["Scar-H"] = 0.15, ["MP7"] = 0.12, ["UMP"] = 0.13, ["P90"] = 0.11
 }
+
+-- Raycast validation (CRITICAL for anti-detection)
+local function canShootTarget(char, targetHead)
+    if not char or not char.PrimaryPart or not targetHead then
+        return false
+    end
+    
+    -- Create raycast from player to target (like real game does)
+    local rayParams = RaycastParams.new()
+    rayParams.FilterDescendantsInstances = {char, workspace.Misc}
+    rayParams.FilterType = Enum.RaycastFilterType.Ignore
+    
+    local origin = char.PrimaryPart.Position
+    local direction = (targetHead.Position - origin)
+    local rayResult = workspace:Raycast(origin, direction, rayParams)
+    
+    -- Only shoot if raycast hits the target (line of sight clear)
+    if rayResult and rayResult.Instance then
+        return rayResult.Instance:IsDescendantOf(targetHead.Parent)
+    end
+    
+    return false
+end
 
 -- Anti-detection: Random human-like patterns
 local function getRandomOffset()
@@ -325,6 +431,11 @@ CombatTab:CreateToggle({
                                         continue
                                     end
                                     
+                                    -- CRITICAL: Verify line of sight with raycast
+                                    if not canShootTarget(char, target.head) then
+                                        continue -- Skip if no line of sight
+                                    end
+                                    
                                     local timeSinceLastShot = tick() - lastShotTime
                                     local weaponDelay = getWeaponFireDelay(cachedWeapon, target.distance)
                                     
@@ -444,7 +555,9 @@ CombatTab:CreateToggle({
                             end
                             
                             -- Shoot closest boss with stealth mechanics
-                            if closestBoss then
+                            if closestBoss and canShootTarget(char, closestBoss.head) then
+                                -- CRITICAL: Only shoot if line of sight is clear
+                                
                                 local timeSinceLastBoss = tick() - lastBossTime
                                 local weaponDelay = getWeaponFireDelay(cachedWeapon, closestBoss.distance)
                                 
