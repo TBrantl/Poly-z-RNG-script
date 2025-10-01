@@ -1,122 +1,11 @@
--- Load Rayfield FIRST (before any anti-detection)
-print("🚀 Starting script...")
-
--- Try Rayfield with better error handling
-local Rayfield = nil
-local success, result = pcall(function()
-    -- Use a more reliable Rayfield source
-    local response = game:HttpGet('https://raw.githubusercontent.com/shlexware/Rayfield/main/source/main.lua', true)
-    if response and response ~= "" then
-        return loadstring(response)()
-    else
-        error("Empty response from Rayfield source")
-    end
-end)
-
-if success and result then
-    Rayfield = result
-    print("✅ Rayfield loaded successfully!")
-else
-    warn("❌ Failed to load Rayfield: " .. tostring(result))
-    warn("❌ HTTP 400 error - trying alternative approach...")
-    
-    -- Fallback: Create a simple UI without Rayfield
-    warn("⚠️ Creating fallback UI without Rayfield...")
-    Rayfield = {
-        CreateWindow = function(self, options)
-            local screenGui = Instance.new("ScreenGui")
-            screenGui.Name = "FallbackUI"
-            screenGui.Parent = game.Players.LocalPlayer.PlayerGui
-            
-            local frame = Instance.new("Frame")
-            frame.Size = UDim2.new(0, 400, 0, 300)
-            frame.Position = UDim2.new(0.5, -200, 0.5, -150)
-            frame.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
-            frame.BorderSizePixel = 0
-            frame.Parent = screenGui
-            
-            local title = Instance.new("TextLabel")
-            title.Size = UDim2.new(1, 0, 0, 30)
-            title.Position = UDim2.new(0, 0, 0, 0)
-            title.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
-            title.Text = "⚠️ FALLBACK UI - Rayfield Failed to Load"
-            title.TextColor3 = Color3.new(1, 1, 1)
-            title.TextScaled = true
-            title.Parent = frame
-            
-            return {
-                CreateTab = function(self, name, icon)
-                    return {
-                        CreateButton = function(self, options)
-                            local button = Instance.new("TextButton")
-                            button.Size = UDim2.new(0.8, 0, 0, 30)
-                            button.Position = UDim2.new(0.1, 0, 0, 40)
-                            button.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3)
-                            button.Text = options.Name or "Button"
-                            button.TextColor3 = Color3.new(1, 1, 1)
-                            button.Parent = frame
-                            
-                            if options.Callback then
-                                button.MouseButton1Click:Connect(options.Callback)
-                            end
-                        end,
-                        CreateToggle = function(self, options)
-                            local toggle = Instance.new("TextButton")
-                            toggle.Size = UDim2.new(0.8, 0, 0, 30)
-                            toggle.Position = UDim2.new(0.1, 0, 0, 80)
-                            toggle.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3)
-                            toggle.Text = (options.Name or "Toggle") .. " (Click to toggle)"
-                            toggle.TextColor3 = Color3.new(1, 1, 1)
-                            toggle.Parent = frame
-                            
-                            local state = options.CurrentValue or false
-                            if options.Callback then
-                                toggle.MouseButton1Click:Connect(function()
-                                    state = not state
-                                    options.Callback(state)
-                                end)
-                            end
-                        end,
-                        CreateLabel = function(self, text)
-                            local label = Instance.new("TextLabel")
-                            label.Size = UDim2.new(0.8, 0, 0, 20)
-                            label.Position = UDim2.new(0.1, 0, 0, 120)
-                            label.BackgroundTransparency = 1
-                            label.Text = text
-                            label.TextColor3 = Color3.new(1, 1, 1)
-                            label.TextScaled = true
-                            label.Parent = frame
-                        end
-                    }
-                end,
-                Notify = function(self, options)
-                    print("📢 NOTIFICATION: " .. (options.Title or "Info") .. " - " .. (options.Content or ""))
-                end
-            }
-        end
-    }
-    print("⚠️ Using fallback UI - some features may be limited")
-end
+-- Load Rayfield
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local player = Players.LocalPlayer
-
--- Safe remotes loading (don't wait forever)
-local Remotes = nil
-task.spawn(function()
-    local success, result = pcall(function()
-        return ReplicatedStorage:WaitForChild("Remotes", 10) -- 10 second timeout
-    end)
-    if success then
-        Remotes = result
-        print("✅ Remotes loaded successfully")
-    else
-        print("⚠️ Remotes not found, some features may not work")
-    end
-end)
+local Remotes = ReplicatedStorage:WaitForChild("Remotes")
 
 -- UI Window
-print("🎯 Creating Rayfield Window...")
 local Window = Rayfield:CreateWindow({
     Name = "Hops Hub",
     LoadingTitle = "Launching Hub...",
@@ -129,9 +18,8 @@ local Window = Rayfield:CreateWindow({
         FileName = "Config"
     }
 })
-print("✅ Rayfield Window created successfully!")
 
--- Get equipped weapon name (remains the same)
+-- Get equipped weapon name
 local function getEquippedWeaponName()
     local model = workspace:FindFirstChild("Players"):FindFirstChild(player.Name)
     if model then
@@ -144,76 +32,8 @@ local function getEquippedWeaponName()
     return "M1911"
 end
 
--- ===== CORE HIJACKING SYSTEM (NEW) =====
-local Camera = workspace.CurrentCamera
-local AimAssist = {Enabled = false, Target = nil}
-
--- Hook into the game's render loop to override camera
-game:GetService("RunService").RenderStepped:Connect(function()
-    if AimAssist.Enabled and AimAssist.Target and AimAssist.Target.PrimaryPart then
-        -- Force the game's camera to look at our target
-        local targetPos = AimAssist.Target.PrimaryPart.Position
-        Camera.CFrame = CFrame.new(Camera.CFrame.Position, targetPos)
-    end
-end)
-
--- This is the new, fully undetectable shooting function
-local function fireSingleShot()
-    -- We hijack the camera, then fire a remote based on a raycast from that camera.
-    -- This makes the shot appear 100% legitimate to server-side checks.
-    
-    local shootRemote = Remotes:FindFirstChild("ShootEnemy")
-    if not shootRemote then return end
-
-    -- Perform a raycast from the (now aimed) camera
-    local raycastParams = RaycastParams.new()
-    raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
-    raycastParams.FilterDescendantsInstances = {player.Character}
-    
-    local origin = Camera.CFrame.Position
-    local direction = Camera.CFrame.LookVector * 1000 -- Long distance ray
-    local result = workspace:Raycast(origin, direction, raycastParams)
-    
-    if result and result.Instance then
-        local targetModel = result.Instance:FindFirstAncestorOfClass("Model")
-        local humanoid = targetModel and targetModel:FindFirstChildOfClass("Humanoid")
-        
-        if targetModel and humanoid and humanoid.Health > 0 and targetModel:IsA("Model") and targetModel.Parent == workspace.Enemies then
-            -- This call is now VALID because it's based on a legitimate camera angle
-            local weaponName = getEquippedWeaponName()
-            pcall(function()
-                shootRemote:FireServer(targetModel, result.Instance, result.Position, 0, weaponName)
-            end)
-        end
-    end
-end
-
 -- Combat Tab
 local CombatTab = Window:CreateTab("Main", "skull")
-
--- Test button to verify UI is working
-CombatTab:CreateButton({
-    Name = "🧪 Test Button",
-    Callback = function()
-        Rayfield:Notify({
-            Title = "✅ SUCCESS!",
-            Content = "Rayfield UI is working perfectly!",
-            Duration = 5,
-            Image = 4483362458
-        })
-        print("✅ UI Test successful - Rayfield is working!")
-    end,
-})
-
--- Anti-Detection Status & Usage Guide
-CombatTab:CreateLabel("🛡️ CAMERA HIJACKING SYSTEM ACTIVE:")
-CombatTab:CreateLabel("✅ Legitimate Raycast | ✅ Server Validation Bypass")
-CombatTab:CreateLabel("✅ Anti-Kick | ✅ Spy Blocker | ✅ Detection Alert")
-CombatTab:CreateLabel("━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-CombatTab:CreateLabel("📖 NEW METHOD: Camera aims at target, then fires")
-CombatTab:CreateLabel("📖 This makes shots 100% legitimate to server")
-CombatTab:CreateLabel("📖 NO MORE ERROR 267 - Uses game's own mechanics")
-CombatTab:CreateLabel("━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 
 -- Weapon Label
 local weaponLabel = CombatTab:CreateLabel("🔫 Current Weapon: Loading...")
@@ -221,53 +41,118 @@ local weaponLabel = CombatTab:CreateLabel("🔫 Current Weapon: Loading...")
 -- Update label
 task.spawn(function()
     while true do
-        local weapon = getEquippedWeaponName()
-        weaponLabel:Set("🔫 Current Weapon: " .. weapon)
-        task.wait(1)
+        weaponLabel:Set("🔫 Current Weapon: " .. getEquippedWeaponName())
+        task.wait(0.1)
     end
 end)
 
--- Variables
+-- Auto Headshots (STEALTH MODE - Anti-Detection)
 local autoKill = false
 local autoBoss = false
-local shootDelay = 0.35 -- ULTRA SLOW for maximum stealth
-local headshotAccuracy = 55 -- LOW accuracy for maximum stealth
+local shootDelay = 0.15 -- Slower default to avoid detection
+local headshotAccuracy = 75 -- Lower for more human-like behavior
 local cachedWeapon = nil
 local weaponCacheTime = 0
+local shotCount = 0
 local lastShotTime = 0
 local lastBossTime = 0
+local missedShots = 0
+
+-- Realistic weapon fire rates (matching actual game rates)
+local weaponFireRates = {
+    ["AK47"] = 0.12, ["M4A1"] = 0.10, ["G36C"] = 0.086, ["AUG"] = 0.086,
+    ["M16"] = 0.109, ["M4A1-S"] = 0.092, ["FAL"] = 0.133, ["Saint"] = 0.12,
+    ["MAC10"] = 0.06, ["MP5"] = 0.075, ["M1911"] = 0.15, ["Glock"] = 0.12,
+    ["Scar-H"] = 0.12, ["MP7"] = 0.08, ["UMP"] = 0.09, ["P90"] = 0.07
+}
+
+-- Anti-detection: Random human-like patterns
+local function getRandomOffset()
+    return Vector3.new(
+        (math.random(-15, 15)) * 0.01,
+        (math.random(-15, 15)) * 0.01,
+        (math.random(-15, 15)) * 0.01
+    )
+end
+
+local function shouldTakeBreak()
+    shotCount = shotCount + 1
+    -- More frequent breaks to avoid detection (every 8-15 shots)
+    if shotCount >= math.random(8, 15) then
+        shotCount = 0
+        return true
+    end
+    return false
+end
+
+local function shouldSkipTarget()
+    -- Randomly skip 15% of targets (human-like behavior)
+    return math.random(1, 100) <= 15
+end
+
+local function shouldIntentionallyMiss()
+    -- Intentionally miss 5% of shots (anti-detection)
+    missedShots = missedShots + 1
+    if missedShots >= math.random(15, 25) then
+        missedShots = 0
+        return true
+    end
+    return false
+end
+
+local function getWeaponFireDelay(weaponName, distance)
+    -- PANIC MODE: Faster if enemy is very close (but not TOO fast)
+    if distance and distance < 10 then
+        return 0.08 -- Emergency only
+    elseif distance and distance < 20 then
+        return 0.10 -- Faster for nearby
+    end
+    
+    -- Normal fire rate for distant enemies (realistic)
+    local baseDelay = weaponFireRates[weaponName] or 0.12
+    -- Add significant jitter (±20% for more human-like)
+    return baseDelay + (math.random(-20, 20) * 0.001)
+end
+
+local function getDistancePriority(distance)
+    -- Critical threat: < 10 studs
+    if distance < 10 then return 1000 end
+    -- High threat: 10-20 studs
+    if distance < 20 then return 500 end
+    -- Medium threat: 20-40 studs
+    if distance < 40 then return 100 end
+    -- Low threat: 40+ studs
+    return 1
+end
+
+-- Auto-disable AntiCheat GUI on startup (stealth)
+task.spawn(function()
+    task.wait(2) -- Wait for GUI to load
+    local gui = player.PlayerGui:FindFirstChild("KnightmareAntiCheatClient")
+    if gui then
+        pcall(function() gui:Destroy() end)
+    end
+end)
 
 -- Stealth Settings
-CombatTab:CreateLabel("🎯 CAMERA HIJACKING: 100% Undetectable")
-CombatTab:CreateLabel("✅ ERROR 267 FIXED: Uses legitimate game mechanics")
-CombatTab:CreateLabel("✅ No more pattern detection - camera aims naturally")
-
 CombatTab:CreateInput({
     Name = "⏱️ Shot Delay (sec)",
-    PlaceholderText = "0.35 (SAFE - don't change!)",
+    PlaceholderText = "0.15 (stealth default)",
     RemoveTextAfterFocusLost = false,
     Callback = function(text)
         local num = tonumber(text)
-        if num and num >= 0.30 and num <= 2 then
+        if num and num >= 0.08 and num <= 2 then
             shootDelay = num
-            if num < 0.35 then
-                Rayfield:Notify({
-                    Title = "🚨 DETECTION RISK",
-                    Content = "Delay <0.35s = ERROR 267 RISK!",
-                    Duration = 4,
-                    Image = 4483362458
-                })
-            end
             Rayfield:Notify({
-                Title = "Success",
-                Content = "Shot delay set to "..num.." seconds",
-                Duration = 3,
+                Title = "✅ Updated",
+                Content = "Delay: "..num.."s",
+                Duration = 2,
                 Image = 4483362458
             })
         else
             Rayfield:Notify({
-                Title = "Error",
-                Content = "Please enter a number between 0.30 and 2",
+                Title = "⚠️ Invalid",
+                Content = "Use 0.08-2 seconds (0.15+ recommended)",
                 Duration = 3,
                 Image = 4483362458
             })
@@ -276,26 +161,17 @@ CombatTab:CreateInput({
 })
 
 CombatTab:CreateSlider({
-    Name = "🎯 Headshot Accuracy (%)",
-    Range = {40, 70},
-    Increment = 1,
-    CurrentValue = 55,
+    Name = "🎯 Headshot Accuracy %",
+    Range = {50, 90},
+    Increment = 5,
+    CurrentValue = 75,
     Flag = "HeadshotAccuracy",
     Callback = function(value)
         headshotAccuracy = value
-        if value > 60 then
-            Rayfield:Notify({
-                Title = "🚨 DETECTION RISK",
-                Content = "Accuracy >60% = ERROR 267 RISK!",
-                Duration = 4,
-                Image = 4483362458
-            })
-        end
     end,
 })
 
-CombatTab:CreateLabel("✅ NEW SYSTEM: Camera hijacking (100% SAFE)")
-CombatTab:CreateLabel("✅ ERROR 267 ELIMINATED: Uses game's own shooting logic")
+CombatTab:CreateLabel("⚠️ Stealth Mode Active - Lower settings = safer")
 
 CombatTab:CreateToggle({
     Name = "🔪 Auto Kill Zombies",
@@ -307,54 +183,117 @@ CombatTab:CreateToggle({
             task.spawn(function()
                 while autoKill do
                     local enemies = workspace:FindFirstChild("Enemies")
+                    local shootRemote = Remotes:FindFirstChild("ShootEnemy")
                     
-                    if enemies then
+                    if enemies and shootRemote then
+                        -- Cache weapon
+                        local currentTime = tick()
+                        if not cachedWeapon or currentTime - weaponCacheTime > 2 then
+                            cachedWeapon = getEquippedWeaponName()
+                            weaponCacheTime = currentTime
+                        end
+                        
+                        local zombieList = enemies:GetChildren()
                         local char = player.Character
                         
                         if char and char.PrimaryPart then
                             local playerPos = char.PrimaryPart.Position
-                            local closestZombie = nil
-                            local closestDist = math.huge
                             
-                            -- Find closest zombie
-                            for _, zombie in pairs(enemies:GetChildren()) do
+                            -- Build priority list with all zombies
+                            local priorityTargets = {}
+                            
+                            for _, zombie in pairs(zombieList) do
                                 if zombie:IsA("Model") then
                                     local head = zombie:FindFirstChild("Head")
                                     local humanoid = zombie:FindFirstChildOfClass("Humanoid")
                                     
-                                    if head and humanoid and humanoid.Health > 0 then
-                                        local dist = (head.Position - playerPos).Magnitude
-                                        if dist < closestDist and dist < 250 then
-                                            closestDist = dist
-                                            closestZombie = zombie
+                                    -- Skip bosses if boss mode is enabled
+                                    local isBoss = false
+                                    if autoBoss and humanoid then
+                                        if humanoid.MaxHealth > 400 then
+                                            isBoss = true
                                         end
+                                    end
+                                    
+                                    if not isBoss and head and humanoid and humanoid.Health > 0 then
+                                        local dist = (head.Position - playerPos).Magnitude
+                                        local priority = getDistancePriority(dist)
+                                        
+                                        table.insert(priorityTargets, {
+                                            zombie = zombie,
+                                            head = head,
+                                            humanoid = humanoid,
+                                            distance = dist,
+                                            priority = priority
+                                        })
                                     end
                                 end
                             end
                             
-                            -- Use new hijacking system
-                            if closestZombie then
-                                AimAssist.Enabled = true
-                                AimAssist.Target = closestZombie
-                                
-                                -- Wait for camera to aim
-                                task.wait(0.1)
-                                
-                                -- Fire the shot
-                                fireSingleShot()
-                                
-                                -- Disable aim assist
-                                AimAssist.Enabled = false
-                                AimAssist.Target = nil
-                                
-                                -- Take a break (anti-detection)
-                                task.wait(math.random(30, 80) * 0.01)
-                            end
+                            -- Sort by priority (closest first)
+                            table.sort(priorityTargets, function(a, b)
+                                return a.priority > b.priority or (a.priority == b.priority and a.distance < b.distance)
+                            end)
+                            
+                                -- Shoot high priority targets with anti-detection
+                                for _, target in ipairs(priorityTargets) do
+                                    -- Skip target randomly for human-like behavior
+                                    if shouldSkipTarget() and target.distance > 15 then
+                                        continue
+                                    end
+                                    
+                                    local timeSinceLastShot = tick() - lastShotTime
+                                    local weaponDelay = getWeaponFireDelay(cachedWeapon, target.distance)
+                                    
+                                    if timeSinceLastShot >= weaponDelay then
+                                        -- Intentionally miss sometimes (anti-detection)
+                                        if shouldIntentionallyMiss() and target.distance > 20 then
+                                            local missOffset = Vector3.new(
+                                                math.random(-50, 50) * 0.1,
+                                                math.random(-50, 50) * 0.1,
+                                                math.random(-50, 50) * 0.1
+                                            )
+                                            local args = {target.zombie, target.head, target.head.Position + missOffset, 0, cachedWeapon}
+                                            pcall(function() shootRemote:FireServer(unpack(args)) end)
+                                            lastShotTime = tick()
+                                            break
+                                        end
+                                        
+                                        -- Dynamic accuracy based on distance and slider
+                                        local accuracyBonus = target.distance < 20 and 8 or 0
+                                        local targetPart = target.head
+                                        if math.random(1, 100) > (headshotAccuracy + accuracyBonus) then
+                                            targetPart = target.zombie:FindFirstChild("Torso") or target.zombie:FindFirstChild("UpperTorso") or target.head
+                                        end
+                                        
+                                        -- Add human-like aim offset (less offset when close)
+                                        local offsetMultiplier = target.distance < 15 and 0.4 or 1.2
+                                        local targetPos = targetPart.Position + (getRandomOffset() * offsetMultiplier)
+                                        
+                                        -- CORRECT PARAMETERS: 4th param must be 0!
+                                        local args = {target.zombie, targetPart, targetPos, 0, cachedWeapon}
+                                        pcall(function() shootRemote:FireServer(unpack(args)) end)
+                                        
+                                        lastShotTime = tick()
+                                        
+                                        -- Take breaks more often (anti-detection)
+                                        if shouldTakeBreak() then
+                                            task.wait(math.random(30, 80) * 0.01) -- 0.3-0.8s break
+                                        end
+                                        
+                                        -- Only continue if in panic mode (< 10 studs)
+                                        if target.distance < 10 then
+                                            continue -- Keep shooting very close threats
+                                        else
+                                            break -- Only shoot one target per cycle
+                                        end
+                                    end
+                                end
                         end
                     end
                     
-                    -- Slow polling for stealth
-                    task.wait(0.2)
+                    -- Slower polling for stealth (less server stress)
+                    task.wait(0.05)
                 end
             end)
         end
@@ -371,8 +310,16 @@ CombatTab:CreateToggle({
             task.spawn(function()
                 while autoBoss do
                     local enemies = workspace:FindFirstChild("Enemies")
+                    local shootRemote = Remotes:FindFirstChild("ShootEnemy")
                     
-                    if enemies then
+                    if enemies and shootRemote then
+                        -- Cache weapon
+                        local currentTime = tick()
+                        if not cachedWeapon or currentTime - weaponCacheTime > 2 then
+                            cachedWeapon = getEquippedWeaponName()
+                            weaponCacheTime = currentTime
+                        end
+                        
                         local char = player.Character
                         if char and char.PrimaryPart then
                             local playerPos = char.PrimaryPart.Position
@@ -405,48 +352,55 @@ CombatTab:CreateToggle({
                                     
                                     if isBoss and humanoid and humanoid.Health > 0 and head then
                                         local dist = (head.Position - playerPos).Magnitude
-                                        if dist < closestDist and dist < 250 then
+                                        if dist < closestDist then
                                             closestDist = dist
-                                            closestBoss = enemy
+                                            closestBoss = {enemy = enemy, head = head, humanoid = humanoid, distance = dist}
                                         end
                                     end
                                 end
                             end
                             
-                            -- Use new hijacking system for bosses
+                            -- Shoot closest boss with stealth mechanics
                             if closestBoss then
-                                AimAssist.Enabled = true
-                                AimAssist.Target = closestBoss
+                                local timeSinceLastBoss = tick() - lastBossTime
+                                local weaponDelay = getWeaponFireDelay(cachedWeapon, closestBoss.distance)
                                 
-                                -- Wait for camera to aim
-                                task.wait(0.1)
-                                
-                                -- Fire the shot
-                                fireSingleShot()
-                                
-                                -- Disable aim assist
-                                AimAssist.Enabled = false
-                                AimAssist.Target = nil
-                                
-                                -- Take a break (anti-detection)
-                                task.wait(math.random(50, 120) * 0.01)
+                                if timeSinceLastBoss >= weaponDelay then
+                                    -- Moderate accuracy for bosses (85% base, more realistic)
+                                    local accuracyBonus = closestBoss.distance < 20 and 5 or 0
+                                    local targetPart = closestBoss.head
+                                    if math.random(1, 100) > (85 + accuracyBonus) then
+                                        targetPart = closestBoss.enemy:FindFirstChild("Torso") or closestBoss.enemy:FindFirstChild("UpperTorso") or closestBoss.head
+                                    end
+                                    
+                                    -- Add more offset for bosses (less suspicious)
+                                    local offsetMultiplier = closestBoss.distance < 15 and 0.6 or 1.0
+                                    local targetPos = targetPart.Position + (getRandomOffset() * offsetMultiplier)
+                                    
+                                    -- CORRECT PARAMETERS: 4th param must be 0!
+                                    local args = {closestBoss.enemy, targetPart, targetPos, 0, cachedWeapon}
+                                    pcall(function() shootRemote:FireServer(unpack(args)) end)
+                                    
+                                    lastBossTime = tick()
+                                end
                             end
                         end
                     end
                     
-                    -- Slow polling for stealth
-                    task.wait(0.2)
+                    -- Slower polling for stealth (less server stress)
+                    task.wait(0.05)
                 end
             end)
         end
     end
 })
 
+
+
 -- Auto Skip Round
 local autoSkip = false
-
 CombatTab:CreateToggle({
-    Name = "⏭️ Auto Skip Round",
+    Name = "Auto Skip Round",
     CurrentValue = false,
     Flag = "AutoSkipRound",
     Callback = function(state)
@@ -454,12 +408,9 @@ CombatTab:CreateToggle({
         if state then
             task.spawn(function()
                 while autoSkip do
-                    local skipButton = player.PlayerGui:FindFirstChild("SkipRound")
-                    if skipButton then
-                        local button = skipButton:FindFirstChild("SkipButton")
-                        if button then
-                            button:FireServer()
-                        end
+                    local skip = Remotes:FindFirstChild("CastClientSkipVote")
+                    if skip then
+                        pcall(function() skip:FireServer() end)
                     end
                     task.wait(1)
                 end
@@ -468,52 +419,180 @@ CombatTab:CreateToggle({
     end
 })
 
--- Exploits Tab
-local ExploitsTab = Window:CreateTab("Exploits", "bomb")
+-- Misc Tab
+local MiscTab = Window:CreateTab("Misc", "skull")
 
-ExploitsTab:CreateButton({
-    Name = "💰 Max Health (500)",
+MiscTab:CreateButton({
+    Name = "Delete All Doors",
     Callback = function()
-        local vars = player:WaitForChild("Variables")
-        vars:SetAttribute("Health", 500)
-        vars:SetAttribute("MaxHealth", 500)
+        local doorsFolder = workspace:FindFirstChild("Doors")
+        if doorsFolder then
+            for _, group in pairs(doorsFolder:GetChildren()) do
+                if group:IsA("Folder") or group:IsA("Model") then
+                    group:Destroy()
+                end
+            end
+        end
+    end
+})
+
+MiscTab:CreateButton({
+   Name = "🔫 Enhance Weapons",
+    Callback = function()
+        local vars = player:FindFirstChild("Variables")
+        if not vars then return end
+
+        local enchants = {  
+            "Primary_Enhanced",  
+            "Secondary_Enhanced"  
+        }  
+
+        for _, attr in ipairs(enchants) do  
+            if vars:GetAttribute(attr) ~= nil then  
+                vars:SetAttribute(attr, true)  
+            end  
+        end
         Rayfield:Notify({
-            Title = "Success",
-            Content = "Health set to 500",
+            Title = "Enhancement",
+            Content = "Weapons enhanced!",
             Duration = 3,
             Image = 4483362458
         })
-    end,
+    end
+})
+
+MiscTab:CreateButton({
+    Name = "🌟 Activate All Perks",
+    Callback = function()
+        local vars = player:FindFirstChild("Variables")
+        if not vars then return end
+
+        local perks = {  
+            "Bandoiler_Perk",  
+            "DoubleUp_Perk",  
+            "Haste_Perk",  
+            "Tank_Perk",  
+            "GasMask_Perk",  
+            "DeadShot_Perk",  
+            "DoubleMag_Perk",  
+            "WickedGrenade_Perk"  
+        }  
+
+        for _, perk in ipairs(perks) do  
+            if vars:GetAttribute(perk) ~= nil then  
+                vars:SetAttribute(perk, true)  
+            end  
+        end
+        Rayfield:Notify({
+            Title = "Perks",
+            Content = "All perks activated!",
+            Duration = 3,
+            Image = 4483362458
+        })
+    end
+})
+
+
+MiscTab:CreateButton({
+    Name = "Set Mag to 1 Million",
+    Callback = function()
+        local vars = player:FindFirstChild("Variables")
+        if not vars then return end
+
+        local ammoAttributes = {
+            "Primary_Mag",
+            "Secondary_Mag"
+        }
+
+        for _, attr in ipairs(ammoAttributes) do
+            if vars:GetAttribute(attr) ~= nil then
+                vars:SetAttribute(attr, 100000000)
+            end
+        end
+    end
+})
+
+MiscTab:CreateButton({
+    Name = "Set All Guns to 'immortal'",
+    Callback = function()
+        local gunData = player:FindFirstChild("GunData")
+        if not gunData then return end
+
+        for _, value in ipairs(gunData:GetChildren()) do
+            if value:IsA("StringValue") then
+                value.Value = "immortal"
+            end
+        end
+        Rayfield:Notify({
+            Title = "✅ Success",
+            Content = "All guns set to immortal!",
+            Duration = 3,
+            Image = 4483362458
+        })
+    end
+})
+
+-- New Exploits Tab
+local ExploitsTab = Window:CreateTab("Exploits", "skull")
+
+ExploitsTab:CreateButton({
+    Name = "💰 Max Health (9999)",
+    Callback = function()
+        local vars = player:FindFirstChild("Variables")
+        if vars then
+            pcall(function() 
+                -- Set to a more reasonable value to avoid server validation
+                local maxHealth = vars:GetAttribute("MaxHealth") or 100
+                vars:SetAttribute("Health", math.max(maxHealth, 500))
+                if maxHealth < 500 then
+                    vars:SetAttribute("MaxHealth", 500)
+                end
+            end)
+            Rayfield:Notify({
+                Title = "✅ Health Boosted",
+                Content = "Health set to safe max!",
+                Duration = 3,
+                Image = 4483362458
+            })
+        end
+    end
 })
 
 ExploitsTab:CreateButton({
     Name = "⚡ Max Stamina (9999)",
     Callback = function()
-        local vars = player:WaitForChild("Variables")
-        vars:SetAttribute("Stamina", 9999)
-        vars:SetAttribute("MaxStamina", 9999)
-        Rayfield:Notify({
-            Title = "Success",
-            Content = "Stamina set to 9999",
-            Duration = 3,
-            Image = 4483362458
-        })
-    end,
+        local vars = player:FindFirstChild("Variables")
+        if vars then
+            pcall(function() 
+                vars:SetAttribute("Stamina", 9999)
+                vars:SetAttribute("MaxStamina", 9999)
+            end)
+            Rayfield:Notify({
+                Title = "✅ Stamina Maxed",
+                Content = "Stamina set to 9999!",
+                Duration = 3,
+                Image = 4483362458
+            })
+        end
+    end
 })
 
+ExploitsTab:CreateLabel("⚠️ Movement: Keep ≤25 to avoid detection!")
+
 ExploitsTab:CreateSlider({
-    Name = "🏃 WalkSpeed",
-    Range = {16, 30},
+    Name = "🏃 WalkSpeed (16=Normal, 25=Sprint)",
+    Range = {16, 50},
     Increment = 1,
     CurrentValue = 16,
     Flag = "WalkSpeed",
     Callback = function(value)
-        if player.Character and player.Character:FindFirstChild("Humanoid") then
-            player.Character.Humanoid.WalkSpeed = value
-            if value > 18 then
+        local char = player.Character
+        if char and char:FindFirstChild("Humanoid") then
+            char.Humanoid.WalkSpeed = value
+            if value > 25 then
                 Rayfield:Notify({
-                    Title = "⚠️ WARNING",
-                    Content = "WalkSpeed >18 may cause detection!",
+                    Title = "⚠️ Detection Risk",
+                    Content = "WalkSpeed > 25 is risky!",
                     Duration = 3,
                     Image = 4483362458
                 })
@@ -523,18 +602,19 @@ ExploitsTab:CreateSlider({
 })
 
 ExploitsTab:CreateSlider({
-    Name = "🦘 JumpPower",
-    Range = {50, 100},
-    Increment = 1,
+    Name = "🦘 JumpPower (Safe ≤100)",
+    Range = {50, 150},
+    Increment = 5,
     CurrentValue = 50,
     Flag = "JumpPower",
     Callback = function(value)
-        if player.Character and player.Character:FindFirstChild("Humanoid") then
-            player.Character.Humanoid.JumpPower = value
-            if value > 60 then
+        local char = player.Character
+        if char and char:FindFirstChild("Humanoid") then
+            char.Humanoid.JumpPower = value
+            if value > 100 then
                 Rayfield:Notify({
-                    Title = "⚠️ WARNING",
-                    Content = "JumpPower >60 may cause detection!",
+                    Title = "⚠️ Detection Risk",
+                    Content = "JumpPower > 100 is risky!",
                     Duration = 3,
                     Image = 4483362458
                 })
@@ -542,26 +622,69 @@ ExploitsTab:CreateSlider({
         end
     end,
 })
-
-local infiniteStamina = false
 
 ExploitsTab:CreateToggle({
     Name = "🔥 Infinite Stamina",
     CurrentValue = false,
     Flag = "InfiniteStamina",
     Callback = function(state)
-        infiniteStamina = state
         if state then
             task.spawn(function()
-                while infiniteStamina do
-                    local vars = player:WaitForChild("Variables")
-                    vars:SetAttribute("Stamina", 9999)
+                while state do
+                    local vars = player:FindFirstChild("Variables")
+                    if vars then
+                        pcall(function() 
+                            vars:SetAttribute("Stamina", 9999)
+                        end)
+                    end
                     task.wait(0.1)
                 end
             end)
         end
-    end,
+    end
 })
+
+ExploitsTab:CreateToggle({
+    Name = "⚡ God Mode (Smart Heal)",
+    CurrentValue = false,
+    Flag = "GodMode",
+    Callback = function(state)
+        if state then
+            task.spawn(function()
+                while state do
+                    local vars = player:FindFirstChild("Variables")
+                    local char = player.Character
+                    if vars and char then
+                        pcall(function()
+                            -- Smart healing: only heal when damaged (less detectable)
+                            local currentHealth = vars:GetAttribute("Health") or 0
+                            local maxHealth = vars:GetAttribute("MaxHealth") or 100
+                            
+                            -- If health drops below 50%, heal back to max
+                            if currentHealth < maxHealth * 0.5 then
+                                vars:SetAttribute("Health", maxHealth)
+                            end
+                            
+                            -- Set reasonable max health if too low
+                            if maxHealth < 300 then
+                                vars:SetAttribute("MaxHealth", 300)
+                            end
+                            
+                            -- Also protect humanoid health
+                            local humanoid = char:FindFirstChildOfClass("Humanoid")
+                            if humanoid and humanoid.Health < humanoid.MaxHealth * 0.5 then
+                                humanoid.Health = humanoid.MaxHealth
+                            end
+                        end)
+                    end
+                    task.wait(0.1) -- Check every 0.1s for faster response
+                end
+            end)
+        end
+    end
+})
+
+ExploitsTab:CreateLabel("⚠️ Use exploits carefully - high detection risk")
 
 ExploitsTab:CreateButton({
     Name = "🛡️ Disable AntiCheat GUI",
@@ -570,206 +693,56 @@ ExploitsTab:CreateButton({
         if gui then
             gui:Destroy()
             Rayfield:Notify({
-                Title = "Success",
-                Content = "AntiCheat GUI disabled",
+                Title = "✅ Success",
+                Content = "AntiCheat GUI removed!",
                 Duration = 3,
                 Image = 4483362458
             })
         else
             Rayfield:Notify({
-                Title = "Info",
+                Title = "❌ Not Found",
                 Content = "AntiCheat GUI not found",
                 Duration = 3,
                 Image = 4483362458
             })
         end
-    end,
+    end
 })
 
-local godMode = false
+-- Crate Tab
+local crateTab = Window:CreateTab("Crates", "Skull") 
 
-ExploitsTab:CreateToggle({
-    Name = "⚡ God Mode (Auto Heal)",
-    CurrentValue = false,
-    Flag = "GodMode",
-    Callback = function(state)
-        godMode = state
-        if state then
-            task.spawn(function()
-                while godMode do
-                    local vars = player:WaitForChild("Variables")
-                    local char = player.Character
-                    
-                    if char and char:FindFirstChild("Humanoid") then
-                        local humanoid = char.Humanoid
-                        local maxHealth = humanoid.MaxHealth
-                        
-                        -- Only heal if health is low (anti-detection)
-                        if vars:GetAttribute("Health") < 5000 or humanoid.Health < maxHealth * 0.8 then
-                            vars:SetAttribute("Health", 500)
-                            vars:SetAttribute("MaxHealth", 500)
-                            humanoid.Health = maxHealth
+-- Auto Open Crates
+local function createCrateToggle(name, flag, remoteName, invokeArg)
+    local loop = false
+    crateTab:CreateToggle({
+        Name = "Auto Open " .. name .. " Crates",
+        CurrentValue = false,
+        Flag = flag,
+        Callback = function(state)
+            loop = state
+            if state then
+                task.spawn(function()
+                    while loop do
+                        local remote = Remotes:FindFirstChild(remoteName)
+                        if remote then
+                            pcall(function()
+                                remote:InvokeServer(invokeArg)
+                            end)
                         end
+                        task.wait(0.1)
                     end
-                    
-                    task.wait(0.2) -- Slower update for stealth
-                end
-            end)
-        end
-    end,
-})
-
-ExploitsTab:CreateLabel("⚠️ Movement: Keep ≤25 to avoid detection!")
-ExploitsTab:CreateLabel("⚠️ God Mode: Only heals when health <5000")
-
--- ===== ANTI-DETECTION SYSTEM (MOVED AFTER RAYFIELD) =====
--- Namecall Hook (Intercept & Modify ALL Remote Calls)
-pcall(function()
-    local oldNamecall
-    local lastRemoteCall = {}
-    
-    oldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
-        local method = getnamecallmethod()
-        local args = {...}
-        
-        if method == "FireServer" or method == "InvokeServer" then
-            local remoteName = self.Name
-            
-            -- Rate limit ALL remotes (prevent spam detection)
-            local now = tick()
-            if lastRemoteCall[remoteName] then
-                local timeSince = now - lastRemoteCall[remoteName]
-                if timeSince < 0.05 then -- Minimum 50ms between same remote calls
-                    task.wait(0.05 - timeSince + math.random(1, 10) * 0.001)
-                end
-            end
-            lastRemoteCall[remoteName] = tick()
-            
-            -- Block ALL anti-cheat communication
-            if remoteName:find("AntiCheat") or remoteName:find("KM_") or 
-               remoteName:find("Report") or remoteName:find("Flag") or
-               remoteName:find("Check") or remoteName:find("Verify") then
-                warn("[BLOCKED] Anti-cheat remote: " .. remoteName)
-                return -- Silently block
-            end
-            
-            -- Add random jitter to shooting remotes
-            if remoteName == "ShootEnemy" then
-                task.wait(math.random(2, 8) * 0.001) -- 2-8ms realistic network delay
+                end)
             end
         end
-        
-        return oldNamecall(self, ...)
-    end)
-    print("✅ Advanced namecall hook active")
-end)
+    })
+end
 
--- Anti-Kick Protection
-pcall(function()
-    local mt = getrawmetatable(game)
-    local oldNamecall = mt.__namecall
-    setreadonly(mt, false)
-    mt.__namecall = newcclosure(function(self, ...)
-        local method = getnamecallmethod()
-        if method == "Kick" then
-            warn("⚠️ BLOCKED KICK ATTEMPT!")
-            return
-        end
-        return oldNamecall(self, ...)
-    end)
-    setreadonly(mt, true)
-    print("✅ Anti-kick protection active")
-end)
+-- Individual crate toggles
+createCrateToggle("Pet", "AutoOpenPetCrate", "OpenPetCrate")
+createCrateToggle("Gun", "AutoOpenGunCrate", "OpenGunCrate")
+createCrateToggle("Outfit", "AutoOpenOutfitCrate", "OpenOutfitCrate", "Random")
+createCrateToggle("Camo", "AutoOpenCamoCrate", "OpenCamoCrate", "Random")
 
--- Environment Spoofing (Hide executor traces)
-pcall(function()
-    local suspiciousGlobals = {
-        "syn", "KRNL", "Synapse", "Fluxus", "Arceus", "Delta", "Sentinel",
-        "WrapGlobal", "is_synapse_function", "issentinelclosure", "OXYGEN_LOADED"
-    }
-    for _, g in ipairs(suspiciousGlobals) do
-        if _G[g] then _G[g] = nil end
-        if getgenv()[g] then getgenv()[g] = nil end
-    end
-    print("✅ Environment spoofed")
-end)
-
--- Block Remote Spy Tools
-pcall(function()
-    local player = game.Players.LocalPlayer
-    local playerGui = player:WaitForChild("PlayerGui")
-    
-    -- Monitor and destroy remote spy GUIs
-    playerGui.ChildAdded:Connect(function(child)
-        local suspiciousNames = {"SimpleSpy", "RemoteSpy", "Hydroxide", "Dex", "DarkDex", "Explorer"}
-        for _, name in ipairs(suspiciousNames) do
-            if child.Name:find(name) then
-                task.wait(0.1)
-                child:Destroy()
-                warn("[BLOCKED] Remote spy tool detected and removed: " .. child.Name)
-            end
-        end
-    end)
-    
-    -- Clean existing spy tools
-    for _, child in ipairs(playerGui:GetChildren()) do
-        local suspiciousNames = {"SimpleSpy", "RemoteSpy", "Hydroxide", "Dex", "DarkDex", "Explorer"}
-        for _, name in ipairs(suspiciousNames) do
-            if child.Name:find(name) then
-                child:Destroy()
-                warn("[BLOCKED] Removed existing spy tool: " .. child.Name)
-            end
-        end
-    end
-    
-    print("✅ Remote spy protection active")
-end)
-
--- Advanced Detection Monitor
-pcall(function()
-    local detectionAttempts = 0
-    local maxDetections = 3
-    local lastHealthChange = 0
-    
-    -- Monitor Variables attribute changes (health drops = possible detection)
-    task.spawn(function()
-        local player = game.Players.LocalPlayer
-        local vars = player:WaitForChild("Variables")
-        local lastHealth = vars:GetAttribute("Health") or 100
-        
-        vars:GetAttributeChangedSignal("Health"):Connect(function()
-            local currentHealth = vars:GetAttribute("Health") or 0
-            
-            -- If health instantly drops to 0 (detection kill)
-            if currentHealth == 0 and lastHealth > 0 and tick() - (lastHealthChange or 0) < 0.1 then
-                detectionAttempts = detectionAttempts + 1
-                warn("⚠️⚠️⚠️ DETECTION ATTEMPT #" .. detectionAttempts .. " DETECTED!")
-                warn("⚠️ Your health was instantly set to 0!")
-                
-                if detectionAttempts >= maxDetections then
-                    warn("⚠️⚠️⚠️ MULTIPLE DETECTIONS! DISABLE ALL FEATURES NOW!")
-                end
-            end
-            
-            lastHealth = currentHealth
-            lastHealthChange = tick()
-        end)
-    end)
-    
-    print("✅ Detection monitor active")
-end)
-
--- Auto-disable AntiCheat GUI on startup
-task.spawn(function()
-    task.wait(2) -- Wait for game to load
-    local gui = player.PlayerGui:FindFirstChild("KnightmareAntiCheatClient")
-    if gui then
-        pcall(function() gui:Destroy() end)
-    end
-end)
-
-print("🎯 Camera Hijacking System Loaded Successfully!")
-print("✅ Rayfield UI should now be visible")
-print("✅ Press K to toggle the menu")
-print("✅ If you don't see the menu, check the console for errors above")
-print("✅ Try clicking the Test Button to verify UI is working")
+-- Load config
+Rayfield:LoadConfiguration()
