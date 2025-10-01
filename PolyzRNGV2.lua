@@ -1,11 +1,35 @@
 -- Load Rayfield FIRST (before any anti-detection)
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+print("🚀 Starting script...")
+local success, Rayfield = pcall(function()
+    return loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+end)
+
+if not success then
+    warn("❌ Failed to load Rayfield!")
+    return
+end
+
+print("✅ Rayfield loaded successfully!")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local player = Players.LocalPlayer
-local Remotes = ReplicatedStorage:WaitForChild("Remotes")
+
+-- Safe remotes loading (don't wait forever)
+local Remotes = nil
+task.spawn(function()
+    local success, result = pcall(function()
+        return ReplicatedStorage:WaitForChild("Remotes", 10) -- 10 second timeout
+    end)
+    if success then
+        Remotes = result
+        print("✅ Remotes loaded successfully")
+    else
+        print("⚠️ Remotes not found, some features may not work")
+    end
+end)
 
 -- UI Window
+print("🎯 Creating Rayfield Window...")
 local Window = Rayfield:CreateWindow({
     Name = "Hops Hub",
     LoadingTitle = "Launching Hub...",
@@ -18,6 +42,7 @@ local Window = Rayfield:CreateWindow({
         FileName = "Config"
     }
 })
+print("✅ Rayfield Window created successfully!")
 
 -- Get equipped weapon name (remains the same)
 local function getEquippedWeaponName()
@@ -78,6 +103,20 @@ end
 
 -- Combat Tab
 local CombatTab = Window:CreateTab("Main", "skull")
+
+-- Test button to verify UI is working
+CombatTab:CreateButton({
+    Name = "🧪 Test Button",
+    Callback = function()
+        Rayfield:Notify({
+            Title = "✅ SUCCESS!",
+            Content = "Rayfield UI is working perfectly!",
+            Duration = 5,
+            Image = 4483362458
+        })
+        print("✅ UI Test successful - Rayfield is working!")
+    end,
+})
 
 -- Anti-Detection Status & Usage Guide
 CombatTab:CreateLabel("🛡️ CAMERA HIJACKING SYSTEM ACTIVE:")
@@ -645,3 +684,5 @@ end)
 print("🎯 Camera Hijacking System Loaded Successfully!")
 print("✅ Rayfield UI should now be visible")
 print("✅ Press K to toggle the menu")
+print("✅ If you don't see the menu, check the console for errors above")
+print("✅ Try clicking the Test Button to verify UI is working")
