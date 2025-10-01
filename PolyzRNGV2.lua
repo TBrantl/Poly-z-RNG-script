@@ -46,23 +46,24 @@ task.spawn(function()
     end
 end)
 
--- Auto Headshots (Maximum Speed + Both Modes)
+-- Auto Headshots (STEALTH MODE - Anti-Detection)
 local autoKill = false
 local autoBoss = false
-local shootDelay = 0.06 -- MAC10 speed (fastest weapon)
-local headshotAccuracy = 85
+local shootDelay = 0.15 -- Slower default to avoid detection
+local headshotAccuracy = 75 -- Lower for more human-like behavior
 local cachedWeapon = nil
 local weaponCacheTime = 0
 local shotCount = 0
 local lastShotTime = 0
 local lastBossTime = 0
+local missedShots = 0
 
--- Weapon fire rates (RPM to seconds) - ALL SET TO FASTEST
+-- Realistic weapon fire rates (matching actual game rates)
 local weaponFireRates = {
-    ["AK47"] = 0.06, ["M4A1"] = 0.06, ["G36C"] = 0.06, ["AUG"] = 0.06,
-    ["M16"] = 0.06, ["M4A1-S"] = 0.06, ["FAL"] = 0.06, ["Saint"] = 0.06,
-    ["MAC10"] = 0.06, ["MP5"] = 0.06, ["M1911"] = 0.06, ["Glock"] = 0.06,
-    ["Scar-H"] = 0.06, ["MP7"] = 0.06, ["UMP"] = 0.06, ["P90"] = 0.06
+    ["AK47"] = 0.12, ["M4A1"] = 0.10, ["G36C"] = 0.086, ["AUG"] = 0.086,
+    ["M16"] = 0.109, ["M4A1-S"] = 0.092, ["FAL"] = 0.133, ["Saint"] = 0.12,
+    ["MAC10"] = 0.06, ["MP5"] = 0.075, ["M1911"] = 0.15, ["Glock"] = 0.12,
+    ["Scar-H"] = 0.12, ["MP7"] = 0.08, ["UMP"] = 0.09, ["P90"] = 0.07
 }
 
 -- Anti-detection: Random human-like patterns
@@ -76,47 +77,71 @@ end
 
 local function shouldTakeBreak()
     shotCount = shotCount + 1
-    -- Every 20-40 shots, take a micro-break (human-like)
-    if shotCount >= math.random(20, 40) then
+    -- More frequent breaks to avoid detection (every 8-15 shots)
+    if shotCount >= math.random(8, 15) then
         shotCount = 0
         return true
     end
     return false
 end
 
+local function shouldSkipTarget()
+    -- Randomly skip 15% of targets (human-like behavior)
+    return math.random(1, 100) <= 15
+end
+
+local function shouldIntentionallyMiss()
+    -- Intentionally miss 5% of shots (anti-detection)
+    missedShots = missedShots + 1
+    if missedShots >= math.random(15, 25) then
+        missedShots = 0
+        return true
+    end
+    return false
+end
+
 local function getWeaponFireDelay(weaponName, distance)
-    -- PANIC MODE: Ultra fast if enemy is very close
-    if distance and distance < 15 then
-        return 0.03 -- Panic fire rate
-    elseif distance and distance < 30 then
-        return 0.05 -- Faster for nearby
+    -- PANIC MODE: Faster if enemy is very close (but not TOO fast)
+    if distance and distance < 10 then
+        return 0.08 -- Emergency only
+    elseif distance and distance < 20 then
+        return 0.10 -- Faster for nearby
     end
     
-    -- Normal fire rate for distant enemies
-    local baseDelay = weaponFireRates[weaponName] or 0.06
-    -- Add slight jitter (±10%)
-    return baseDelay + (math.random(-10, 10) * 0.001)
+    -- Normal fire rate for distant enemies (realistic)
+    local baseDelay = weaponFireRates[weaponName] or 0.12
+    -- Add significant jitter (±20% for more human-like)
+    return baseDelay + (math.random(-20, 20) * 0.001)
 end
 
 local function getDistancePriority(distance)
-    -- Critical threat: < 15 studs
-    if distance < 15 then return 1000 end
-    -- High threat: 15-30 studs
-    if distance < 30 then return 500 end
-    -- Medium threat: 30-50 studs
-    if distance < 50 then return 100 end
-    -- Low threat: 50+ studs
+    -- Critical threat: < 10 studs
+    if distance < 10 then return 1000 end
+    -- High threat: 10-20 studs
+    if distance < 20 then return 500 end
+    -- Medium threat: 20-40 studs
+    if distance < 40 then return 100 end
+    -- Low threat: 40+ studs
     return 1
 end
+
+-- Auto-disable AntiCheat GUI on startup (stealth)
+task.spawn(function()
+    task.wait(2) -- Wait for GUI to load
+    local gui = player.PlayerGui:FindFirstChild("KnightmareAntiCheatClient")
+    if gui then
+        pcall(function() gui:Destroy() end)
+    end
+end)
 
 -- Stealth Settings
 CombatTab:CreateInput({
     Name = "⏱️ Shot Delay (sec)",
-    PlaceholderText = "0.12 (default)",
+    PlaceholderText = "0.15 (stealth default)",
     RemoveTextAfterFocusLost = false,
     Callback = function(text)
         local num = tonumber(text)
-        if num and num >= 0.05 and num <= 2 then
+        if num and num >= 0.08 and num <= 2 then
             shootDelay = num
             Rayfield:Notify({
                 Title = "✅ Updated",
@@ -127,8 +152,8 @@ CombatTab:CreateInput({
         else
             Rayfield:Notify({
                 Title = "⚠️ Invalid",
-                Content = "Use 0.05-2 seconds",
-                Duration = 2,
+                Content = "Use 0.08-2 seconds (0.15+ recommended)",
+                Duration = 3,
                 Image = 4483362458
             })
         end
@@ -137,14 +162,16 @@ CombatTab:CreateInput({
 
 CombatTab:CreateSlider({
     Name = "🎯 Headshot Accuracy %",
-    Range = {50, 95},
+    Range = {50, 90},
     Increment = 5,
-    CurrentValue = 85,
+    CurrentValue = 75,
     Flag = "HeadshotAccuracy",
     Callback = function(value)
         headshotAccuracy = value
     end,
 })
+
+CombatTab:CreateLabel("⚠️ Stealth Mode Active - Lower settings = safer")
 
 CombatTab:CreateToggle({
     Name = "🔪 Auto Kill Zombies",
@@ -208,47 +235,65 @@ CombatTab:CreateToggle({
                                 return a.priority > b.priority or (a.priority == b.priority and a.distance < b.distance)
                             end)
                             
-                            -- Shoot high priority targets
-                            for _, target in ipairs(priorityTargets) do
-                                local timeSinceLastShot = tick() - lastShotTime
-                                local weaponDelay = getWeaponFireDelay(cachedWeapon, target.distance)
-                                
-                                if timeSinceLastShot >= weaponDelay then
-                                    -- Dynamic accuracy based on distance and slider
-                                    local accuracyBonus = target.distance < 30 and 10 or 0 -- Better accuracy when close
-                                    local targetPart = target.head
-                                    if math.random(1, 100) > (headshotAccuracy + accuracyBonus) then
-                                        targetPart = target.zombie:FindFirstChild("Torso") or target.zombie:FindFirstChild("UpperTorso") or target.head
+                                -- Shoot high priority targets with anti-detection
+                                for _, target in ipairs(priorityTargets) do
+                                    -- Skip target randomly for human-like behavior
+                                    if shouldSkipTarget() and target.distance > 15 then
+                                        continue
                                     end
                                     
-                                    -- Add human-like aim offset (less offset when close)
-                                    local offsetMultiplier = target.distance < 20 and 0.5 or 1
-                                    local targetPos = targetPart.Position + (getRandomOffset() * offsetMultiplier)
+                                    local timeSinceLastShot = tick() - lastShotTime
+                                    local weaponDelay = getWeaponFireDelay(cachedWeapon, target.distance)
                                     
-                                    -- CORRECT PARAMETERS: 4th param must be 0!
-                                    local args = {target.zombie, targetPart, targetPos, 0, cachedWeapon}
-                                    pcall(function() shootRemote:FireServer(unpack(args)) end)
-                                    
-                                    lastShotTime = tick()
-                                    
-                                    -- Only break if not in panic mode
-                                    if target.distance > 30 and shouldTakeBreak() then
-                                        task.wait(math.random(15, 40) * 0.01)
-                                    end
-                                    
-                                    -- In panic mode, shoot multiple close targets rapidly
-                                    if target.distance < 15 then
-                                        continue -- Keep shooting close ones without delay
-                                    else
-                                        break -- Only shoot one distant target per cycle
+                                    if timeSinceLastShot >= weaponDelay then
+                                        -- Intentionally miss sometimes (anti-detection)
+                                        if shouldIntentionallyMiss() and target.distance > 20 then
+                                            local missOffset = Vector3.new(
+                                                math.random(-50, 50) * 0.1,
+                                                math.random(-50, 50) * 0.1,
+                                                math.random(-50, 50) * 0.1
+                                            )
+                                            local args = {target.zombie, target.head, target.head.Position + missOffset, 0, cachedWeapon}
+                                            pcall(function() shootRemote:FireServer(unpack(args)) end)
+                                            lastShotTime = tick()
+                                            break
+                                        end
+                                        
+                                        -- Dynamic accuracy based on distance and slider
+                                        local accuracyBonus = target.distance < 20 and 8 or 0
+                                        local targetPart = target.head
+                                        if math.random(1, 100) > (headshotAccuracy + accuracyBonus) then
+                                            targetPart = target.zombie:FindFirstChild("Torso") or target.zombie:FindFirstChild("UpperTorso") or target.head
+                                        end
+                                        
+                                        -- Add human-like aim offset (less offset when close)
+                                        local offsetMultiplier = target.distance < 15 and 0.4 or 1.2
+                                        local targetPos = targetPart.Position + (getRandomOffset() * offsetMultiplier)
+                                        
+                                        -- CORRECT PARAMETERS: 4th param must be 0!
+                                        local args = {target.zombie, targetPart, targetPos, 0, cachedWeapon}
+                                        pcall(function() shootRemote:FireServer(unpack(args)) end)
+                                        
+                                        lastShotTime = tick()
+                                        
+                                        -- Take breaks more often (anti-detection)
+                                        if shouldTakeBreak() then
+                                            task.wait(math.random(30, 80) * 0.01) -- 0.3-0.8s break
+                                        end
+                                        
+                                        -- Only continue if in panic mode (< 10 studs)
+                                        if target.distance < 10 then
+                                            continue -- Keep shooting very close threats
+                                        else
+                                            break -- Only shoot one target per cycle
+                                        end
                                     end
                                 end
-                            end
                         end
                     end
                     
-                    -- Minimal polling delay
-                    task.wait(0.01)
+                    -- Slower polling for stealth (less server stress)
+                    task.wait(0.05)
                 end
             end)
         end
@@ -315,21 +360,21 @@ CombatTab:CreateToggle({
                                 end
                             end
                             
-                            -- Shoot closest boss with distance-based fire rate
+                            -- Shoot closest boss with stealth mechanics
                             if closestBoss then
                                 local timeSinceLastBoss = tick() - lastBossTime
                                 local weaponDelay = getWeaponFireDelay(cachedWeapon, closestBoss.distance)
                                 
                                 if timeSinceLastBoss >= weaponDelay then
-                                    -- Higher accuracy for bosses (98% base + bonus when close)
-                                    local accuracyBonus = closestBoss.distance < 30 and 2 or 0
+                                    -- Moderate accuracy for bosses (85% base, more realistic)
+                                    local accuracyBonus = closestBoss.distance < 20 and 5 or 0
                                     local targetPart = closestBoss.head
-                                    if math.random(1, 100) > (98 + accuracyBonus) then
+                                    if math.random(1, 100) > (85 + accuracyBonus) then
                                         targetPart = closestBoss.enemy:FindFirstChild("Torso") or closestBoss.enemy:FindFirstChild("UpperTorso") or closestBoss.head
                                     end
                                     
-                                    -- Less offset for bosses (more precise)
-                                    local offsetMultiplier = closestBoss.distance < 20 and 0.3 or 0.5
+                                    -- Add more offset for bosses (less suspicious)
+                                    local offsetMultiplier = closestBoss.distance < 15 and 0.6 or 1.0
                                     local targetPos = targetPart.Position + (getRandomOffset() * offsetMultiplier)
                                     
                                     -- CORRECT PARAMETERS: 4th param must be 0!
@@ -342,8 +387,8 @@ CombatTab:CreateToggle({
                         end
                     end
                     
-                    -- Minimal polling delay
-                    task.wait(0.01)
+                    -- Slower polling for stealth (less server stress)
+                    task.wait(0.05)
                 end
             end)
         end
@@ -589,23 +634,28 @@ ExploitsTab:CreateToggle({
                     local char = player.Character
                     if vars and char then
                         pcall(function()
-                            -- Keep health maxed
-                            vars:SetAttribute("Health", 9999)
-                            vars:SetAttribute("MaxHealth", 9999)
+                            -- Keep health high but not constant updates (stealth)
+                            local currentHealth = vars:GetAttribute("Health") or 0
+                            if currentHealth < 5000 then
+                                vars:SetAttribute("Health", 9999)
+                                vars:SetAttribute("MaxHealth", 9999)
+                            end
                             
-                            -- Also set humanoid health if available
+                            -- Also heal humanoid if low
                             local humanoid = char:FindFirstChildOfClass("Humanoid")
-                            if humanoid then
+                            if humanoid and humanoid.Health < humanoid.MaxHealth * 0.8 then
                                 humanoid.Health = humanoid.MaxHealth
                             end
                         end)
                     end
-                    task.wait(0.05) -- Update very frequently
+                    task.wait(0.2) -- Less frequent updates (stealth)
                 end
             end)
         end
     end
 })
+
+ExploitsTab:CreateLabel("⚠️ Use exploits carefully - high detection risk")
 
 ExploitsTab:CreateButton({
     Name = "🛡️ Disable AntiCheat GUI",
