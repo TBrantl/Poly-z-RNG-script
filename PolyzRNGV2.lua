@@ -308,23 +308,36 @@ MiscTab:CreateButton({
 })
 
 MiscTab:CreateButton({
-    Name = "Enhance Primary & Secondary",
+    Name = "🌟 Activate All Perks",
     Callback = function()
         local vars = player:FindFirstChild("Variables")
         if not vars then return end
 
-        local enchants = {
-            "Primary_Enhanced",
-            "Secondary_Enhanced"
-        }
+        local perks = {  
+            "Bandoiler_Perk",  
+            "DoubleUp_Perk",  
+            "Haste_Perk",  
+            "Tank_Perk",  
+            "GasMask_Perk",  
+            "DeadShot_Perk",  
+            "DoubleMag_Perk",  
+            "WickedGrenade_Perk"  
+        }  
 
-        for _, attr in ipairs(enchants) do
-            if vars:GetAttribute(attr) ~= nil then
-                vars:SetAttribute(attr, true)
-            end
+        for _, perk in ipairs(perks) do  
+            if vars:GetAttribute(perk) ~= nil then  
+                vars:SetAttribute(perk, true)  
+            end  
         end
+        Rayfield:Notify({
+            Title = "Perks",
+            Content = "All perks activated!",
+            Duration = 3,
+            Image = 4483362458
+        })
     end
 })
+
 
 MiscTab:CreateButton({
     Name = "Set Mag to 1 Million",
