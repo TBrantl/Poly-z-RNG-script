@@ -55,13 +55,14 @@ local weaponCacheTime = 0
 local rayParams = RaycastParams.new()
 
 -- Configurable parameters for anti-detection and speed
-local MAX_TARGETS_PER_LOOP = 5 -- Increased for faster clearing
+local MAX_TARGETS_PER_LOOP = 10 -- Increased for faster clearing
 local SHOT_VARIATION = {min = 0.008, max = 0.02} -- Tighter delay for speed
 local BURST_VARIATION = {min = 5, max = 10} -- Shorter bursts
 local PAUSE_VARIATION = {min = 0.03, max = 0.1} -- Minimal pauses
 local HEADSHOT_CHANCE = 0.97 -- Slightly less predictable
 local BULLET_SPEED = 500 -- Assumed bullet speed
-local MAX_DISTANCE = 200 -- Max distance to scan (studs) for performance
+local MAX_DISTANCE = 500 -- Max distance to scan (studs) for performance
+local DANGER_RADIUS = 15 -- Enemies inside this distance are auto-prioritized
 
 CombatTab:CreateToggle({
     Name = "Auto Headshot Enemies",
@@ -136,6 +137,7 @@ CombatTab:CreateToggle({
                                         head = head,
                                         torso = enemy:FindFirstChild("Torso") or enemy:FindFirstChild("UpperTorso"),
                                         distSq = distSq,
+                                        distance = distance,
                                         predictedPos = head.Position + velocity * bulletTime
                                     })
                                 end
@@ -167,14 +169,14 @@ CombatTab:CreateToggle({
                                 local rayResult = workspace:Raycast(playerPos, rayDirection, rayParams)
                                 
                                 if rayResult and rayResult.Instance:IsDescendantOf(potentialEnemy) then
-                                    -- 👇 FIX: Fire like the first script for bosses
+                                    -- Bosses: clean call
                                     local targetPart = head
                                     local args = {
-                                        potentialEnemy,     -- enemy model
-                                        targetPart,         -- always head for bosses
-                                        targetPart.Position,-- real position
-                                        0.5,                -- fixed damage
-                                        cachedWeapon        -- weapon
+                                        potentialEnemy,
+                                        targetPart,
+                                        targetPart.Position,
+                                        0.5,
+                                        cachedWeapon
                                     }
                                     pcall(function()
                                         shootRemote:FireServer(unpack(args))
@@ -183,16 +185,25 @@ CombatTab:CreateToggle({
                             end
                         end
                         
-                        -- Sort by distance and prioritize closer enemies
-                        table.sort(visibleEnemies, function(a, b) return a.distSq < b.distSq end)
+                        -- Sort by priority:
+                        -- 1. Enemies inside DANGER_RADIUS always come first
+                        -- 2. Otherwise by closest distance
+                        table.sort(visibleEnemies, function(a, b)
+                            local aDanger = a.distance <= DANGER_RADIUS
+                            local bDanger = b.distance <= DANGER_RADIUS
+                            if aDanger ~= bDanger then
+                                return aDanger -- true before false
+                            end
+                            return a.distSq < b.distSq
+                        end)
                         
-                        -- Shoot closest enemies (up to MAX_TARGETS_PER_LOOP)
+                        -- Shoot closest/prioritized enemies
                         local targetsShot = 0
                         for i, target in ipairs(visibleEnemies) do
                             if targetsShot >= MAX_TARGETS_PER_LOOP then break end
                             if not target.torso then continue end
                             
-                            -- Randomize target selection slightly to avoid patterns
+                            -- Randomize target selection slightly
                             if math.random() < 0.1 and #visibleEnemies > 1 then
                                 target = visibleEnemies[math.random(1, math.min(3, #visibleEnemies))]
                             end
@@ -205,7 +216,6 @@ CombatTab:CreateToggle({
                                 math.random(-20, 20) * 0.04
                             )
                             
-                            -- Keep full obfuscation/randomization for normal enemies
                             shootRemote:FireServer(
                                 target.enemy,
                                 targetPart,
@@ -218,7 +228,7 @@ CombatTab:CreateToggle({
                             shotsFired = shotsFired + 1
                             targetsShot = targetsShot + 1
                             
-                            task.wait(math.random(1, 4) * 0.004) -- Faster intra-burst delay
+                            task.wait(math.random(1, 4) * 0.004)
                         end
                         
                         -- Dynamic burst control
@@ -247,6 +257,7 @@ CombatTab:CreateToggle({
         end
     end
 })
+
 
 
 -- Auto Skip Round
