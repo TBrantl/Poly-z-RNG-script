@@ -1,15 +1,102 @@
 -- Load Rayfield FIRST (before any anti-detection)
 print("🚀 Starting script...")
-local success, Rayfield = pcall(function()
-    return loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+-- Try Rayfield with better error handling
+local Rayfield = nil
+local success, result = pcall(function()
+    -- Use a more reliable Rayfield source
+    local response = game:HttpGet('https://raw.githubusercontent.com/shlexware/Rayfield/main/source/main.lua', true)
+    if response and response ~= "" then
+        return loadstring(response)()
+    else
+        error("Empty response from Rayfield source")
+    end
 end)
 
-if not success then
-    warn("❌ Failed to load Rayfield!")
-    return
+if success and result then
+    Rayfield = result
+    print("✅ Rayfield loaded successfully!")
+else
+    warn("❌ Failed to load Rayfield: " .. tostring(result))
+    warn("❌ HTTP 400 error - trying alternative approach...")
+    
+    -- Fallback: Create a simple UI without Rayfield
+    warn("⚠️ Creating fallback UI without Rayfield...")
+    Rayfield = {
+        CreateWindow = function(self, options)
+            local screenGui = Instance.new("ScreenGui")
+            screenGui.Name = "FallbackUI"
+            screenGui.Parent = game.Players.LocalPlayer.PlayerGui
+            
+            local frame = Instance.new("Frame")
+            frame.Size = UDim2.new(0, 400, 0, 300)
+            frame.Position = UDim2.new(0.5, -200, 0.5, -150)
+            frame.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
+            frame.BorderSizePixel = 0
+            frame.Parent = screenGui
+            
+            local title = Instance.new("TextLabel")
+            title.Size = UDim2.new(1, 0, 0, 30)
+            title.Position = UDim2.new(0, 0, 0, 0)
+            title.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+            title.Text = "⚠️ FALLBACK UI - Rayfield Failed to Load"
+            title.TextColor3 = Color3.new(1, 1, 1)
+            title.TextScaled = true
+            title.Parent = frame
+            
+            return {
+                CreateTab = function(self, name, icon)
+                    return {
+                        CreateButton = function(self, options)
+                            local button = Instance.new("TextButton")
+                            button.Size = UDim2.new(0.8, 0, 0, 30)
+                            button.Position = UDim2.new(0.1, 0, 0, 40)
+                            button.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3)
+                            button.Text = options.Name or "Button"
+                            button.TextColor3 = Color3.new(1, 1, 1)
+                            button.Parent = frame
+                            
+                            if options.Callback then
+                                button.MouseButton1Click:Connect(options.Callback)
+                            end
+                        end,
+                        CreateToggle = function(self, options)
+                            local toggle = Instance.new("TextButton")
+                            toggle.Size = UDim2.new(0.8, 0, 0, 30)
+                            toggle.Position = UDim2.new(0.1, 0, 0, 80)
+                            toggle.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3)
+                            toggle.Text = (options.Name or "Toggle") .. " (Click to toggle)"
+                            toggle.TextColor3 = Color3.new(1, 1, 1)
+                            toggle.Parent = frame
+                            
+                            local state = options.CurrentValue or false
+                            if options.Callback then
+                                toggle.MouseButton1Click:Connect(function()
+                                    state = not state
+                                    options.Callback(state)
+                                end)
+                            end
+                        end,
+                        CreateLabel = function(self, text)
+                            local label = Instance.new("TextLabel")
+                            label.Size = UDim2.new(0.8, 0, 0, 20)
+                            label.Position = UDim2.new(0.1, 0, 0, 120)
+                            label.BackgroundTransparency = 1
+                            label.Text = text
+                            label.TextColor3 = Color3.new(1, 1, 1)
+                            label.TextScaled = true
+                            label.Parent = frame
+                        end
+                    }
+                end,
+                Notify = function(self, options)
+                    print("📢 NOTIFICATION: " .. (options.Title or "Info") .. " - " .. (options.Content or ""))
+                end
+            }
+        end
+    }
+    print("⚠️ Using fallback UI - some features may be limited")
 end
-
-print("✅ Rayfield loaded successfully!")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local player = Players.LocalPlayer
