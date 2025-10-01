@@ -84,11 +84,29 @@ local function shouldTakeBreak()
     return false
 end
 
-local function getWeaponFireDelay(weaponName)
-    -- Get weapon-specific fire rate or use default
-    local baseDelay = weaponFireRates[weaponName] or 0.12
+local function getWeaponFireDelay(weaponName, distance)
+    -- PANIC MODE: Ultra fast if enemy is very close
+    if distance and distance < 15 then
+        return 0.03 -- Panic fire rate
+    elseif distance and distance < 30 then
+        return 0.05 -- Faster for nearby
+    end
+    
+    -- Normal fire rate for distant enemies
+    local baseDelay = weaponFireRates[weaponName] or 0.06
     -- Add slight jitter (±10%)
     return baseDelay + (math.random(-10, 10) * 0.001)
+end
+
+local function getDistancePriority(distance)
+    -- Critical threat: < 15 studs
+    if distance < 15 then return 1000 end
+    -- High threat: 15-30 studs
+    if distance < 30 then return 500 end
+    -- Medium threat: 30-50 studs
+    if distance < 50 then return 100 end
+    -- Low threat: 50+ studs
+    return 1
 end
 
 -- Stealth Settings
@@ -148,76 +166,88 @@ CombatTab:CreateToggle({
                             weaponCacheTime = currentTime
                         end
                         
-                        -- Respect weapon fire rate cooldown
-                        local timeSinceLastShot = currentTime - lastShotTime
-                        local weaponDelay = getWeaponFireDelay(cachedWeapon)
+                        local zombieList = enemies:GetChildren()
+                        local char = player.Character
                         
-                        if timeSinceLastShot >= weaponDelay then
-                            local zombieList = enemies:GetChildren()
+                        if char and char.PrimaryPart then
+                            local playerPos = char.PrimaryPart.Position
                             
-                            -- Find closest living non-boss zombie
-                            local closestZombie = nil
-                            local closestDist = math.huge
-                            local char = player.Character
+                            -- Build priority list with all zombies
+                            local priorityTargets = {}
                             
-                            if char and char.PrimaryPart then
-                                local playerPos = char.PrimaryPart.Position
-                                
-                                for _, zombie in pairs(zombieList) do
-                                    if zombie:IsA("Model") then
-                                        local head = zombie:FindFirstChild("Head")
-                                        local humanoid = zombie:FindFirstChildOfClass("Humanoid")
-                                        
-                                        -- Skip bosses if boss mode is enabled
-                                        local isBoss = false
-                                        if autoBoss and humanoid then
-                                            if humanoid.MaxHealth > 400 then
-                                                isBoss = true
-                                            end
-                                        end
-                                        
-                                        if not isBoss and head and humanoid and humanoid.Health > 0 then
-                                            local dist = (head.Position - playerPos).Magnitude
-                                            if dist < closestDist then
-                                                closestDist = dist
-                                                closestZombie = zombie
-                                            end
+                            for _, zombie in pairs(zombieList) do
+                                if zombie:IsA("Model") then
+                                    local head = zombie:FindFirstChild("Head")
+                                    local humanoid = zombie:FindFirstChildOfClass("Humanoid")
+                                    
+                                    -- Skip bosses if boss mode is enabled
+                                    local isBoss = false
+                                    if autoBoss and humanoid then
+                                        if humanoid.MaxHealth > 400 then
+                                            isBoss = true
                                         end
                                     end
-                                end
-                                
-                                -- Shoot closest zombie
-                                if closestZombie then
-                                    local head = closestZombie:FindFirstChild("Head")
-                                    local humanoid = closestZombie:FindFirstChildOfClass("Humanoid")
                                     
-                                    if head and humanoid and humanoid.Health > 0 then
-                                        -- Dynamic accuracy based on slider
-                                        local targetPart = head
-                                        if math.random(1, 100) > headshotAccuracy then
-                                            targetPart = closestZombie:FindFirstChild("Torso") or closestZombie:FindFirstChild("UpperTorso") or head
-                                        end
+                                    if not isBoss and head and humanoid and humanoid.Health > 0 then
+                                        local dist = (head.Position - playerPos).Magnitude
+                                        local priority = getDistancePriority(dist)
                                         
-                                        -- Add human-like aim offset
-                                        local targetPos = targetPart.Position + getRandomOffset()
-                                        
-                                        -- CORRECT PARAMETERS: 4th param must be 0!
-                                        local args = {closestZombie, targetPart, targetPos, 0, cachedWeapon}
-                                        pcall(function() shootRemote:FireServer(unpack(args)) end)
-                                        
-                                        lastShotTime = tick()
-                                        
-                                        -- Human-like break pattern (less frequent for speed)
-                                        if shouldTakeBreak() then
-                                            task.wait(math.random(15, 40) * 0.01) -- 0.15-0.4s break
-                                        end
+                                        table.insert(priorityTargets, {
+                                            zombie = zombie,
+                                            head = head,
+                                            humanoid = humanoid,
+                                            distance = dist,
+                                            priority = priority
+                                        })
+                                    end
+                                end
+                            end
+                            
+                            -- Sort by priority (closest first)
+                            table.sort(priorityTargets, function(a, b)
+                                return a.priority > b.priority or (a.priority == b.priority and a.distance < b.distance)
+                            end)
+                            
+                            -- Shoot high priority targets
+                            for _, target in ipairs(priorityTargets) do
+                                local timeSinceLastShot = tick() - lastShotTime
+                                local weaponDelay = getWeaponFireDelay(cachedWeapon, target.distance)
+                                
+                                if timeSinceLastShot >= weaponDelay then
+                                    -- Dynamic accuracy based on distance and slider
+                                    local accuracyBonus = target.distance < 30 and 10 or 0 -- Better accuracy when close
+                                    local targetPart = target.head
+                                    if math.random(1, 100) > (headshotAccuracy + accuracyBonus) then
+                                        targetPart = target.zombie:FindFirstChild("Torso") or target.zombie:FindFirstChild("UpperTorso") or target.head
+                                    end
+                                    
+                                    -- Add human-like aim offset (less offset when close)
+                                    local offsetMultiplier = target.distance < 20 and 0.5 or 1
+                                    local targetPos = targetPart.Position + (getRandomOffset() * offsetMultiplier)
+                                    
+                                    -- CORRECT PARAMETERS: 4th param must be 0!
+                                    local args = {target.zombie, targetPart, targetPos, 0, cachedWeapon}
+                                    pcall(function() shootRemote:FireServer(unpack(args)) end)
+                                    
+                                    lastShotTime = tick()
+                                    
+                                    -- Only break if not in panic mode
+                                    if target.distance > 30 and shouldTakeBreak() then
+                                        task.wait(math.random(15, 40) * 0.01)
+                                    end
+                                    
+                                    -- In panic mode, shoot multiple close targets rapidly
+                                    if target.distance < 15 then
+                                        continue -- Keep shooting close ones without delay
+                                    else
+                                        break -- Only shoot one distant target per cycle
                                     end
                                 end
                             end
                         end
                     end
                     
-                    -- Minimal polling delay for max speed
+                    -- Minimal polling delay
                     task.wait(0.01)
                 end
             end)
@@ -245,16 +275,19 @@ CombatTab:CreateToggle({
                             weaponCacheTime = currentTime
                         end
                         
-                        -- Separate cooldown for boss shooting
-                        local timeSinceLastBoss = currentTime - lastBossTime
-                        local weaponDelay = getWeaponFireDelay(cachedWeapon)
-                        
-                        if timeSinceLastBoss >= weaponDelay then
-                            -- Super effective boss targeting
+                        local char = player.Character
+                        if char and char.PrimaryPart then
+                            local playerPos = char.PrimaryPart.Position
+                            
+                            -- Find closest boss
+                            local closestBoss = nil
+                            local closestDist = math.huge
+                            
                             for _, enemy in pairs(enemies:GetChildren()) do
                                 if enemy:IsA("Model") then
                                     local isBoss = false
                                     local humanoid = enemy:FindFirstChildOfClass("Humanoid")
+                                    local head = enemy:FindFirstChild("Head")
                                     
                                     -- Multi-method boss detection
                                     local name = enemy.Name:lower()
@@ -272,32 +305,44 @@ CombatTab:CreateToggle({
                                         isBoss = true
                                     end
                                     
-                                    if isBoss and humanoid and humanoid.Health > 0 then
-                                        local head = enemy:FindFirstChild("Head")
-                                        if head then
-                                            -- Higher accuracy for bosses (95%)
-                                            local targetPart = head
-                                            if math.random(1, 100) > 95 then
-                                                targetPart = enemy:FindFirstChild("Torso") or enemy:FindFirstChild("UpperTorso") or head
-                                            end
-                                            
-                                            local targetPos = targetPart.Position + getRandomOffset()
-                                            
-                                            -- CORRECT PARAMETERS: 4th param must be 0!
-                                            local args = {enemy, targetPart, targetPos, 0, cachedWeapon}
-                                            pcall(function() shootRemote:FireServer(unpack(args)) end)
-                                            
-                                            lastBossTime = tick()
-                                            
-                                            break -- Focus one boss at a time
+                                    if isBoss and humanoid and humanoid.Health > 0 and head then
+                                        local dist = (head.Position - playerPos).Magnitude
+                                        if dist < closestDist then
+                                            closestDist = dist
+                                            closestBoss = {enemy = enemy, head = head, humanoid = humanoid, distance = dist}
                                         end
                                     end
+                                end
+                            end
+                            
+                            -- Shoot closest boss with distance-based fire rate
+                            if closestBoss then
+                                local timeSinceLastBoss = tick() - lastBossTime
+                                local weaponDelay = getWeaponFireDelay(cachedWeapon, closestBoss.distance)
+                                
+                                if timeSinceLastBoss >= weaponDelay then
+                                    -- Higher accuracy for bosses (98% base + bonus when close)
+                                    local accuracyBonus = closestBoss.distance < 30 and 2 or 0
+                                    local targetPart = closestBoss.head
+                                    if math.random(1, 100) > (98 + accuracyBonus) then
+                                        targetPart = closestBoss.enemy:FindFirstChild("Torso") or closestBoss.enemy:FindFirstChild("UpperTorso") or closestBoss.head
+                                    end
+                                    
+                                    -- Less offset for bosses (more precise)
+                                    local offsetMultiplier = closestBoss.distance < 20 and 0.3 or 0.5
+                                    local targetPos = targetPart.Position + (getRandomOffset() * offsetMultiplier)
+                                    
+                                    -- CORRECT PARAMETERS: 4th param must be 0!
+                                    local args = {closestBoss.enemy, targetPart, targetPos, 0, cachedWeapon}
+                                    pcall(function() shootRemote:FireServer(unpack(args)) end)
+                                    
+                                    lastBossTime = tick()
                                 end
                             end
                         end
                     end
                     
-                    -- Minimal polling delay for max speed
+                    -- Minimal polling delay
                     task.wait(0.01)
                 end
             end)
@@ -526,6 +571,36 @@ ExploitsTab:CreateToggle({
                         end)
                     end
                     task.wait(0.1)
+                end
+            end)
+        end
+    end
+})
+
+ExploitsTab:CreateToggle({
+    Name = "⚡ God Mode (Auto Heal)",
+    CurrentValue = false,
+    Flag = "GodMode",
+    Callback = function(state)
+        if state then
+            task.spawn(function()
+                while state do
+                    local vars = player:FindFirstChild("Variables")
+                    local char = player.Character
+                    if vars and char then
+                        pcall(function()
+                            -- Keep health maxed
+                            vars:SetAttribute("Health", 9999)
+                            vars:SetAttribute("MaxHealth", 9999)
+                            
+                            -- Also set humanoid health if available
+                            local humanoid = char:FindFirstChildOfClass("Humanoid")
+                            if humanoid then
+                                humanoid.Health = humanoid.MaxHealth
+                            end
+                        end)
+                    end
+                    task.wait(0.05) -- Update very frequently
                 end
             end)
         end
