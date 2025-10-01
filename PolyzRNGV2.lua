@@ -1,53 +1,30 @@
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+-- Services
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
 local Remotes = ReplicatedStorage:WaitForChild("Remotes")
 
--- Debug: Check if Rayfield loaded
-print("Rayfield loaded:", Rayfield ~= nil)
+-- Load Rayfield UI Library
+local Rayfield = loadstring(game:HttpGet('https://limerbro.github.io/Roblox-Limer/rayfield.lua'))()
 
--- UI Window with debugging
+-- UI Window Configuration
 local Window = Rayfield:CreateWindow({
-    Name = "PolyzRNG V2",
-    LoadingTitle = "Loading PolyzRNG...",
-    LoadingSubtitle = "powered by Rayfield",
-    Theme = "DarkBlue",
-    ToggleUIKeybind = "K",
+    Name = "✨ LimerHub ✨ | POLY-Z",
+    Icon = 71338090068856,
+    LoadingTitle = "Loading...",
+    LoadingSubtitle = "Author: LimerBoy",
+    Theme = "BlackWhite",
+    ToggleUIKeybind = Enum.KeyCode.K,
     ConfigurationSaving = {
         Enabled = true,
-        FolderName = "PolyzRNG",
+        FolderName = "ZombieHub",
         FileName = "Config"
     }
 })
 
--- Debug: Check if Window created
-print("Window created:", Window ~= nil)
-
--- Get equipped weapon name (EXACT GAME METHOD WITH ERROR HANDLING)
+-- Utility Functions
 local function getEquippedWeaponName()
-    local success, result = pcall(function()
-        local variables = player:WaitForChild("Variables")
-        local equippedSlot = variables:GetAttribute("Equipped_Slot")
-        
-        if equippedSlot then
-            local playerData = player:WaitForChild("PlayerData")
-            local equippedWeapon = playerData:FindFirstChild("equipped_" .. string.lower(equippedSlot))
-            
-            if equippedWeapon and equippedWeapon:IsA("StringValue") then
-                return equippedWeapon.Value
-            end
-        end
-        
-        return nil
-    end)
-    
-    if success and result then
-        return result
-    end
-    
-    -- Fallback method with error handling
-    local success2, result2 = pcall(function()
     local model = workspace:FindFirstChild("Players"):FindFirstChild(player.Name)
     if model then
         for _, child in ipairs(model:GetChildren()) do
@@ -56,277 +33,36 @@ local function getEquippedWeaponName()
             end
         end
     end
-        return nil
-    end)
-    
-    if success2 and result2 then
-        return result2
-    end
-    
-    return "M1911" -- Ultimate fallback
-end
-
--- ===== CORE HIJACKING SYSTEM (NEW) =====
-local Camera = workspace.CurrentCamera
-local AimAssist = {Enabled = false, Target = nil}
-
--- ULTRA-STEALTH CAMERA HIJACKING (PERFECT HUMAN SIMULATION)
-local lastCameraUpdate = 0
-local cameraSmoothing = 0.1
-local humanReactionTime = math.random(15, 35) * 0.01
-
-game:GetService("RunService").RenderStepped:Connect(function()
-    if AimAssist.Enabled and AimAssist.Target and AimAssist.Target.PrimaryPart then
-        local currentTime = tick()
-        
-        -- ULTRA-HUMAN: Variable reaction time (0.15-0.35s)
-        if currentTime - lastCameraUpdate > humanReactionTime then
-            local targetPos = AimAssist.Target.PrimaryPart.Position
-            local currentPos = Camera.CFrame.Position
-            local distance = (targetPos - currentPos).Magnitude
-            
-            -- HUMAN-LIKE: Larger offset for distant targets
-            local offsetMultiplier = math.min(distance / 50, 2) -- Scale with distance
-            local randomOffset = Vector3.new(
-                math.random(-8, 8) * 0.1 * offsetMultiplier,
-                math.random(-8, 8) * 0.1 * offsetMultiplier,
-                math.random(-8, 8) * 0.1 * offsetMultiplier
-            )
-            
-            -- ULTRA-SMOOTH: Variable smoothing based on distance
-            local smoothing = math.max(0.05, 0.3 - (distance / 200)) -- Closer = faster
-            
-            local targetCFrame = CFrame.new(currentPos, targetPos + randomOffset)
-            Camera.CFrame = Camera.CFrame:Lerp(targetCFrame, smoothing)
-            
-            lastCameraUpdate = currentTime
-            -- Reset reaction time for next target
-            humanReactionTime = math.random(15, 35) * 0.01
-        end
-    end
-end)
-
--- This is the new, fully undetectable shooting function
-local function fireSingleShot()
-    -- Validate cooldown first
-    if not canShoot() then
-        return false
-    end
-    
-    local shootRemote = Remotes:FindFirstChild("ShootEnemy")
-    if not shootRemote then return false end
-
-    -- Perform a raycast EXACTLY like the game does with error handling
-    local success, result = pcall(function()
-        local raycastParams = RaycastParams.new()
-        raycastParams.FilterType = Enum.RaycastFilterType.Include
-        raycastParams.FilterDescendantsInstances = {workspace.Enemies, workspace.Misc, workspace.BossArena.Decorations}
-        
-        local origin = Camera.CFrame.Position
-        local direction = Camera.CFrame.LookVector * 250 -- EXACT game distance
-        return workspace:Raycast(origin, direction, raycastParams)
-    end)
-    
-    if not success or not result then
-        return false
-    end
-    
-    if result and result.Instance then
-        local targetModel = result.Instance:FindFirstAncestorOfClass("Model")
-        local humanoid = targetModel and targetModel:FindFirstChildOfClass("Humanoid")
-        
-        -- EXACT GAME VALIDATION: Check if target is descendant of workspace.Enemies
-        if result.Instance:IsDescendantOf(workspace.Enemies) then
-            local targetModel = result.Instance.Parent
-            local humanoid = targetModel:FindFirstChildOfClass("Humanoid")
-            
-            if humanoid and humanoid.Health > 0 then
-                -- ULTRA-HUMAN MISS SIMULATION (distance-based)
-                local distance = (targetModel.PrimaryPart.Position - player.Character.PrimaryPart.Position).Magnitude
-                local baseMissChance = 5 -- 5% base miss chance
-                local distanceMissChance = math.min(distance / 10, 20) -- +1% per 10 studs, max 20%
-                local totalMissChance = baseMissChance + distanceMissChance
-                
-                local missChance = math.random(1, 100)
-                if missChance <= totalMissChance then
-                    return false -- Don't shoot, simulate miss
-                end
-                
-                -- EXACT GAME CALL: Same parameters as game
-                local weaponName = getEquippedWeaponName()
-                local success = pcall(function()
-                    shootRemote:FireServer(targetModel, result.Instance, result.Position, 0, weaponName)
-                end)
-                
-                if success then
-                    lastShotTime = tick() -- Update cooldown
-                    return true
-                end
-            end
-        end
-    end
-    
-    return false
+    return "M1911"
 end
 
 -- Combat Tab
-local CombatTab = Window:CreateTab("Main", "skull")
-
--- Test button to verify GUI is working
-CombatTab:CreateButton({
-    Name = "🧪 Test Button",
-    Callback = function()
-        print("✅ GUI is working! Test button clicked.")
-        Rayfield:Notify({
-            Title = "Test",
-            Content = "GUI is working correctly!",
-            Duration = 3,
-            Image = 4483362458
-        })
-    end
-})
-
--- Anti-Detection Status & Usage Guide
-CombatTab:CreateLabel("🛡️ CAMERA HIJACKING SYSTEM ACTIVE:")
-CombatTab:CreateLabel("✅ Legitimate Raycast | ✅ Server Validation Bypass")
-CombatTab:CreateLabel("✅ Anti-Kick | ✅ Spy Blocker | ✅ Detection Alert")
-CombatTab:CreateLabel("━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-CombatTab:CreateLabel("📖 NEW METHOD: Camera aims at target, then fires")
-CombatTab:CreateLabel("📖 This makes shots 100% legitimate to server")
-CombatTab:CreateLabel("📖 NO MORE ERROR 267 - Uses game's own mechanics")
-CombatTab:CreateLabel("━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+local CombatTab = Window:CreateTab("⚔️ Combat", "Skull")
 
 -- Weapon Label
 local weaponLabel = CombatTab:CreateLabel("🔫 Current Weapon: Loading...")
 
--- Update label (SILENT)
+-- Update label
 task.spawn(function()
     while true do
-        local weapon = getEquippedWeaponName()
-        weaponLabel:Set("🔫 Current Weapon: " .. weapon)
-        task.wait(1)
+        weaponLabel:Set("🔫 Current Weapon: " .. getEquippedWeaponName())
+        task.wait(0.1)
     end
 end)
 
--- Variables
+-- Auto Headshots
 local autoKill = false
-local autoBoss = false
-local shootDelay = 0.35 -- ULTRA SLOW for maximum stealth
-local headshotAccuracy = 55 -- LOW accuracy for maximum stealth
-local cachedWeapon = nil
-local weaponCacheTime = 0
-local lastShotTime = 0
-local lastBossTime = 0
+local shootDelay = 0.1
 
--- EXACT GAME FIRE RATES (CONVERTED FROM RPM TO SECONDS)
-local weaponFireRates = {
-    ["M1911"] = 0.133,   -- 450 RPM = 60/450 = 0.133s
-    ["AK47"] = 0.120,    -- 500 RPM = 60/500 = 0.120s
-    ["M4A1"] = 0.100,    -- 600 RPM = 60/600 = 0.100s
-    ["G36C"] = 0.086,    -- 700 RPM = 60/700 = 0.086s
-    ["MAC10"] = 0.075,   -- 800 RPM = 60/800 = 0.075s
-    ["UMP45"] = 0.080,   -- 750 RPM = 60/750 = 0.080s
-    ["MP5"] = 0.086,     -- 700 RPM = 60/700 = 0.086s
-    ["AUG"] = 0.086,     -- 700 RPM = 60/700 = 0.086s
-    ["FAMAS"] = 0.069,   -- 875 RPM = 60/875 = 0.069s
-    ["P90"] = 0.075,     -- 800 RPM = 60/800 = 0.075s
-    ["SCAR"] = 0.109,    -- 550 RPM = 60/550 = 0.109s
-    ["G3"] = 0.133,      -- 450 RPM = 60/450 = 0.133s
-    ["M249"] = 0.133,    -- 450 RPM = 60/450 = 0.133s
-    ["AWP"] = 1.714,    -- 35 RPM = 60/35 = 1.714s
-    ["M16"] = 0.109,     -- 550 RPM = 60/550 = 0.109s
-    ["UMP"] = 0.080,     -- 750 RPM = 60/750 = 0.080s
-    ["MP7"] = 0.092,     -- 650 RPM = 60/650 = 0.092s
-    ["TOMMY"] = 0.071,   -- 850 RPM = 60/850 = 0.071s
-    ["Vector"] = 0.069,  -- 875 RPM = 60/875 = 0.069s
-    ["Bizon"] = 0.089,   -- 675 RPM = 60/675 = 0.089s
-    ["PKM"] = 0.150,     -- 400 RPM = 60/400 = 0.150s
-    ["RPK"] = 0.100,     -- 600 RPM = 60/600 = 0.100s
-    ["BELLENI"] = 0.480, -- 125 RPM = 60/125 = 0.480s
-    ["M870"] = 0.800,    -- 75 RPM = 60/75 = 0.800s
-    ["SAPS12"] = 0.462,  -- 130 RPM = 60/130 = 0.462s
-    ["DRAGONUV"] = 0.500,-- 120 RPM = 60/120 = 0.500s
-    ["M24"] = 0.800,     -- 75 RPM = 60/75 = 0.800s
-    ["B9"] = 0.100,      -- 600 RPM = 60/600 = 0.100s
-    ["G17"] = 0.120,     -- 500 RPM = 60/500 = 0.120s
-    ["Tec9"] = 0.133,    -- 450 RPM = 60/450 = 0.133s
-    ["DEAGLE"] = 0.600   -- 100 RPM = 60/100 = 0.600s
-}
-
--- Get weapon fire rate with jitter
-local function getWeaponFireDelay(weaponName)
-    local baseDelay = weaponFireRates[weaponName] or 0.12
-    local jitter = math.random(80, 120) * 0.01 -- ±20% jitter
-    return baseDelay * jitter
-end
-
--- Check if we can shoot (cooldown validation + game state)
-local function canShoot()
-    -- Check if game is in valid state
-    if not player.Character or not player.Character:FindFirstChild("Humanoid") then
-        return false
-    end
-    
-    if player.Character.Humanoid.Health <= 0 then
-        return false
-    end
-    
-    -- Check if remotes are available
-    if not Remotes or not Remotes:FindFirstChild("ShootEnemy") then
-        return false
-    end
-    
-    -- Check cooldown
-    local currentTime = tick()
-    local weaponName = getEquippedWeaponName()
-    local requiredDelay = getWeaponFireDelay(weaponName)
-    
-    return (currentTime - lastShotTime) >= requiredDelay
-end
-
--- Check line of sight (EXACT GAME METHOD)
-local function hasLineOfSight(target)
-    if not target or not target.PrimaryPart then return false end
-    
-    local char = player.Character
-    if not char or not char.PrimaryPart then return false end
-    
-    local origin = char.PrimaryPart.Position + Vector3.new(0, 1.5, 0) -- Eye level
-    local direction = (target.PrimaryPart.Position - origin).Unit
-    local distance = (target.PrimaryPart.Position - origin).Magnitude
-    
-    -- EXACT GAME RAYCAST PARAMETERS
-    local raycastParams = RaycastParams.new()
-    raycastParams.FilterType = Enum.RaycastFilterType.Exclude
-    raycastParams.FilterDescendantsInstances = {workspace.Borders, workspace.Players, workspace.Enemies, workspace.DyingEnemies, workspace.Pickups, char, workspace.CurrentCamera}
-    
-    local result = workspace:Raycast(origin, direction * distance, raycastParams)
-    
-    -- If raycast hits the target, we have line of sight
-    return result and result.Instance:IsDescendantOf(target)
-end
-
--- Stealth Settings
-CombatTab:CreateLabel("🎯 CAMERA HIJACKING: 100% Undetectable")
-CombatTab:CreateLabel("✅ ERROR 267 FIXED: Uses legitimate game mechanics")
-CombatTab:CreateLabel("✅ No more pattern detection - camera aims naturally")
-
+-- Text input for shot delay
 CombatTab:CreateInput({
-    Name = "⏱️ Shot Delay (sec)",
-    PlaceholderText = "0.35 (SAFE - don't change!)",
+    Name = "⏱️ Shot delay (0-2 sec)",
+    PlaceholderText = "0.1",
     RemoveTextAfterFocusLost = false,
     Callback = function(text)
         local num = tonumber(text)
-        if num and num >= 0.30 and num <= 2 then
+        if num and num >= 0 and num <= 2 then
             shootDelay = num
-            if num < 0.35 then
-                Rayfield:Notify({
-                    Title = "🚨 DETECTION RISK",
-                    Content = "Delay <0.35s = ERROR 267 RISK!",
-                    Duration = 4,
-                    Image = 4483362458
-                })
-            end
             Rayfield:Notify({
                 Title = "Success",
                 Content = "Shot delay set to "..num.." seconds",
@@ -336,7 +72,7 @@ CombatTab:CreateInput({
         else
             Rayfield:Notify({
                 Title = "Error",
-                Content = "Please enter a number between 0.30 and 2",
+                Content = "Please enter a number between 0 and 2",
                 Duration = 3,
                 Image = 4483362458
             })
@@ -344,30 +80,8 @@ CombatTab:CreateInput({
     end,
 })
 
-CombatTab:CreateSlider({
-    Name = "🎯 Headshot Accuracy (%)",
-    Range = {40, 70},
-    Increment = 1,
-    CurrentValue = 55,
-    Flag = "HeadshotAccuracy",
-    Callback = function(value)
-        headshotAccuracy = value
-        if value > 60 then
-            Rayfield:Notify({
-                Title = "🚨 DETECTION RISK",
-                Content = "Accuracy >60% = ERROR 267 RISK!",
-                Duration = 4,
-                Image = 4483362458
-            })
-        end
-    end,
-})
-
-CombatTab:CreateLabel("✅ NEW SYSTEM: Camera hijacking (100% SAFE)")
-CombatTab:CreateLabel("✅ ERROR 267 ELIMINATED: Uses game's own shooting logic")
-
 CombatTab:CreateToggle({
-    Name = "🔪 Auto Kill Zombies",
+    Name = "🔪 Auto Headshots",
     CurrentValue = false,
     Flag = "AutoKillZombies",
     Callback = function(state)
@@ -376,175 +90,28 @@ CombatTab:CreateToggle({
             task.spawn(function()
                 while autoKill do
                     local enemies = workspace:FindFirstChild("Enemies")
-                    
-                    if enemies then
-                        local char = player.Character
-                        
-                        if char and char.PrimaryPart then
-                            local playerPos = char.PrimaryPart.Position
-                            local closestZombie = nil
-                            local closestDist = math.huge
-                            
-                            -- Find closest zombie
-                            for _, zombie in pairs(enemies:GetChildren()) do
-                                if zombie:IsA("Model") then
-                                    local head = zombie:FindFirstChild("Head")
-                                    local humanoid = zombie:FindFirstChildOfClass("Humanoid")
-                                    
-                                    if head and humanoid and humanoid.Health > 0 then
-                                        local dist = (head.Position - playerPos).Magnitude
-                                        if dist < closestDist and dist < 250 then
-                                            closestDist = dist
-                                            closestZombie = zombie
-                                        end
-                                end
-                            end
-                        end
-                        
-                            -- ULTRA-STEALTH HIJACKING SYSTEM WITH ERROR HANDLING
-                            if closestZombie and canShoot() and hasLineOfSight(closestZombie) then
-                                local success = pcall(function()
-                                    AimAssist.Enabled = true
-                                    AimAssist.Target = closestZombie
-                                    
-                                    -- ULTRA-HUMAN: Variable aim time based on distance
-                                    local distance = (closestZombie.PrimaryPart.Position - player.Character.PrimaryPart.Position).Magnitude
-                                    local aimTime = math.random(20, 50) * 0.01 + (distance / 100) -- Longer for distant targets
-                                    task.wait(aimTime)
-                                    
-                                    -- Fire the shot with validation
-                                    local shotFired = fireSingleShot()
-                                    
-                                    -- Disable aim assist
-                                    AimAssist.Enabled = false
-                                    AimAssist.Target = nil
-                                    
-                                    -- ULTRA-HUMAN: Variable break time
-                                    if shotFired then
-                                        local breakTime = math.random(150, 300) * 0.01 + (distance / 200) -- Longer for distant shots
-                                        task.wait(breakTime)
-                                    else
-                                        task.wait(math.random(80, 150) * 0.01) -- Shorter break if no shot
-                                    end
-                                end)
-                                
-                                -- If error occurred, disable aim assist
-                                if not success then
-                                    AimAssist.Enabled = false
-                                    AimAssist.Target = nil
-                                end
-                            end
-                        end
-                        
-                    -- Slow polling for stealth
-                    task.wait(0.2)
-                end
-            end)
-        end
-    end
-})
-
-CombatTab:CreateToggle({
-    Name = "👹 Auto Kill Bosses",
-    CurrentValue = false,
-    Flag = "AutoKillBosses",
-    Callback = function(state)
-        autoBoss = state
-        if state then
-            task.spawn(function()
-                while autoBoss do
-                    local enemies = workspace:FindFirstChild("Enemies")
-                    
-                    if enemies then
-                        local char = player.Character
-                        if char and char.PrimaryPart then
-                            local playerPos = char.PrimaryPart.Position
-                            
-                            -- Find closest boss
-                            local closestBoss = nil
-                            local closestDist = math.huge
-                            
-                            for _, enemy in pairs(enemies:GetChildren()) do
-                                if enemy:IsA("Model") then
-                                    local isBoss = false
-                                    local humanoid = enemy:FindFirstChildOfClass("Humanoid")
-                                    local head = enemy:FindFirstChild("Head")
-                                    
-                                    -- Multi-method boss detection
-                                    local name = enemy.Name:lower()
-                                    if name:find("boss") or name:find("brute") or name:find("giant") or 
-                                       name:find("tank") or name:find("juggernaut") or name:find("heavy") or
-                                       name:find("titan") or name:find("colossus") then
-                                        isBoss = true
-                                    end
-                                    
-                                    if enemy:GetAttribute("IsBoss") or enemy:GetAttribute("Boss") then
-                                        isBoss = true
-                                    end
-                                    
-                                    if humanoid and humanoid.MaxHealth > 400 then
-                                        isBoss = true
-                                    end
-                                    
-                                    if isBoss and humanoid and humanoid.Health > 0 and head then
-                                        local dist = (head.Position - playerPos).Magnitude
-                                        if dist < closestDist and dist < 250 then
-                                            closestDist = dist
-                                            closestBoss = enemy
-                                        end
-                                    end
-                                end
-                            end
-                            
-                            -- ULTRA-STEALTH BOSS HIJACKING SYSTEM WITH ERROR HANDLING
-                            if closestBoss and canShoot() and hasLineOfSight(closestBoss) then
-                                local success = pcall(function()
-                                    AimAssist.Enabled = true
-                                    AimAssist.Target = closestBoss
-                                    
-                                    -- ULTRA-HUMAN: Longer aim time for bosses (more careful)
-                                    local distance = (closestBoss.PrimaryPart.Position - player.Character.PrimaryPart.Position).Magnitude
-                                    local aimTime = math.random(30, 60) * 0.01 + (distance / 80) -- Much longer for bosses
-                                    task.wait(aimTime)
-                                    
-                                    -- Fire the shot with validation
-                                    local shotFired = fireSingleShot()
-                                    
-                                    -- Disable aim assist
-                                    AimAssist.Enabled = false
-                                    AimAssist.Target = nil
-                                    
-                                    -- ULTRA-HUMAN: Much longer break for bosses
-                                    if shotFired then
-                                        local breakTime = math.random(200, 400) * 0.01 + (distance / 150) -- Much longer for bosses
-                                        task.wait(breakTime)
-                                    else
-                                        task.wait(math.random(100, 200) * 0.01) -- Longer break even if no shot
-                                    end
-                                end)
-                                
-                                -- If error occurred, disable aim assist
-                                if not success then
-                                    AimAssist.Enabled = false
-                                    AimAssist.Target = nil
+                    local shootRemote = Remotes:FindFirstChild("ShootEnemy")
+                    if enemies and shootRemote then
+                        local weapon = getEquippedWeaponName()
+                        for _, zombie in pairs(enemies:GetChildren()) do
+                            if zombie:IsA("Model") then
+                                local head = zombie:FindFirstChild("Head")
+                                if head then
+                                    local args = {zombie, head, head.Position, 0.5, weapon}
+                                    pcall(function() shootRemote:FireServer(unpack(args)) end)
                                 end
                             end
                         end
                     end
-                    
-                    -- Slow polling for stealth
-                    task.wait(0.2)
+                    task.wait(shootDelay)
                 end
             end)
         end
     end
 })
 
--- Auto Skip Round
-local autoSkip = false
-
 CombatTab:CreateToggle({
-    Name = "⏭️ Auto Skip Round",
+    Name = "⏩ Auto Skip Round",
     CurrentValue = false,
     Flag = "AutoSkipRound",
     Callback = function(state)
@@ -552,13 +119,207 @@ CombatTab:CreateToggle({
         if state then
             task.spawn(function()
                 while autoSkip do
-                    local skipButton = player.PlayerGui:FindFirstChild("SkipRound")
-                    if skipButton then
-                        local button = skipButton:FindFirstChild("SkipButton")
-                        if button then
-                            button:FireServer()
-                        end
+                    local skip = Remotes:FindFirstChild("CastClientSkipVote")
+                    if skip then
+                        pcall(function() skip:FireServer() end)
                     end
+                    task.wait(0.1)
+                end
+            end)
+        end
+    end
+})
+
+CombatTab:CreateSlider({
+    Name = "🏃‍♂️ Walk Speed",
+    Range = {16, 200},
+    Increment = 1,
+    Suffix = "units",
+    CurrentValue = 16,
+    Flag = "WalkSpeed",
+    Callback = function(Value)
+        game.Players.LocalPlayer.Character:WaitForChild("Humanoid").WalkSpeed = Value
+    end
+})
+
+-- Misc Tab
+local MiscTab = Window:CreateTab("✨ Utilities", "Sparkles")
+
+MiscTab:CreateSection("🔧 Tools")
+
+MiscTab:CreateButton({
+    Name = "🚪 Delete All Doors",
+    Callback = function()
+        local doorsFolder = workspace:FindFirstChild("Doors")
+        if doorsFolder then
+            for _, group in pairs(doorsFolder:GetChildren()) do
+                if group:IsA("Folder") or group:IsA("Model") then
+                    group:Destroy()
+                end
+            end
+            Rayfield:Notify({
+                Title = "Success",
+                Content = "All doors deleted!",
+                Duration = 3,
+                Image = 4483362458
+            })
+        end
+    end
+})
+
+MiscTab:CreateButton({
+    Name = "🎯 Infinite Magazines",
+    Callback = function()
+        local vars = player:FindFirstChild("Variables")
+        if not vars then return end
+
+        local ammoAttributes = {  
+            "Primary_Mag",  
+            "Secondary_Mag"  
+        }  
+
+        for _, attr in ipairs(ammoAttributes) do  
+            if vars:GetAttribute(attr) ~= nil then  
+                vars:SetAttribute(attr, 100000000)  
+            end  
+        end
+        Rayfield:Notify({
+            Title = "Magazines",
+            Content = "Infinite magazines set!",
+            Duration = 3,
+            Image = 4483362458
+        })
+    end
+})
+
+MiscTab:CreateSection("💎 Enhancements Visual")
+
+MiscTab:CreateButton({
+    Name = "🌟 Activate All Perks",
+    Callback = function()
+        local vars = player:FindFirstChild("Variables")
+        if not vars then return end
+
+        local perks = {  
+            "Bandoiler_Perk",  
+            "DoubleUp_Perk",  
+            "Haste_Perk",  
+            "Tank_Perk",  
+            "GasMask_Perk",  
+            "DeadShot_Perk",  
+            "DoubleMag_Perk",  
+            "WickedGrenade_Perk"  
+        }  
+
+        for _, perk in ipairs(perks) do  
+            if vars:GetAttribute(perk) ~= nil then  
+                vars:SetAttribute(perk, true)  
+            end  
+        end
+        Rayfield:Notify({
+            Title = "Perks",
+            Content = "All perks activated!",
+            Duration = 3,
+            Image = 4483362458
+        })
+    end
+})
+
+MiscTab:CreateButton({
+    Name = "🔫 Enhance Weapons",
+    Callback = function()
+        local vars = player:FindFirstChild("Variables")
+        if not vars then return end
+
+        local enchants = {  
+            "Primary_Enhanced",  
+            "Secondary_Enhanced"  
+        }  
+
+        for _, attr in ipairs(enchants) do  
+            if vars:GetAttribute(attr) ~= nil then
+                vars:SetAttribute(attr, true)  
+            end
+        end
+        Rayfield:Notify({
+            Title = "Enhancement",
+            Content = "Weapons enhanced!",
+            Duration = 3,
+            Image = 4483362458
+        })
+    end
+})
+
+
+MiscTab:CreateButton({
+    Name = "💫 Celestial Weapons",
+    Callback = function()
+        local gunData = player:FindFirstChild("GunData")
+        if not gunData then return end
+
+        for _, value in ipairs(gunData:GetChildren()) do
+            if value:IsA("StringValue") then
+                value.Value = "celestial"  
+            end
+        end
+        Rayfield:Notify({
+            Title = "Weapons",
+            Content = "Set to Celestial tier!",
+            Duration = 3,
+            Image = 4483362458
+        })
+    end
+})
+
+-- Open Tab
+local OpenTab = Window:CreateTab("🎁 Crates", "Gift")
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local selectedQuantity = 1
+local selectedOutfitType = "Random" -- для Outfit кейсів
+
+OpenTab:CreateDropdown({
+    Name = "🔢 Open Quantity",
+    Options = {"1", "25", "50", "200"},
+    CurrentOption = "1",
+    Flag = "OpenQuantity",
+    Callback = function(Option)
+        selectedQuantity = tonumber(Option)
+    end,
+})
+
+OpenTab:CreateSection("📦 Auto Open Crates")
+
+-- 🎽 Випадаючий список типів для Outfit кейсів
+OpenTab:CreateDropdown({
+    Name = "👕 Outfit Type",
+    Options = {
+        "Random", "Hat", "torseaccessory", "legaccessory", "faceaccessory", 
+        "armaccessory", "backaccessory", "gloves", "shoes", "hair",
+        "shirt", "pants", "haircolor", "skincolor", "face"
+    },
+    CurrentOption = "Random",
+    Callback = function(option)
+        selectedOutfitType = option
+    end,
+})
+
+-- 🕶️ Camo Crates
+local autoOpenCamo = false
+OpenTab:CreateToggle({
+    Name = "🕶️ Camo Crates",
+    CurrentValue = false,
+    Callback = function(state)
+        autoOpenCamo = state
+        if state then
+            task.spawn(function()
+                while autoOpenCamo do
+                    pcall(function()
+                        for i = 1, selectedQuantity do
+                            ReplicatedStorage.Remotes.OpenCamoCrate:InvokeServer("Random")
+                            task.wait(0.1)
+                        end
+                    end)
                     task.wait(1)
                 end
             end)
@@ -566,192 +327,232 @@ CombatTab:CreateToggle({
     end
 })
 
--- Exploits Tab
-local ExploitsTab = Window:CreateTab("Exploits", "bomb")
-
-ExploitsTab:CreateButton({
-    Name = "💰 Max Health (500)",
-    Callback = function()
-        local vars = player:WaitForChild("Variables")
-        vars:SetAttribute("Health", 500)
-        vars:SetAttribute("MaxHealth", 500)
-        Rayfield:Notify({
-            Title = "Success",
-            Content = "Health set to 500",
-            Duration = 3,
-            Image = 4483362458
-        })
-    end,
-})
-
-ExploitsTab:CreateButton({
-    Name = "⚡ Max Stamina (9999)",
-    Callback = function()
-        local vars = player:WaitForChild("Variables")
-        vars:SetAttribute("Stamina", 9999)
-        vars:SetAttribute("MaxStamina", 9999)
-        Rayfield:Notify({
-            Title = "Success",
-            Content = "Stamina set to 9999",
-            Duration = 3,
-            Image = 4483362458
-        })
-    end,
-})
-
-ExploitsTab:CreateSlider({
-    Name = "🏃 WalkSpeed",
-    Range = {16, 30},
-    Increment = 1,
-    CurrentValue = 16,
-    Flag = "WalkSpeed",
-    Callback = function(value)
-        if player.Character and player.Character:FindFirstChild("Humanoid") then
-            player.Character.Humanoid.WalkSpeed = value
-            if value > 18 then
-                Rayfield:Notify({
-                    Title = "⚠️ WARNING",
-                    Content = "WalkSpeed >18 may cause detection!",
-                    Duration = 3,
-                    Image = 4483362458
-                })
-            end
+-- 👕 Outfit Crates
+local autoOpenOutfit = false
+OpenTab:CreateToggle({
+    Name = "👕 Outfit Crates",
+    CurrentValue = false,
+    Callback = function(state)
+        autoOpenOutfit = state
+        if state then
+            task.spawn(function()
+                while autoOpenOutfit do
+                    pcall(function()
+                        for i = 1, selectedQuantity do
+                            ReplicatedStorage.Remotes.OpenOutfitCrate:InvokeServer(selectedOutfitType)
+                            task.wait(0.1)
+                        end
+                    end)
+                    task.wait(1)
+                end
+            end)
         end
-    end,
+    end
 })
 
-ExploitsTab:CreateSlider({
-    Name = "🦘 JumpPower",
-    Range = {50, 100},
-    Increment = 1,
-    CurrentValue = 50,
-    Flag = "JumpPower",
-    Callback = function(value)
-        if player.Character and player.Character:FindFirstChild("Humanoid") then
-            player.Character.Humanoid.JumpPower = value
-            if value > 60 then
-                Rayfield:Notify({
-                    Title = "⚠️ WARNING",
-                    Content = "JumpPower >60 may cause detection!",
-                    Duration = 3,
-                    Image = 4483362458
-                })
-            end
-        end
-    end,
-})
-
-local infiniteStamina = false
-
-ExploitsTab:CreateToggle({
-    Name = "🔥 Infinite Stamina",
+-- 🐾 Pet Crates
+local autoOpenPet = false
+OpenTab:CreateToggle({
+    Name = "🐾 Pet Crates",
         CurrentValue = false,
-    Flag = "InfiniteStamina",
         Callback = function(state)
-        infiniteStamina = state
+        autoOpenPet = state
             if state then
                 task.spawn(function()
-                while infiniteStamina do
-                    local vars = player:WaitForChild("Variables")
-                    vars:SetAttribute("Stamina", 9999)
+                while autoOpenPet do
+                            pcall(function()
+                        for i = 1, selectedQuantity do
+                            ReplicatedStorage.Remotes.OpenPetCrate:InvokeServer(1)
+                            task.wait(0.1)
+                        end
+                    end)
+                    task.wait(0.1)
+                end
+            end)
+        end
+    end
+})
+
+-- 🔫 Weapon Crates
+local autoOpenGun = false
+OpenTab:CreateToggle({
+    Name = "🔫 Weapon Crates",
+    CurrentValue = false,
+    Callback = function(state)
+        autoOpenGun = state
+        if state then
+            task.spawn(function()
+                while autoOpenGun do
+                    pcall(function()
+                        for i = 1, selectedQuantity do
+                            ReplicatedStorage.Remotes.OpenGunCrate:InvokeServer(1)
+                            task.wait(0.1)
+                        end
+                    end)
                         task.wait(0.1)
                     end
                 end)
             end
-    end,
-})
-
-ExploitsTab:CreateButton({
-    Name = "🛡️ Disable AntiCheat GUI",
-    Callback = function()
-        local gui = player.PlayerGui:FindFirstChild("KnightmareAntiCheatClient")
-        if gui then
-            gui:Destroy()
-            Rayfield:Notify({
-                Title = "Success",
-                Content = "AntiCheat GUI disabled",
-                Duration = 3,
-                Image = 4483362458
-            })
-        else
-            Rayfield:Notify({
-                Title = "Info",
-                Content = "AntiCheat GUI not found",
-                Duration = 3,
-                Image = 4483362458
-            })
         end
-    end,
-})
+    })
 
-local godMode = false
 
-ExploitsTab:CreateToggle({
-    Name = "⚡ God Mode (Auto Heal)",
-    CurrentValue = false,
-    Flag = "GodMode",
-    Callback = function(state)
-        godMode = state
-        if state then
-            task.spawn(function()
-                while godMode do
-                    local vars = player:WaitForChild("Variables")
-                    local char = player.Character
-                    
-                    if char and char:FindFirstChild("Humanoid") then
-                        local humanoid = char.Humanoid
-                        local maxHealth = humanoid.MaxHealth
-                        
-                        -- Only heal if health is low (anti-detection)
-                        if vars:GetAttribute("Health") < 5000 or humanoid.Health < maxHealth * 0.8 then
-                            vars:SetAttribute("Health", 500)
-                            vars:SetAttribute("MaxHealth", 500)
-                            humanoid.Health = maxHealth
-                        end
+-- Mod Tab
+local ModTab = Window:CreateTab("🌀 Mods", "Skull")
+
+-- ⬇ Змінні оголошуються глобально (всередині скрипта, але поза функціями)
+local spinning = false
+local angle = 0
+local speed = 5      -- ✅ глобально
+local radius = 15    -- ✅ глобально
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local player = Players.LocalPlayer
+local HRP = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+
+player.CharacterAdded:Connect(function(char)
+    HRP = char:WaitForChild("HumanoidRootPart")
+end)
+
+-- 🔁 Головне коло
+RunService.RenderStepped:Connect(function(dt)
+    if spinning and HRP then
+        local function findNearestBoss()
+            local bosses = {
+                workspace.Enemies:FindFirstChild("GoblinKing"),
+                workspace.Enemies:FindFirstChild("CaptainBoom"),
+                workspace.Enemies:FindFirstChild("Fungarth")
+            }
+
+            local nearestBoss = nil
+            local shortestDistance = math.huge
+
+            for _, boss in pairs(bosses) do
+                if boss and boss:FindFirstChild("Head") then
+                    local distance = (boss.Head.Position - HRP.Position).Magnitude
+                    if distance < shortestDistance then
+                        shortestDistance = distance
+                        nearestBoss = boss
                     end
-                    
-                    task.wait(0.2) -- Slower update for stealth
                 end
-            end)
+            end
+            return nearestBoss
         end
-    end,
+
+        local boss = findNearestBoss()
+        if boss and boss:FindFirstChild("Head") then
+            angle += dt * speed  -- ✅ використовує глобальну змінну
+            local bossPos = boss.Head.Position
+            local offset = Vector3.new(math.cos(angle), 0, math.sin(angle)) * radius -- ✅ радіус
+            local orbitPos = bossPos + offset
+            HRP.CFrame = CFrame.new(Vector3.new(orbitPos.X, bossPos.Y, orbitPos.Z), bossPos)
+        end
+    end
+end)
+
+-- 🔘 Кнопка в меню
+ModTab:CreateToggle({
+    Name = "🌪️ Orbit Around Boss",
+    CurrentValue = false,
+    Callback = function(value)
+        spinning = value
+    end
 })
 
-ExploitsTab:CreateLabel("⚠️ Movement: Keep ≤25 to avoid detection!")
-ExploitsTab:CreateLabel("⚠️ God Mode: Only heals when health <5000")
-
--- ===== MINIMAL ANTI-DETECTION (CAMERA HIJACKING IS THE MAIN PROTECTION) =====
--- Only disable AntiCheat GUI (SILENT)
-task.spawn(function()
-    task.wait(2)
-    local gui = player.PlayerGui:FindFirstChild("KnightmareAntiCheatClient")
-    if gui then
-        pcall(function() gui:Destroy() end)
+-- ⚙️ Слайдер швидкості
+ModTab:CreateSlider({
+    Name = "⚡ Rotation Speed",
+    Range = {1, 20},
+    Increment = 0.1,
+    Suffix = "x",
+    CurrentValue = 5,
+    Callback = function(val)
+        speed = val   -- ✅ оновлює глобальну змінну
     end
-end)
+})
 
--- Game state monitoring for compatibility
-task.spawn(function()
-    while true do
-        -- Monitor for character respawn
-        if not player.Character then
-            AimAssist.Enabled = false
-            AimAssist.Target = nil
+-- 📏 Слайдер радіуса
+ModTab:CreateSlider({
+    Name = "📏 Orbit Radius",
+    Range = {5, 100},
+    Increment = 1,
+    Suffix = "units",
+    CurrentValue = 15,
+    Callback = function(val)
+        radius = val  -- ✅ оновлює глобальну змінну
+    end
+})
+
+
+ModTab:CreateButton({
+    Name = "🛸 TP & Smart Platform",
+    Callback = function()
+        local Players = game:GetService("Players")
+        local RunService = game:GetService("RunService")
+        local player = Players.LocalPlayer
+        local HRP = player.Character and player.Character:WaitForChild("HumanoidRootPart")
+
+        if not HRP then
+            warn("❌ HumanoidRootPart не знайдено")
+            return
         end
-        
-        -- Monitor for game state changes
-        if player.Character and player.Character:FindFirstChild("Humanoid") then
-            if player.Character.Humanoid.Health <= 0 then
-                AimAssist.Enabled = false
-                AimAssist.Target = nil
+
+        local currentPos = HRP.Position
+        local targetPos = currentPos + Vector3.new(0, 60, 0)
+
+        -- 🧱 Створюємо платформу
+        local platform = Instance.new("Part")
+        platform.Size = Vector3.new(20, 1, 20)
+        platform.Anchored = true
+        platform.Position = targetPos - Vector3.new(0, 2, 0)
+        platform.Color = Color3.fromRGB(120, 120, 120)
+        platform.Material = Enum.Material.Metal
+        platform.Name = "SmartPlatform"
+        platform.Parent = workspace
+
+        -- ⏫ Телепорт гравця трохи вище платформи
+        HRP.CFrame = CFrame.new(targetPos + Vector3.new(0, 2, 0))
+
+        -- ⏱️ Таймер самознищення, коли гравець сходить
+        local isStanding = true
+        local lastTouch = tick()
+
+        -- Перевірка кожен кадр
+        local conn
+        conn = RunService.RenderStepped:Connect(function()
+            if not platform or not platform.Parent then
+                conn:Disconnect()
+                return
             end
-        end
-        
-        task.wait(1) -- Check every second
-    end
-end)
 
--- Debug: Script loaded successfully
-print("✅ PolyzRNG V2 Script loaded successfully!")
-print("✅ Press K to toggle the GUI")
-print("✅ If you don't see the GUI, check the console for errors above")
+            local char = player.Character
+            local humanoidRoot = char and char:FindFirstChild("HumanoidRootPart")
+            if not humanoidRoot then return end
+
+            local rayOrigin = humanoidRoot.Position
+            local rayDirection = Vector3.new(0, -5, 0)
+            local raycastParams = RaycastParams.new()
+            raycastParams.FilterDescendantsInstances = {char}
+            raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
+
+            local raycastResult = workspace:Raycast(rayOrigin, rayDirection, raycastParams)
+            if raycastResult and raycastResult.Instance == platform then
+                -- Гравець стоїть на платформі
+                lastTouch = tick()
+            end
+
+            -- Якщо пройшло більше 10 секунд після того, як гравець стояв — видалити
+            if tick() - lastTouch > 10 then
+                platform:Destroy()
+                conn:Disconnect()
+            end
+        end)
+    end
+})
+
+
+
+
+-- Load config
+Rayfield:LoadConfiguration()
