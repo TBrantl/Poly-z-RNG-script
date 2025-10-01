@@ -1,32 +1,48 @@
--- Load Rayfield with ROBUST ERROR HANDLING
+-- Load Rayfield - NO FALLBACK UI
 local Rayfield = nil
 
--- Try multiple Rayfield sources for maximum reliability
-local rayfieldSources = {
-    'https://raw.githubusercontent.com/shlexware/Rayfield/main/source/main.lua',
-    'https://raw.githubusercontent.com/itsyoboizkzl/Rayfield/main/source/main.lua',
-    'https://raw.githubusercontent.com/RayfieldUI/Rayfield/main/source/main.lua'
-}
+-- Try primary Rayfield source
+local success, result = pcall(function()
+    local response = game:HttpGet('https://raw.githubusercontent.com/shlexware/Rayfield/main/source/main.lua', true)
+    if response and response ~= "" then
+        return loadstring(response)()
+    else
+        error("Empty response from primary source")
+    end
+end)
 
-for i, source in ipairs(rayfieldSources) do
-    local success, result = pcall(function()
-        local response = game:HttpGet(source, true)
+if success and result then
+    Rayfield = result
+else
+    -- Try alternative source
+    local success2, result2 = pcall(function()
+        local response = game:HttpGet('https://raw.githubusercontent.com/itsyoboizkzl/Rayfield/main/source/main.lua', true)
         if response and response ~= "" then
             return loadstring(response)()
         else
-            error("Empty response from source " .. i)
+            error("Empty response from alternative source")
         end
     end)
     
-    if success and result then
-        Rayfield = result
-        break
+    if success2 and result2 then
+        Rayfield = result2
+    else
+        -- Final attempt with different source
+        local success3, result3 = pcall(function()
+            local response = game:HttpGet('https://raw.githubusercontent.com/RayfieldUI/Rayfield/main/source/main.lua', true)
+            if response and response ~= "" then
+                return loadstring(response)()
+            else
+                error("Empty response from final source")
+            end
+        end)
+        
+        if success3 and result3 then
+            Rayfield = result3
+        else
+            error("CRITICAL: Failed to load Rayfield from all sources. Script cannot continue.")
+        end
     end
-end
-
--- If Rayfield fails to load, the script will not work
-if not Rayfield then
-    error("Failed to load Rayfield from all sources")
 end
 
 local Players = game:GetService("Players")
