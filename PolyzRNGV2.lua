@@ -699,8 +699,48 @@ MiscTab:CreateButton({
     end
 })
 
--- Note: Pet bonuses and health modifications are SERVER-SIDED and cause detection
--- These features have been removed for safety
+MiscTab:CreateSection("⚠️ EXPERIMENTAL (HIGH DETECTION RISK)")
+
+MiscTab:CreateButton({
+    Name = "💰 INSANE Gold Bonus (RISKY)",
+    Callback = function()
+        local petInventory = player:FindFirstChild("PetInventory")
+        if not petInventory then 
+            Rayfield:Notify({
+                Title = "❌ Error",
+                Content = "PetInventory not found!",
+                Duration = 3,
+                Image = 4483362458
+            })
+            return 
+        end
+
+        -- WARNING: This WILL be detected by KnightMare eventually
+        pcall(function()
+            petInventory:SetAttribute("GOLD", 50.0)  -- +5000% gold bonus (INSANE!)
+        end)
+        
+        Rayfield:Notify({
+            Title = "⚠️ EXPERIMENTAL",
+            Content = "GOLD +5000%! (HIGH DETECTION RISK)",
+            Duration = 5,
+            Image = 4483362458
+        })
+        
+        -- Auto-warning after 30 seconds
+        task.spawn(function()
+            task.wait(30)
+            Rayfield:Notify({
+                Title = "⚠️ WARNING",
+                Content = "Disable experimental features if detected!",
+                Duration = 5,
+                Image = 4483362458
+            })
+        end)
+    end
+})
+
+-- Note: Other pet bonuses and health modifications removed for safety
 
 -- Open Tab
 local OpenTab = Window:CreateTab("📦 Crates", "Box")
