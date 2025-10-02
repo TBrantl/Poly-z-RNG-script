@@ -1072,9 +1072,20 @@ MiscTab:CreateButton({
     Callback = function()
         -- Disable all active features
         autoKill = false
+        autoSkip = false
         autoCollect = false
-        autoOpenCrates = false
-        orbitEnabled = false
+        autoOpenCamo = false
+        autoOpenOutfit = false
+        autoOpenPet = false
+        autoOpenGun = false
+        
+        -- Immediate feedback that features are disabled
+        Rayfield:Notify({
+            Title = "🛑 Features Disabled",
+            Content = "All auto-functions stopped!",
+            Duration = 1,
+            Image = 4483362458
+        })
         
         -- Clear any active tweens
         for item, _ in pairs(activeTweens or {}) do
@@ -1105,20 +1116,43 @@ MiscTab:CreateButton({
         Rayfield:Notify({
             Title = "❄️ Freezy HUB",
             Content = "Script safely unloaded! Stay frosty! 🧊",
-            Duration = 3,
+            Duration = 2,
             Image = 4483362458
         })
         
-        -- Wait a moment then destroy the GUI
-        task.wait(2)
-        pcall(function()
-            if Rayfield and Rayfield.Main then
-                Rayfield.Main:Destroy()
-            end
+        -- Wait a moment then destroy the GUI completely
+        task.spawn(function()
+            task.wait(1.5)
+            
+            -- More aggressive GUI cleanup
+            pcall(function()
+                -- Try multiple destruction methods
+                if Rayfield then
+                    if Rayfield.Main then
+                        Rayfield.Main:Destroy()
+                    end
+                    if Rayfield.Enabled then
+                        Rayfield.Enabled = false
+                    end
+                end
+                
+                -- Find and destroy any remaining GUI elements
+                local playerGui = game.Players.LocalPlayer:FindFirstChild("PlayerGui")
+                if playerGui then
+                    for _, gui in pairs(playerGui:GetChildren()) do
+                        if gui.Name:find("Rayfield") or gui.Name:find("Freezy") then
+                            gui:Destroy()
+                        end
+                    end
+                end
+            end)
+            
+            -- Clean up global variables
+            getgenv().FreezyHubLoaded = nil
+            
+            -- Force garbage collection
+            game:GetService("RunService").Heartbeat:Wait()
         end)
-        
-        -- Clean up global variables
-        getgenv().FreezyHubLoaded = nil
     end
 })
 
