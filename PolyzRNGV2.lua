@@ -60,7 +60,7 @@ end)
 
 -- Auto Headshots with KnightMare Bypass & Raycast Validation
 local autoKill = false
-local shootDelay = 0.02 -- Insane speed default delay
+local shootDelay = 0.01 -- GODMODE speed default delay
 local lastShot = 0
 local shotCount = 0
 local maxShootDistance = 500 -- Maximum shooting range
@@ -70,7 +70,7 @@ local function getSmartDelay(base)
     -- Ultra-minimal variance for maximum speed (2-8% variance)
     local variance = base * (0.02 + math.random() * 0.06)
     local offset = (math.random() > 0.5) and variance or -variance
-    return math.max(0.015, base + offset) -- Minimum 0.015s (66 shots/sec max)
+    return math.max(0.008, base + offset) -- Minimum 0.008s (125 shots/sec max)
 end
 
 -- Anti-spam: Track shots and add cooldown if too many
@@ -82,8 +82,8 @@ local function shouldAllowShot()
         shotCount = 0
     end
     
-    -- Limit to 150 shots per 5 seconds (insane bursts for crowd control)
-    if shotCount >= 150 then
+    -- Limit to 200 shots per 5 seconds (GODMODE bursts)
+    if shotCount >= 200 then
         return false
     end
     
@@ -214,12 +214,12 @@ end
 
 -- Combat Configuration
 CombatTab:CreateInput({
-    Name = "⚡ Shot Delay (0.015-2s)",
-    PlaceholderText = "0.02",
+    Name = "⚡ Shot Delay (0.008-2s)",
+    PlaceholderText = "0.01",
     RemoveTextAfterFocusLost = false,
     Callback = function(text)
         local num = tonumber(text)
-        if num and num >= 0.015 and num <= 2 then
+        if num and num >= 0.008 and num <= 2 then
             shootDelay = num
                     Rayfield:Notify({
                         Title = "⚡ Freezy HUB",
@@ -230,7 +230,7 @@ CombatTab:CreateInput({
                 else
                     Rayfield:Notify({
                         Title = "❌ Invalid Input",
-                        Content = "Enter a value between 0.015 and 2",
+                        Content = "Enter a value between 0.008 and 2",
                         Duration = 3,
                         Image = 4483362458
                     })
@@ -251,15 +251,39 @@ CombatTab:CreateSlider({
 })
 
 CombatTab:CreateButton({
-    Name = "🚀 CROWD CONTROL MODE",
+    Name = "🚀 GODMODE (MAXIMUM)",
     Callback = function()
-        shootDelay = 0.015 -- INSANE speed for crowd control
+        shootDelay = 0.008 -- GODMODE speed for ultimate defense
         Rayfield:Notify({
-            Title = "🚀 CROWD CONTROL MODE",
-            Content = "Set to 0.015s (66 shots/sec)!",
+            Title = "🚀 GODMODE ACTIVATED",
+            Content = "Set to 0.008s (125 shots/sec)!",
             Duration = 3,
             Image = 4483362458
         })
+    end
+})
+
+CombatTab:CreateButton({
+    Name = "☢️ NUCLEAR MODE (EXTREME)",
+    Callback = function()
+        shootDelay = 0.005 -- NUCLEAR speed - ABSOLUTE MAXIMUM
+        Rayfield:Notify({
+            Title = "☢️ NUCLEAR ACTIVATED",
+            Content = "0.005s (200 shots/sec) - EXTREME RISK!",
+            Duration = 4,
+            Image = 4483362458
+        })
+        
+        -- Warning after 10 seconds
+        task.spawn(function()
+            task.wait(10)
+            Rayfield:Notify({
+                Title = "⚠️ NUCLEAR WARNING",
+                Content = "Reduce speed if detected!",
+                Duration = 3,
+                Image = 4483362458
+            })
+        end)
     end
 })
 
@@ -274,7 +298,7 @@ CombatTab:CreateToggle({
                 while autoKill do
                     pcall(function()
                         if not shouldAllowShot() then
-                            task.wait(0.05) -- Insane-short cooldown for crowd control
+                            task.wait(0.02) -- GODMODE cooldown (nearly instant recovery)
                             return
                         end
                         
@@ -327,7 +351,7 @@ CombatTab:CreateToggle({
                                 
                                 -- CROWD CONTROL: Try to shoot multiple targets per cycle for better defense
                                 local shotsFired = 0
-                                local maxShotsPerCycle = math.min(3, #validTargets) -- Up to 3 shots per cycle
+                                local maxShotsPerCycle = math.min(5, #validTargets) -- Up to 5 shots per cycle (MAXIMUM CARNAGE)
                                 
                                 for _, target in ipairs(validTargets) do
                                     if shotsFired >= maxShotsPerCycle then break end
@@ -362,15 +386,15 @@ CombatTab:CreateToggle({
                                                 })
                                             end
                                             
-                                            -- Small delay between multi-shots to appear more human
+                                            -- Minimal delay between multi-shots for MAXIMUM SPEED
                                             if shotsFired < maxShotsPerCycle then
-                                                task.wait(0.01) -- Tiny delay between rapid shots
+                                                task.wait(0.005) -- Ultra-tiny delay between rapid shots
                                             end
                                         end
                                     end
                                     
-                                    -- If this target blocked, try next one (max 8 attempts for crowd control)
-                                    if #validTargets > 8 and _ >= 8 then
+                                    -- If this target blocked, try next one (max 12 attempts for GODMODE)
+                                    if #validTargets > 12 and _ >= 12 then
                                         break
                                     end
                                 end
