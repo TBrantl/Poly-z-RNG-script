@@ -699,48 +699,7 @@ MiscTab:CreateButton({
     end
 })
 
-MiscTab:CreateSection("⚠️ EXPERIMENTAL (HIGH DETECTION RISK)")
-
-MiscTab:CreateButton({
-    Name = "💰 GODLIKE Gold Bonus (EXTREME RISK)",
-    Callback = function()
-        local petInventory = player:FindFirstChild("PetInventory")
-        if not petInventory then 
-            Rayfield:Notify({
-                Title = "❌ Error",
-                Content = "PetInventory not found!",
-                Duration = 3,
-                Image = 4483362458
-            })
-            return 
-        end
-
-        -- WARNING: This WILL be detected by KnightMare eventually
-        pcall(function()
-            petInventory:SetAttribute("GOLD", 2500.0)  -- +250,000% gold bonus (ABSOLUTELY INSANE!)
-        end)
-        
-        Rayfield:Notify({
-            Title = "⚠️ EXPERIMENTAL",
-            Content = "GOLD +250,000%! (EXTREME RISK)",
-            Duration = 5,
-            Image = 4483362458
-        })
-        
-        -- Auto-warning after 30 seconds
-        task.spawn(function()
-            task.wait(30)
-            Rayfield:Notify({
-                Title = "⚠️ WARNING",
-                Content = "Disable experimental features if detected!",
-                Duration = 5,
-                Image = 4483362458
-            })
-        end)
-    end
-})
-
--- Note: Other pet bonuses and health modifications removed for safety
+-- Note: Pet bonuses removed - they are only visual and don't provide actual bonuses
 
 -- Open Tab
 local OpenTab = Window:CreateTab("📦 Crates", "Box")
