@@ -753,7 +753,7 @@ local OpenTab = Window:CreateTab("🎁 Crates", "Gift")
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local selectedQuantity = 1
-local selectedOutfitType = "Random" -- для Outfit кейсів
+local selectedOutfitType = "Random" -- For Outfit crates
 
 OpenTab:CreateDropdown({
     Name = "🔢 Open Quantity",
@@ -767,7 +767,7 @@ OpenTab:CreateDropdown({
 
 OpenTab:CreateSection("📦 Auto Open Crates")
 
--- 🎽 Випадаючий список типів для Outfit кейсів
+-- 🎽 Dropdown list of types for Outfit crates
 OpenTab:CreateDropdown({
     Name = "👕 Outfit Type",
     Options = {
@@ -1032,14 +1032,14 @@ ModTab:CreateButton({
         local HRP = player.Character and player.Character:WaitForChild("HumanoidRootPart")
 
         if not HRP then
-            warn("❌ HumanoidRootPart не знайдено")
+            warn("❌ HumanoidRootPart not found")
             return
         end
 
         local currentPos = HRP.Position
         local targetPos = currentPos + Vector3.new(0, 60, 0)
 
-        -- 🧱 Створюємо платформу
+        -- 🧱 Create platform
         local platform = Instance.new("Part")
         platform.Size = Vector3.new(20, 1, 20)
         platform.Anchored = true
@@ -1049,14 +1049,14 @@ ModTab:CreateButton({
         platform.Name = "SmartPlatform"
         platform.Parent = workspace
 
-        -- ⏫ Телепорт гравця трохи вище платформи
+        -- ⏫ Teleport player slightly above platform
         HRP.CFrame = CFrame.new(targetPos + Vector3.new(0, 2, 0))
 
-        -- ⏱️ Таймер самознищення, коли гравець сходить
+        -- ⏱️ Self-destruct timer when player steps off
         local isStanding = true
         local lastTouch = tick()
 
-        -- Перевірка кожен кадр
+        -- Check every frame
         local conn
         conn = RunService.RenderStepped:Connect(function()
             if not platform or not platform.Parent then
@@ -1076,11 +1076,11 @@ ModTab:CreateButton({
 
             local raycastResult = workspace:Raycast(rayOrigin, rayDirection, raycastParams)
             if raycastResult and raycastResult.Instance == platform then
-                -- Гравець стоїть на платформі
+                -- Player is standing on platform
                 lastTouch = tick()
             end
 
-            -- Якщо пройшло більше 10 секунд після того, як гравець стояв — видалити
+            -- If more than 10 seconds have passed since player stood on it - destroy
             if tick() - lastTouch > 10 then
                 platform:Destroy()
                 conn:Disconnect()
