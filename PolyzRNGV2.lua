@@ -60,17 +60,17 @@ end)
 
 -- Auto Headshots with KnightMare Bypass & Raycast Validation
 local autoKill = false
-local shootDelay = 0.05 -- Faster default delay
+local shootDelay = 0.035 -- Ultra-fast default delay
 local lastShot = 0
 local shotCount = 0
 local maxShootDistance = 500 -- Maximum shooting range
 
 -- Anti-pattern: Humanized timing with variance
 local function getSmartDelay(base)
-    -- Reduced variance for faster shooting (5-15% instead of 15-30%)
-    local variance = base * (0.05 + math.random() * 0.10)
+    -- Ultra-minimal variance for maximum speed (2-8% variance)
+    local variance = base * (0.02 + math.random() * 0.06)
     local offset = (math.random() > 0.5) and variance or -variance
-    return math.max(0.03, base + offset) -- Minimum 0.03s instead of 0.05s
+    return math.max(0.025, base + offset) -- Minimum 0.025s (40 shots/sec max)
 end
 
 -- Anti-spam: Track shots and add cooldown if too many
@@ -82,8 +82,8 @@ local function shouldAllowShot()
         shotCount = 0
     end
     
-    -- Limit to 75 shots per 5 seconds (longer bursts allowed)
-    if shotCount >= 75 then
+    -- Limit to 100 shots per 5 seconds (ultra-long bursts)
+    if shotCount >= 100 then
         return false
     end
     
@@ -214,12 +214,12 @@ end
 
 -- Combat Configuration
 CombatTab:CreateInput({
-    Name = "⚡ Shot Delay (0.03-2s)",
-    PlaceholderText = "0.05",
+    Name = "⚡ Shot Delay (0.025-2s)",
+    PlaceholderText = "0.035",
     RemoveTextAfterFocusLost = false,
     Callback = function(text)
         local num = tonumber(text)
-        if num and num >= 0.03 and num <= 2 then
+        if num and num >= 0.025 and num <= 2 then
             shootDelay = num
                     Rayfield:Notify({
                         Title = "⚡ Freezy HUB",
@@ -230,7 +230,7 @@ CombatTab:CreateInput({
                 else
                     Rayfield:Notify({
                         Title = "❌ Invalid Input",
-                        Content = "Enter a value between 0.03 and 2",
+                        Content = "Enter a value between 0.025 and 2",
                         Duration = 3,
                         Image = 4483362458
                     })
@@ -250,6 +250,19 @@ CombatTab:CreateSlider({
     end
 })
 
+CombatTab:CreateButton({
+    Name = "🚀 ULTRA SPEED MODE",
+    Callback = function()
+        shootDelay = 0.025 -- Maximum speed
+        Rayfield:Notify({
+            Title = "🚀 ULTRA SPEED",
+            Content = "Set to 0.025s (40 shots/sec)!",
+            Duration = 3,
+            Image = 4483362458
+        })
+    end
+})
+
 CombatTab:CreateToggle({
     Name = "💀 Auto Elimination (Smart)",
     CurrentValue = false,
@@ -261,7 +274,7 @@ CombatTab:CreateToggle({
                 while autoKill do
                     pcall(function()
                         if not shouldAllowShot() then
-                            task.wait(0.2) -- Reduced cooldown (was 1s, now 0.2s)
+                            task.wait(0.1) -- Ultra-short cooldown (was 0.2s, now 0.1s)
                             return
                         end
                         
@@ -349,8 +362,8 @@ CombatTab:CreateToggle({
                                         end
                                     end
                                     
-                                    -- If this target blocked, try next one (max 3 attempts)
-                                    if #validTargets > 3 and _ >= 3 then
+                                    -- If this target blocked, try next one (max 5 attempts for faster clearing)
+                                    if #validTargets > 5 and _ >= 5 then
                                         break
                                     end
                                 end
