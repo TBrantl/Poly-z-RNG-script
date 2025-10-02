@@ -685,6 +685,70 @@ MiscTab:CreateButton({
     end
 })
 
+MiscTab:CreateButton({
+    Name = "💎 Max Pet Bonuses",
+    Callback = function()
+        local petInventory = player:FindFirstChild("PetInventory")
+        if not petInventory then 
+            Rayfield:Notify({
+                Title = "❌ Error",
+                Content = "PetInventory not found!",
+                Duration = 3,
+                Image = 4483362458
+            })
+            return 
+        end
+
+        -- Set all pet bonus attributes to maximum values
+        pcall(function()
+            petInventory:SetAttribute("GOLD", 999)      -- +999% gold bonus
+            petInventory:SetAttribute("DMG", 999)       -- +999% damage bonus  
+            petInventory:SetAttribute("MAG", 999)       -- +999% magazine bonus
+            petInventory:SetAttribute("HP", 999)        -- +999% health bonus
+            petInventory:SetAttribute("SPEED", 999)     -- +999% speed bonus
+            petInventory:SetAttribute("LUCK", 999)      -- +999% luck bonus
+            petInventory:SetAttribute("DoublePetStats", true)  -- Double all pet stats!
+        end)
+        
+        Rayfield:Notify({
+            Title = "💎 Freezy HUB",
+            Content = "Pet bonuses maxed! (+999% all stats)",
+            Duration = 3,
+            Image = 4483362458
+        })
+    end
+})
+
+MiscTab:CreateButton({
+    Name = "❤️ Max Health + Stamina",
+    Callback = function()
+        local vars = player:FindFirstChild("Variables")
+        if not vars then 
+            Rayfield:Notify({
+                Title = "❌ Error",
+                Content = "Variables not found!",
+                Duration = 3,
+                Image = 4483362458
+            })
+            return 
+        end
+
+        pcall(function()
+            vars:SetAttribute("Max_Health", 999999)  -- Max health cap
+            vars:SetAttribute("Health", 999999)      -- Current health
+            vars:SetAttribute("Max_Stamina", 999999) -- Max stamina cap
+            vars:SetAttribute("Stamina", 999999)     -- Current stamina
+        end)
+        
+        Rayfield:Notify({
+            Title = "❤️ Freezy HUB",
+            Content = "Health & Stamina maxed!",
+            Duration = 3,
+            Image = 4483362458
+        })
+    end
+})
+
 -- Open Tab
 local OpenTab = Window:CreateTab("📦 Crates", "Box")
 
