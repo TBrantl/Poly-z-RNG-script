@@ -264,7 +264,10 @@ CombatTab:CreateToggle({
                             local weapon = getEquippedWeaponName()
                             local validTargets = {}
                             
-                            -- Collect ALL living enemies (no LOS restriction yet)
+                            -- Collect ALL living enemies with distance info
+                            local character = player.Character
+                            local root = character and character:FindFirstChild("HumanoidRootPart")
+                            
                             for _, zombie in pairs(enemies:GetChildren()) do
                                 if zombie:IsA("Model") then
                                     local head = zombie:FindFirstChild("Head")
@@ -272,10 +275,12 @@ CombatTab:CreateToggle({
                                     
                                     -- Basic validation only
                                     if isValidTarget(zombie, head, humanoid) then
+                                        local distance = root and (head.Position - root.Position).Magnitude or 999999
                                         table.insert(validTargets, {
                                             model = zombie,
                                             head = head,
-                                            humanoid = humanoid
+                                            humanoid = humanoid,
+                                            distance = distance
                                         })
                                     end
                                 end
@@ -283,18 +288,19 @@ CombatTab:CreateToggle({
                             
                             -- Try to shoot ONE target (with smart raycasting)
                             if #validTargets > 0 then
-                                -- Prioritize bosses (they're tougher and more important)
+                                -- Prioritize: 1) Bosses, 2) Closer enemies
                                 table.sort(validTargets, function(a, b)
                                     local aBoss = a.model.Name:match("King") or a.model.Name:match("Captain") or 
                                                   a.model.Name:match("Fungarth") or a.model.Name:match("Boss")
                                     local bBoss = b.model.Name:match("King") or b.model.Name:match("Captain") or 
                                                   b.model.Name:match("Fungarth") or b.model.Name:match("Boss")
                                     
+                                    -- Bosses always first
                                     if aBoss and not bBoss then return true end
                                     if bBoss and not aBoss then return false end
                                     
-                                    -- If both bosses or both regular, randomize
-                                    return math.random() > 0.5
+                                    -- If both bosses or both regular, prioritize by distance (closer first)
+                                    return a.distance < b.distance
                                 end)
                                 
                                 -- Try each target until we find one we can shoot
