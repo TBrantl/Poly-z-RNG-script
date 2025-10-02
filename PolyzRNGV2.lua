@@ -60,7 +60,7 @@ end)
 
 -- Auto Headshots with KnightMare Bypass & Raycast Validation
 local autoKill = false
-local shootDelay = 0.035 -- Ultra-fast default delay
+local shootDelay = 0.02 -- Insane speed default delay
 local lastShot = 0
 local shotCount = 0
 local maxShootDistance = 500 -- Maximum shooting range
@@ -70,7 +70,7 @@ local function getSmartDelay(base)
     -- Ultra-minimal variance for maximum speed (2-8% variance)
     local variance = base * (0.02 + math.random() * 0.06)
     local offset = (math.random() > 0.5) and variance or -variance
-    return math.max(0.025, base + offset) -- Minimum 0.025s (40 shots/sec max)
+    return math.max(0.015, base + offset) -- Minimum 0.015s (66 shots/sec max)
 end
 
 -- Anti-spam: Track shots and add cooldown if too many
@@ -82,8 +82,8 @@ local function shouldAllowShot()
         shotCount = 0
     end
     
-    -- Limit to 100 shots per 5 seconds (ultra-long bursts)
-    if shotCount >= 100 then
+    -- Limit to 150 shots per 5 seconds (insane bursts for crowd control)
+    if shotCount >= 150 then
         return false
     end
     
@@ -214,12 +214,12 @@ end
 
 -- Combat Configuration
 CombatTab:CreateInput({
-    Name = "⚡ Shot Delay (0.025-2s)",
-    PlaceholderText = "0.035",
+    Name = "⚡ Shot Delay (0.015-2s)",
+    PlaceholderText = "0.02",
     RemoveTextAfterFocusLost = false,
     Callback = function(text)
         local num = tonumber(text)
-        if num and num >= 0.025 and num <= 2 then
+        if num and num >= 0.015 and num <= 2 then
             shootDelay = num
                     Rayfield:Notify({
                         Title = "⚡ Freezy HUB",
@@ -230,7 +230,7 @@ CombatTab:CreateInput({
                 else
                     Rayfield:Notify({
                         Title = "❌ Invalid Input",
-                        Content = "Enter a value between 0.025 and 2",
+                        Content = "Enter a value between 0.015 and 2",
                         Duration = 3,
                         Image = 4483362458
                     })
@@ -251,12 +251,12 @@ CombatTab:CreateSlider({
 })
 
 CombatTab:CreateButton({
-    Name = "🚀 ULTRA SPEED MODE",
+    Name = "🚀 CROWD CONTROL MODE",
     Callback = function()
-        shootDelay = 0.025 -- Maximum speed
+        shootDelay = 0.015 -- INSANE speed for crowd control
         Rayfield:Notify({
-            Title = "🚀 ULTRA SPEED",
-            Content = "Set to 0.025s (40 shots/sec)!",
+            Title = "🚀 CROWD CONTROL MODE",
+            Content = "Set to 0.015s (66 shots/sec)!",
             Duration = 3,
             Image = 4483362458
         })
@@ -274,7 +274,7 @@ CombatTab:CreateToggle({
                 while autoKill do
                     pcall(function()
                         if not shouldAllowShot() then
-                            task.wait(0.1) -- Ultra-short cooldown (was 0.2s, now 0.1s)
+                            task.wait(0.05) -- Insane-short cooldown for crowd control
                             return
                         end
                         
@@ -325,9 +325,13 @@ CombatTab:CreateToggle({
                                     return a.distance < b.distance
                                 end)
                                 
-                                -- Try each target until we find one we can shoot
-                                local shotFired = false
+                                -- CROWD CONTROL: Try to shoot multiple targets per cycle for better defense
+                                local shotsFired = 0
+                                local maxShotsPerCycle = math.min(3, #validTargets) -- Up to 3 shots per cycle
+                                
                                 for _, target in ipairs(validTargets) do
+                                    if shotsFired >= maxShotsPerCycle then break end
+                                    
                                     -- Debug: Check if we're targeting a boss
                                     local isBoss = target.model.Name == "GoblinKing" or target.model.Name == "CaptainBoom" or target.model.Name == "Fungarth"
                                     -- Smart raycast - returns actual hit position and part
@@ -346,10 +350,10 @@ CombatTab:CreateToggle({
                                         if success then
                                             lastShot = tick()
                                             shotCount = shotCount + 1
-                                            shotFired = true
+                                            shotsFired = shotsFired + 1
                                             
                                             -- Notify when boss is targeted (for debugging)
-                                            if isBoss and math.random(1, 20) == 1 then -- Only 5% chance to avoid spam
+                                            if isBoss and math.random(1, 30) == 1 then -- Reduced spam chance
                                                 Rayfield:Notify({
                                                     Title = "🎯 BOSS TARGETED",
                                                     Content = "Shooting " .. target.model.Name .. "!",
@@ -358,12 +362,15 @@ CombatTab:CreateToggle({
                                                 })
                                             end
                                             
-                                            break -- Only shoot ONE target per cycle
+                                            -- Small delay between multi-shots to appear more human
+                                            if shotsFired < maxShotsPerCycle then
+                                                task.wait(0.01) -- Tiny delay between rapid shots
+                                            end
                                         end
                                     end
                                     
-                                    -- If this target blocked, try next one (max 5 attempts for faster clearing)
-                                    if #validTargets > 5 and _ >= 5 then
+                                    -- If this target blocked, try next one (max 8 attempts for crowd control)
+                                    if #validTargets > 8 and _ >= 8 then
                                         break
                                     end
                                 end
