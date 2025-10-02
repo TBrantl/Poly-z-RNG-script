@@ -1,27 +1,3 @@
--- Wait for game to fully load
-task.wait(1)
-
--- Services
-local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local RunService = game:GetService("RunService")
-local player = Players.LocalPlayer
-
--- Wait for Remotes with timeout and error handling
-local Remotes
-local success, error = pcall(function()
-    Remotes = ReplicatedStorage:WaitForChild("Remotes", 10) -- 10 second timeout
-end)
-
-if not success or not Remotes then
-    warn("Failed to find Remotes folder, script may not work properly")
-    -- Create a dummy remotes table to prevent errors
-    Remotes = {
-        FindFirstChild = function() return nil end,
-        ShootEnemy = { FireServer = function() end }
-    }
-end
-
 -- Load Rayfield UI Library with error handling
 local Rayfield, Window
 local success, error = pcall(function()
@@ -83,6 +59,27 @@ pcall(function()
         Image = 4483362458
     })
 end)
+
+-- Services
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local player = Players.LocalPlayer
+
+-- Wait for Remotes with timeout and error handling
+local Remotes
+local success, error = pcall(function()
+    Remotes = ReplicatedStorage:WaitForChild("Remotes", 10) -- 10 second timeout
+end)
+
+if not success or not Remotes then
+    warn("Failed to find Remotes folder, script may not work properly")
+    -- Create a dummy remotes table to prevent errors
+    Remotes = {
+        FindFirstChild = function() return nil end,
+        ShootEnemy = { FireServer = function() end }
+    }
+end
 
 -- GHOST MODE DETECTION RESISTANCE SYSTEM (completely undetectable)
 local lastShotTime = 0
