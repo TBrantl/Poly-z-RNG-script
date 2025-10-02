@@ -710,7 +710,7 @@ MiscTab:CreateButton({
 
 
 MiscTab:CreateButton({
-    Name = "💫 Celestial Weapons (FULL)",
+    Name = "💫 Transcendent Weapons (MAX)",
     Callback = function()
         local gunData = player:FindFirstChild("GunData")
         if not gunData then 
@@ -727,15 +727,15 @@ MiscTab:CreateButton({
         for _, value in ipairs(gunData:GetChildren()) do  
             if value:IsA("StringValue") then  
                 pcall(function()
-                    value.Value = "celestial"  -- Highest tier (best stats)
+                    value.Value = "transcendent"  -- HIGHEST tier (0.00004% rarity = 2.4x multiplier)
                     modified = modified + 1
                 end)
             end  
         end
         
         Rayfield:Notify({
-            Title = "Celestial Applied",
-            Content = modified .. " weapons set to max tier (FUNCTIONAL)",
+            Title = "Transcendent Applied",
+            Content = modified .. " weapons set to MAX tier (0.00004% rarity!)",
             Duration = 3,
             Image = 4483362458
         })
