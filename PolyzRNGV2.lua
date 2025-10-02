@@ -197,29 +197,50 @@ local function getSmartShotPosition(targetHead, targetModel)
                 end
             end
             
-                    -- Last resort: Try ANY part in the model that's visible (BOSS PRIORITY)
+                    -- ENHANCED BOSS TARGETING: Try ANY part in the model that's visible
                     local isBoss = targetModel.Name == "GoblinKing" or targetModel.Name == "CaptainBoom" or targetModel.Name == "Fungarth"
                     
-                    for _, part in pairs(targetModel:GetDescendants()) do
-                        if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
-                            local partDir = (part.Position - origin).Unit
-                            local partDist = (part.Position - origin).Magnitude
-                            
-                            if partDist <= maxShootDistance then
-                                local partRay = workspace:Raycast(origin, partDir * partDist, raycastParams)
+                    -- For bosses, try EVERY possible part aggressively
+                    if isBoss then
+                        for _, part in pairs(targetModel:GetDescendants()) do
+                            if part:IsA("BasePart") then
+                                local partDir = (part.Position - origin).Unit
+                                local partDist = (part.Position - origin).Magnitude
                                 
-                                if partRay and partRay.Instance:IsDescendantOf(workspace.Enemies) then
-                                    -- For bosses, be more aggressive - accept ANY hit
-                                    if isBoss then
+                                if partDist <= maxShootDistance * 1.5 then -- Extended range for bosses
+                                    local partRay = workspace:Raycast(origin, partDir * partDist, raycastParams)
+                                    
+                                    -- For bosses, accept ANY hit on ANY enemy part
+                                    if partRay and partRay.Instance:IsDescendantOf(workspace.Enemies) then
                                         return partRay.Position, partRay.Instance
-                                    -- For regular enemies, check if it's the same model
-                                    elseif partRay.Instance.Parent == targetModel then
-                                        return partRay.Position, partRay.Instance
+                                    end
+                                    
+                                    -- If no raycast hit, try direct shot (bosses might have weird collision)
+                                    if not partRay then
+                                        return part.Position, part
                                     end
                                 end
                             end
                         end
-                    end
+                    else
+                        -- Regular enemies - normal logic
+                        for _, part in pairs(targetModel:GetDescendants()) do
+                            if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
+                                local partDir = (part.Position - origin).Unit
+                                local partDist = (part.Position - origin).Magnitude
+                                
+                                if partDist <= maxShootDistance then
+                                    local partRay = workspace:Raycast(origin, partDir * partDist, raycastParams)
+                                    
+                                    if partRay and partRay.Instance:IsDescendantOf(workspace.Enemies) then
+                                        if partRay.Instance.Parent == targetModel then
+                                            return partRay.Position, partRay.Instance
+                                        end
+                                    end
+                                end
+                            end
+                end
+            end
             
             -- If nothing visible, return nil (skip this target)
             return nil
@@ -232,13 +253,21 @@ end
 
 -- Enhanced target validation
 local function isValidTarget(zombie, head, humanoid)
-    -- Health check
-    if not humanoid or humanoid.Health <= 0 then
+    -- Basic existence check first
+    if not head or not head.Parent then
         return false
     end
     
-    -- Basic existence check
-    if not head or not head.Parent then
+    -- BOSS PRIORITY: Always allow bosses regardless of health
+    local isBoss = zombie.Name == "GoblinKing" or zombie.Name == "CaptainBoom" or zombie.Name == "Fungarth"
+    
+    if isBoss then
+        -- For bosses, only check if they exist - ignore health checks that might be wrong
+        return true
+    end
+    
+    -- For regular enemies, do normal health check
+    if not humanoid or humanoid.Health <= 0 then
         return false
     end
     
@@ -266,19 +295,19 @@ CombatTab:CreateInput({
         local num = tonumber(text)
         if num and num >= 0.008 and num <= 2 then
             shootDelay = num
-                    Rayfield:Notify({
+            Rayfield:Notify({
                         Title = "⚡ Freezy HUB",
                         Content = "Shot delay set to "..num.."s",
-                        Duration = 3,
-                        Image = 4483362458
-                    })
-                else
-                    Rayfield:Notify({
+                Duration = 3,
+                Image = 4483362458
+            })
+        else
+            Rayfield:Notify({
                         Title = "❌ Invalid Input",
                         Content = "Enter a value between 0.008 and 2",
-                        Duration = 3,
-                        Image = 4483362458
-                    })
+                Duration = 3,
+                Image = 4483362458
+            })
         end
     end,
 })
@@ -431,9 +460,16 @@ CombatTab:CreateToggle({
                                     local head = zombie:FindFirstChild("Head")
                                     local humanoid = zombie:FindFirstChild("Humanoid")
                                     
-                                    -- Basic validation only
+                                    -- Enhanced validation with boss priority
                                     if isValidTarget(zombie, head, humanoid) then
                                         local distance = root and (head.Position - root.Position).Magnitude or 999999
+                                        
+                                        -- Debug: Log boss detection
+                                        local isBoss = zombie.Name == "GoblinKing" or zombie.Name == "CaptainBoom" or zombie.Name == "Fungarth"
+                                        if isBoss and math.random(1, 20) == 1 then -- 5% chance to avoid spam
+                                            print("BOSS DETECTED: " .. zombie.Name .. " at distance " .. math.floor(distance))
+                                        end
+                                        
                                         table.insert(validTargets, {
                                             model = zombie,
                                             head = head,
@@ -797,8 +833,8 @@ MiscTab:CreateButton({
                         fireproximityprompt(descendant, 0)
                         activated = activated + 1
                         task.wait(0.1) -- Small delay between purchases
-                    end
-                end
+            end  
+        end
             end
         end)
         
@@ -834,13 +870,13 @@ MiscTab:CreateButton({
                         fireproximityprompt(descendant, 0)
                         enhanced = enhanced + 1
                         task.wait(0.15) -- Small delay between enhancements
-                    end
-                end
+            end  
+        end
             end
         end)
         
         if enhanced > 0 then
-            Rayfield:Notify({
+        Rayfield:Notify({
                 Title = "🔫 Freezy HUB",
                 Content = enhanced .. " weapons enhanced (Pack-a-Punch)",
                 Duration = 3,
@@ -850,9 +886,9 @@ MiscTab:CreateButton({
             Rayfield:Notify({
                 Title = "⚠️ Freezy HUB",
                 Content = "No enhancement machines found nearby!",
-                Duration = 3,
-                Image = 4483362458
-            })
+            Duration = 3,
+            Image = 4483362458
+        })
         end
     end
 })
