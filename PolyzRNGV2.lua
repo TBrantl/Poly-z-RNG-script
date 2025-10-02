@@ -434,13 +434,14 @@ local MiscTab = Window:CreateTab("🔷 Utilities", "Settings")
 
 MiscTab:CreateSection("💰 Auto Collection")
 
--- Auto Collect System (Teleport Items to Player)
+-- Auto Collect System (Smooth Movement - Undetectable)
 local autoCollect = false
-local collectRadius = 200 -- Large radius
+local collectRadius = 100 -- Moderate radius for safety
 local lastCollectTime = 0
-local collectCooldown = 0.1 -- Collection rate
+local collectCooldown = 0.15 -- Slower, more humanized
+local TweenService = game:GetService("TweenService")
 
--- Smart collection function - Brings items to player
+-- Smart collection function - Smoothly brings items to player
 local function collectNearbyItems()
     local character = player.Character
     if not character then return end
@@ -453,46 +454,37 @@ local function collectNearbyItems()
     lastCollectTime = currentTime
     
     pcall(function()
+        local collected = 0
         -- Search for collectible items in workspace
         for _, item in pairs(workspace:GetDescendants()) do
-            if item:IsA("BasePart") and item.CanCollide == false then
+            if collected >= 3 then break end -- Limit per cycle to avoid spam
+            
+            if item:IsA("BasePart") and item.CanCollide == false and not item.Anchored then
                 -- Check if it's a collectible based on name patterns
                 local isCollectible = item.Name:lower():match("gold") or 
                                      item.Name:lower():match("drop") or
                                      item.Name:lower():match("coin") or
                                      item.Name:lower():match("money") or
                                      item.Name:lower():match("cash") or
-                                     item.Name:lower():match("loot") or
-                                     item.Name:lower():match("pickup") or
-                                     item.Name:lower():match("collect")
+                                     item.Name:lower():match("loot")
                 
                 if isCollectible then
                     local distance = (item.Position - root.Position).Magnitude
                     
-                    if distance <= collectRadius and distance > 2 then
-                        -- Teleport item to player (safer than teleporting player)
-                        if item:IsA("BasePart") and not item.Anchored then
-                            item.CFrame = root.CFrame
-                        end
-                    end
-                end
-            end
-            
-            -- Also check Models that might be collectibles
-            if item:IsA("Model") then
-                local isCollectible = item.Name:lower():match("gold") or 
-                                     item.Name:lower():match("drop") or
-                                     item.Name:lower():match("coin") or
-                                     item.Name:lower():match("loot")
-                
-                if isCollectible and item.PrimaryPart then
-                    local distance = (item.PrimaryPart.Position - root.Position).Magnitude
-                    
-                    if distance <= collectRadius and distance > 2 then
-                        -- Teleport model to player
-                        if not item.PrimaryPart.Anchored then
-                            item:SetPrimaryPartCFrame(root.CFrame)
-                        end
+                    if distance <= collectRadius and distance > 5 then
+                        -- Move item smoothly towards player (looks natural)
+                        local tweenInfo = TweenInfo.new(
+                            0.3, -- Duration (fast but not instant)
+                            Enum.EasingStyle.Quad,
+                            Enum.EasingDirection.In
+                        )
+                        
+                        local tween = TweenService:Create(item, tweenInfo, {
+                            CFrame = root.CFrame
+                        })
+                        
+                        tween:Play()
+                        collected = collected + 1
                     end
                 end
             end
@@ -526,10 +518,10 @@ MiscTab:CreateToggle({
 
 MiscTab:CreateSlider({
     Name = "📏 Collector Radius",
-    Range = {50, 300},
+    Range = {30, 150},
     Increment = 10,
     Suffix = " studs",
-    CurrentValue = 200,
+    CurrentValue = 100,
     Flag = "CollectRadius",
     Callback = function(Value)
         collectRadius = Value
