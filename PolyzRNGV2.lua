@@ -620,39 +620,48 @@ MiscTab:CreateButton({
 })
 
 MiscTab:CreateButton({
-    Name = "🔫 Weapon Enhancer",
+    Name = "🔫 Weapon Enhancer (Pack-a-Punch)",
     Callback = function()
-        local vars = player:FindFirstChild("Variables")
-        if not vars then 
+        local enhanced = 0
+        
+        -- Find all weapon enhancement machines (Pack-a-Punch style)
+        pcall(function()
+            for _, descendant in pairs(workspace:GetDescendants()) do
+                if descendant:IsA("ProximityPrompt") then
+                    local objectText = descendant.ObjectText
+                    local actionText = descendant.ActionText
+                    
+                    -- Look for enhancement prompts (various patterns)
+                    if objectText:lower():find("enhance") or 
+                       objectText:lower():find("upgrade") or
+                       objectText:lower():find("pack") or
+                       actionText:lower():find("enhance") or
+                       actionText:lower():find("upgrade") then
+                        
+                        -- Fire the prompt to enhance weapon
+                        fireproximityprompt(descendant, 0)
+                        enhanced = enhanced + 1
+                        task.wait(0.15) -- Small delay between enhancements
+                    end
+                end
+            end
+        end)
+        
+        if enhanced > 0 then
             Rayfield:Notify({
-                Title = "❌ Error",
-                Content = "Wait for game to load...",
+                Title = "🔫 Freezy HUB",
+                Content = enhanced .. " weapons enhanced (Pack-a-Punch)",
                 Duration = 3,
                 Image = 4483362458
             })
-            return 
+        else
+            Rayfield:Notify({
+                Title = "⚠️ Freezy HUB",
+                Content = "No enhancement machines found nearby!",
+                Duration = 3,
+                Image = 4483362458
+            })
         end
-
-        -- Weapon enhancements (Pack-a-Punch style)
-        local enchants = {  
-            "Primary_Enhanced",   -- +50% damage, special effects
-            "Secondary_Enhanced"  -- +50% damage, special effects
-        }  
-
-        local enhanced = 0
-        for _, attr in ipairs(enchants) do  
-            pcall(function()
-                vars:SetAttribute(attr, true)
-                enhanced = enhanced + 1
-            end)
-        end
-        
-        Rayfield:Notify({
-            Title = "🔫 Freezy HUB",
-            Content = enhanced .. "/2 weapons enhanced!",
-            Duration = 3,
-            Image = 4483362458
-        })
     end
 })
 
