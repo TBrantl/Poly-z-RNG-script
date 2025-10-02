@@ -119,19 +119,44 @@ local function getSmartShotPosition(targetHead, targetModel)
             return rayResult.Position, rayResult.Instance
         else
             -- We hit an obstacle (wall, door, etc.)
-            -- CLEVER WORKAROUND: Try shooting the visible body part instead of head
+            -- CLEVER WORKAROUND: Try shooting ANY visible body part
             -- This is what skilled players do - shoot what they CAN see
             
-            -- Try torso/other parts if head is blocked
-            local torso = targetModel:FindFirstChild("Torso") or targetModel:FindFirstChild("UpperTorso")
-            if torso then
-                local torsoDir = (torso.Position - origin).Unit
-                local torsoDist = (torso.Position - origin).Magnitude
-                local torsoRay = workspace:Raycast(origin, torsoDir * torsoDist, raycastParams)
-                
-                if torsoRay and torsoRay.Instance:IsDescendantOf(workspace.Enemies) then
-                    -- Torso is visible! Shoot it (body shot, not headshot)
-                    return torsoRay.Position, torsoRay.Instance
+            -- Try multiple body parts (important for bosses with different structures)
+            local bodyParts = {
+                "Torso", "UpperTorso", "LowerTorso",
+                "HumanoidRootPart", 
+                "Left Arm", "Right Arm", "LeftUpperArm", "RightUpperArm",
+                "Left Leg", "Right Leg", "LeftUpperLeg", "RightUpperLeg"
+            }
+            
+            for _, partName in ipairs(bodyParts) do
+                local part = targetModel:FindFirstChild(partName)
+                if part and part:IsA("BasePart") then
+                    local partDir = (part.Position - origin).Unit
+                    local partDist = (part.Position - origin).Magnitude
+                    local partRay = workspace:Raycast(origin, partDir * partDist, raycastParams)
+                    
+                    if partRay and partRay.Instance:IsDescendantOf(workspace.Enemies) then
+                        -- This part is visible! Shoot it
+                        return partRay.Position, partRay.Instance
+                    end
+                end
+            end
+            
+            -- Last resort: Try ANY part in the model that's visible
+            for _, part in pairs(targetModel:GetDescendants()) do
+                if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
+                    local partDir = (part.Position - origin).Unit
+                    local partDist = (part.Position - origin).Magnitude
+                    
+                    if partDist <= maxShootDistance then
+                        local partRay = workspace:Raycast(origin, partDir * partDist, raycastParams)
+                        
+                        if partRay and partRay.Instance:IsDescendantOf(workspace.Enemies) then
+                            return partRay.Position, partRay.Instance
+                        end
+                    end
                 end
             end
             
@@ -250,12 +275,19 @@ CombatTab:CreateToggle({
                             
                             -- Try to shoot ONE target (with smart raycasting)
                             if #validTargets > 0 then
-                                -- Randomize target order (human-like)
-                                local shuffled = {}
-                                for i = #validTargets, 1, -1 do
-                                    local j = math.random(i)
-                                    validTargets[i], validTargets[j] = validTargets[j], validTargets[i]
-                                end
+                                -- Prioritize bosses (they're tougher and more important)
+                                table.sort(validTargets, function(a, b)
+                                    local aBoss = a.model.Name:match("King") or a.model.Name:match("Captain") or 
+                                                  a.model.Name:match("Fungarth") or a.model.Name:match("Boss")
+                                    local bBoss = b.model.Name:match("King") or b.model.Name:match("Captain") or 
+                                                  b.model.Name:match("Fungarth") or b.model.Name:match("Boss")
+                                    
+                                    if aBoss and not bBoss then return true end
+                                    if bBoss and not aBoss then return false end
+                                    
+                                    -- If both bosses or both regular, randomize
+                                    return math.random() > 0.5
+                                end)
                                 
                                 -- Try each target until we find one we can shoot
                                 local shotFired = false
@@ -442,7 +474,7 @@ local function collectNearbyItems()
                     local isCollectible = parent.Name:match("Gold") or 
                                          parent.Name:match("Drop") or
                                          parent.Name:match("Coin") or
-                                         parent.Name:match("Money")
+                                         parent.Name:match("Gold_Bar")
                     
                     if isCollectible and distance <= collectRadius then
                         fireclickdetector(descendant)
@@ -982,4 +1014,4 @@ ModTab:CreateButton({
 
 
 -- Load config
-Rayfield:LoadConfiguration()
+Rayfield:LoadConfigurati
