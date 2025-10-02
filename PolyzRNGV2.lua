@@ -699,19 +699,20 @@ MiscTab:CreateButton({
             return 
         end
 
-        -- Set realistic pet bonus values (undetectable range)
+        -- Set realistic pet bonus values (uses decimal format: 1.0 = +100%)
         pcall(function()
-            petInventory:SetAttribute("GOLD", 5)      -- +500% gold (realistic max)
-            petInventory:SetAttribute("DMG", 3)       -- +300% damage  
-            petInventory:SetAttribute("MAG", 2)       -- +200% magazine
-            petInventory:SetAttribute("HP", 2)        -- +200% health
-            petInventory:SetAttribute("SPEED", 1)     -- +100% speed
-            petInventory:SetAttribute("LUCK", 5)      -- +500% luck
+            petInventory:SetAttribute("GOLD", 5.0)    -- +500% gold
+            petInventory:SetAttribute("DMG", 3.0)     -- +300% damage  
+            petInventory:SetAttribute("MAG", 2.0)     -- +200% magazine
+            petInventory:SetAttribute("HP", 2.0)      -- +200% health
+            petInventory:SetAttribute("SPEED", 1.0)   -- +100% speed
+            petInventory:SetAttribute("LUCK", 5.0)    -- +500% luck
+            petInventory:SetAttribute("STAM", 1.0)    -- +100% stamina regen
         end)
         
         Rayfield:Notify({
             Title = "💎 Freezy HUB",
-            Content = "Pet bonuses set (safe values)",
+            Content = "Pet bonuses maxed! (GOLD +500%, DMG +300%)",
             Duration = 3,
             Image = 4483362458
         })
