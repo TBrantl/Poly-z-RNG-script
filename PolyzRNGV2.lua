@@ -60,17 +60,17 @@ end)
 
 -- Auto Headshots with KnightMare Bypass & Raycast Validation
 local autoKill = false
-local shootDelay = 0.1
+local shootDelay = 0.05 -- Faster default delay
 local lastShot = 0
 local shotCount = 0
 local maxShootDistance = 500 -- Maximum shooting range
 
 -- Anti-pattern: Humanized timing with variance
 local function getSmartDelay(base)
-    -- Add 15-30% random variance to prevent pattern detection
-    local variance = base * (0.15 + math.random() * 0.15)
+    -- Reduced variance for faster shooting (5-15% instead of 15-30%)
+    local variance = base * (0.05 + math.random() * 0.10)
     local offset = (math.random() > 0.5) and variance or -variance
-    return math.max(0.05, base + offset)
+    return math.max(0.03, base + offset) -- Minimum 0.03s instead of 0.05s
 end
 
 -- Anti-spam: Track shots and add cooldown if too many
@@ -214,12 +214,12 @@ end
 
 -- Combat Configuration
 CombatTab:CreateInput({
-    Name = "⚡ Shot Delay (0.08-2s)",
-    PlaceholderText = "0.15",
+    Name = "⚡ Shot Delay (0.03-2s)",
+    PlaceholderText = "0.05",
     RemoveTextAfterFocusLost = false,
     Callback = function(text)
         local num = tonumber(text)
-        if num and num >= 0.08 and num <= 2 then
+        if num and num >= 0.03 and num <= 2 then
             shootDelay = num
                     Rayfield:Notify({
                         Title = "⚡ Freezy HUB",
@@ -230,7 +230,7 @@ CombatTab:CreateInput({
                 else
                     Rayfield:Notify({
                         Title = "❌ Invalid Input",
-                        Content = "Enter a value between 0.08 and 2",
+                        Content = "Enter a value between 0.03 and 2",
                         Duration = 3,
                         Image = 4483362458
                     })
@@ -758,13 +758,13 @@ OpenTab:CreateDropdown({
 
 -- Crate Opening Anti-Spam System
 local function getRandomCrateDelay()
-    -- Random delay between 0.12-0.18 seconds
-    return 0.12 + (math.random() * 0.06)
+    -- Random delay between 0.08-0.12 seconds (faster)
+    return 0.08 + (math.random() * 0.04)
 end
 
 local function getBatchDelay()
-    -- Random delay between batches: 0.7-1.3 seconds
-    return 0.7 + (math.random() * 0.6)
+    -- Random delay between batches: 0.4-0.8 seconds (faster)
+    return 0.4 + (math.random() * 0.4)
 end
 
 -- 🕶️ Camo Crates
