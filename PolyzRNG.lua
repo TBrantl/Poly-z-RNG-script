@@ -23,278 +23,162 @@ local Window = Rayfield:CreateWindow({
     }
 })
 
--- Auto Headshot System Variables
-local lastShotTime = 0
-local shotCount = 0
-local sessionStartTime = tick()
-local humanBehaviorPattern = {
-    reactionTime = {0.1, 0.3},
-    aimVariation = {0.02, 0.05},
-    timingJitter = {0.01, 0.03},
-    breakFrequency = {8, 15},
-    missChance = {0.05, 0.15}
-}
-
-
--- Enhanced weapon validation (matches game exactly)
+-- Utility Functions
 local function getEquippedWeaponName()
-    local success, result = pcall(function()
-        -- Method 1: Check Variables attribute (game's primary method)
-        local Variables = ReplicatedStorage:FindFirstChild("Variables")
-        if Variables then
-            local equippedSlot = Variables:GetAttribute("Equipped_Slot")
-            if equippedSlot then
-                local PlayerData = ReplicatedStorage:FindFirstChild("PlayerData")
-                if PlayerData then
-                    local weaponData = PlayerData:FindFirstChild("equipped_" .. string.lower(equippedSlot))
-                    if weaponData then
-                        return weaponData.Value
-                    end
-                end
-            end
-        end
-        
-        -- Method 2: Check workspace Players (fallback)
-        local model = workspace:FindFirstChild("Players")
+    local model = workspace:FindFirstChild("Players"):FindFirstChild(player.Name)
     if model then
-            local playerModel = model:FindFirstChild(player.Name)
-            if playerModel then
-                for _, child in ipairs(playerModel:GetChildren()) do
+        for _, child in ipairs(model:GetChildren()) do
             if child:IsA("Model") then
                 return child.Name
             end
         end
     end
-        end
-        
-        return "M1911" -- Default fallback
-    end)
-    
-    return success and result or "M1911"
-end
-
--- Human-like timing validation
-local function validateShotTiming()
-    local currentTime = tick()
-    local timeSinceLastShot = currentTime - lastShotTime
-    
-    -- Get weapon-specific minimum delay
-    local weapon = getEquippedWeaponName()
-    local minDelay = weaponFireRates[weapon] or 0.12
-    
-    -- Add human reaction time variation
-    local humanDelay = math.random(humanBehaviorPattern.reactionTime[1] * 100, humanBehaviorPattern.reactionTime[2] * 100) / 100
-    
-    return timeSinceLastShot >= (minDelay + humanDelay)
-end
-
--- Behavioral pattern analysis
-local function shouldTakeBreak()
-    shotCount = shotCount + 1
-    local breakChance = math.random(1, 100)
-    local breakThreshold = math.random(humanBehaviorPattern.breakFrequency[1], humanBehaviorPattern.breakFrequency[2])
-    
-    return shotCount >= breakThreshold or breakChance <= 5
-end
-
--- Session-based adaptation
-local function getSessionAdaptation()
-    local sessionTime = tick() - sessionStartTime
-    local adaptationFactor = math.min(sessionTime / 300, 1) -- 5 minute adaptation
-    
-    return {
-        missChance = humanBehaviorPattern.missChance[1] + (adaptationFactor * 0.1),
-        aimVariation = humanBehaviorPattern.aimVariation[1] + (adaptationFactor * 0.02),
-        timingJitter = humanBehaviorPattern.timingJitter[1] + (adaptationFactor * 0.01)
-    }
-end
-
--- CRITICAL: Detection monitoring system
-local detectionRisk = 0
-local function updateDetectionRisk()
-    local sessionTime = tick() - sessionStartTime
-    local shotsPerMinute = (shotCount / (sessionTime / 60))
-    
-    -- Calculate risk based on multiple factors
-    local timeRisk = math.min(sessionTime / 600, 1) -- 10 minute risk
-    local shotRisk = math.min(shotsPerMinute / 60, 1) -- 60 shots/minute risk
-    local patternRisk = shotCount % 20 == 0 and 0.1 or 0 -- Pattern detection
-    
-    detectionRisk = (timeRisk + shotRisk + patternRisk) / 3
-    
-    -- Adaptive behavior based on risk
-    if detectionRisk > 0.7 then
-        humanBehaviorPattern.missChance = {0.15, 0.25}
-        humanBehaviorPattern.breakFrequency = {5, 10}
-    elseif detectionRisk > 0.4 then
-        humanBehaviorPattern.missChance = {0.10, 0.20}
-        humanBehaviorPattern.breakFrequency = {6, 12}
-    end
-end
-
--- Anti-pattern detection
-local function shouldVaryBehavior()
-    local currentTime = tick()
-    local timeSinceStart = currentTime - sessionStartTime
-    
-    -- Vary behavior every 30-60 seconds
-    if timeSinceStart % 45 < 1 then
-        return true
-    end
-    
-    -- Random variation
-    return math.random(1, 100) <= 5
+    return "M1911"
 end
 
 -- Combat Tab
 local CombatTab = Window:CreateTab("⚔️ Combat", "Skull")
 
--- Stealth Information
-CombatTab:CreateLabel("🛡️ STEALTH AUTO HEADSHOT SYSTEM:")
-CombatTab:CreateLabel("✅ Zombie + Boss Targeting | ✅ Detection Resistance | ✅ Human Behavior")
-CombatTab:CreateLabel("━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-
 -- Weapon Label
 local weaponLabel = CombatTab:CreateLabel("🔫 Current Weapon: Loading...")
 
--- Round Counter Label
-local roundLabel = CombatTab:CreateLabel("🎯 Round: 0 | Risk: 0% | Shots: 0")
-
--- Detection Risk Label
-local riskLabel = CombatTab:CreateLabel("🛡️ Detection Risk: 0% | Session: 0m")
-
-
--- Update labels
+-- Update label
 task.spawn(function()
     while true do
-        local sessionTime = math.floor((tick() - sessionStartTime) / 60)
         weaponLabel:Set("🔫 Current Weapon: " .. getEquippedWeaponName())
-        roundLabel:Set("🎯 Round: " .. roundsSurvived .. " | Risk: " .. math.floor(detectionRisk * 100) .. "% | Shots: " .. shotCount)
-        riskLabel:Set("🛡️ Detection Risk: " .. math.floor(detectionRisk * 100) .. "% | Session: " .. sessionTime .. "m")
-        
-        
         task.wait(0.1)
     end
 end)
 
--- Auto Headshots (ULTRA STEALTH)
+-- Auto Headshots with KnightMare Bypass & Raycast Validation
 local autoKill = false
-local autoKillBosses = false
-local shootDelay = 0.25
-local lastShotTime = 0
-local shotsFired = 0
-local roundsSurvived = 0
-local detectionRisk = 0
-local weaponFireRates = {
-    ["M1911"] = 0.133,
-    ["AK47"] = 0.120,
-    ["M4A1"] = 0.100,
-    ["G36C"] = 0.086,
-    ["MAC10"] = 0.075,
-    ["UMP45"] = 0.080,
-    ["MP5"] = 0.086,
-    ["AUG"] = 0.086,
-    ["FAMAS"] = 0.069,
-    ["P90"] = 0.075,
-    ["SCAR"] = 0.109,
-    ["G3"] = 0.133,
-    ["M249"] = 0.133,
-    ["AWP"] = 1.714,
-    ["M16"] = 0.109
-}
+local shootDelay = 0.1
+local lastShot = 0
+local shotCount = 0
+local maxShootDistance = 500 -- Maximum shooting range
 
--- Get weapon fire rate with adaptive jitter (increases with rounds)
-local function getWeaponFireDelay(weaponName)
-    local baseDelay = weaponFireRates[weaponName] or 0.12
-    
-    -- Increase jitter as rounds progress (more human-like)
-    local jitterRange = math.min(80 + roundsSurvived * 2, 95) -- 80-95% based on rounds
-    local jitter = math.random(jitterRange, 110) * 0.01
-    
-    -- Add extra delay for higher rounds
-    local extraDelay = roundsSurvived * 0.01 -- +0.01s per round
-    
-    return (baseDelay + extraDelay) * jitter
+-- Anti-pattern: Humanized timing with variance
+local function getSmartDelay(base)
+    -- Add 15-30% random variance to prevent pattern detection
+    local variance = base * (0.15 + math.random() * 0.15)
+    local offset = (math.random() > 0.5) and variance or -variance
+    return math.max(0.05, base + offset)
 end
 
--- Check if we can shoot (cooldown validation)
-local function canShoot()
+-- Anti-spam: Track shots and add cooldown if too many
+local function shouldAllowShot()
     local currentTime = tick()
-    local weaponName = getEquippedWeaponName()
-    local requiredDelay = getWeaponFireDelay(weaponName)
-    return (currentTime - lastShotTime) >= requiredDelay
-end
-
--- Round detection and adaptive stealth
-local function updateRoundInfo()
-    local roundInfo = workspace:FindFirstChild("RoundInfo")
-    if roundInfo then
-        local currentRound = roundInfo:GetAttribute("Round") or 0
-        if currentRound > roundsSurvived then
-            roundsSurvived = currentRound
-            detectionRisk = math.min(roundsSurvived * 0.1, 0.8) -- Increase risk with rounds
-        end
-    end
-end
-
--- Adaptive miss chance (increases with rounds)
-local function getAdaptiveMissChance(distance)
-    local baseMissChance = 5 + (distance / 10) -- Base miss chance
-    local roundMissChance = roundsSurvived * 2 -- +2% per round
-    local riskMissChance = detectionRisk * 20 -- +20% based on detection risk
     
-    return math.min(baseMissChance + roundMissChance + riskMissChance, 50) -- Max 50%
+    -- Reset counter every 5 seconds
+    if currentTime - lastShot > 5 then
+        shotCount = 0
+    end
+    
+    -- Limit to 50 shots per 5 seconds (very human-like)
+    if shotCount >= 50 then
+        return false
+    end
+    
+    return true
 end
 
--- Camera hijacking system for silent aim (detection avoidance)
-local AimAssist = {Enabled = false, Target = nil}
-local lastCameraUpdate = 0
-local cameraSmoothing = 0.15
-local humanReactionTime = math.random(8, 15) * 0.01
+-- Smart Shot Validation (Mimics Game's Raycast Behavior)
+-- KEY INSIGHT: The game does CLIENT raycast, server validates enemy/distance only
+-- We replicate the exact same behavior the real game uses
+local function getSmartShotPosition(targetHead, targetModel)
+    local character = player.Character
+    if not character then return nil end
+    
+    local camera = workspace.CurrentCamera
+    if not camera then return nil end
+    
+    -- Mimic game's raycast from camera/head position
+    local origin = camera.CFrame.Position
+    local targetPos = targetHead.Position
+    local direction = (targetPos - origin).Unit
+    local distance = (targetPos - origin).Magnitude
+    
+    -- Distance sanity check (game would never shoot beyond render distance)
+    if distance > maxShootDistance then
+        return nil
+    end
+    
+    -- Setup raycast EXACTLY like the game does
+    local raycastParams = RaycastParams.new()
+    raycastParams.FilterDescendantsInstances = {character}
+    raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
+    raycastParams.IgnoreWater = true
+    
+    -- Perform raycast
+    local rayResult = workspace:Raycast(origin, direction * distance, raycastParams)
+    
+    if rayResult then
+        -- Check if we hit the enemy (or any part of enemies folder)
+        if rayResult.Instance and rayResult.Instance:IsDescendantOf(workspace.Enemies) then
+            -- We hit an enemy! Return the ACTUAL hit position (what game does)
+            return rayResult.Position, rayResult.Instance
+        else
+            -- We hit an obstacle (wall, door, etc.)
+            -- CLEVER WORKAROUND: Try shooting the visible body part instead of head
+            -- This is what skilled players do - shoot what they CAN see
+            
+            -- Try torso/other parts if head is blocked
+            local torso = targetModel:FindFirstChild("Torso") or targetModel:FindFirstChild("UpperTorso")
+            if torso then
+                local torsoDir = (torso.Position - origin).Unit
+                local torsoDist = (torso.Position - origin).Magnitude
+                local torsoRay = workspace:Raycast(origin, torsoDir * torsoDist, raycastParams)
+                
+                if torsoRay and torsoRay.Instance:IsDescendantOf(workspace.Enemies) then
+                    -- Torso is visible! Shoot it (body shot, not headshot)
+                    return torsoRay.Position, torsoRay.Instance
+                end
+            end
+            
+            -- If nothing visible, return nil (skip this target)
+            return nil
+        end
+    else
+        -- No obstacle, direct line - return head position
+        return targetPos, targetHead
+    end
+end
 
--- Camera system for silent aim with detection avoidance
-game:GetService("RunService").RenderStepped:Connect(function()
-    if AimAssist.Enabled and AimAssist.Target and AimAssist.Target.PrimaryPart then
-        local currentTime = tick()
-        
-        -- Variable reaction time for human-like behavior
-        if currentTime - lastCameraUpdate > humanReactionTime then
-            local targetPos = AimAssist.Target.PrimaryPart.Position
-            local currentPos = workspace.CurrentCamera.CFrame.Position
-            
-            -- Calculate direction with 360-degree coverage
-            local direction = (targetPos - currentPos).Unit
-            local currentLookDirection = workspace.CurrentCamera.CFrame.LookVector
-            
-            -- Smooth interpolation for natural movement
-            local interpolatedDirection = currentLookDirection:Lerp(direction, cameraSmoothing)
-            
-            -- Add slight randomization for realism
-            local randomOffset = Vector3.new(
-                math.random(-1, 1) * 0.05,
-                math.random(-1, 1) * 0.05,
-                math.random(-1, 1) * 0.05
-            )
-            
-            -- Create smooth camera movement
-            local targetCFrame = CFrame.new(currentPos, currentPos + interpolatedDirection + randomOffset)
-            workspace.CurrentCamera.CFrame = workspace.CurrentCamera.CFrame:Lerp(targetCFrame, 0.2)
-            
-            lastCameraUpdate = currentTime
-            -- Reset reaction time for next update
-            humanReactionTime = math.random(8, 15) * 0.01
+-- Enhanced target validation
+local function isValidTarget(zombie, head, humanoid)
+    -- Health check
+    if not humanoid or humanoid.Health <= 0 then
+        return false
+    end
+    
+    -- Basic existence check
+    if not head or not head.Parent then
+        return false
+    end
+    
+    -- Distance pre-check (optimization)
+    local character = player.Character
+    if character then
+        local root = character:FindFirstChild("HumanoidRootPart")
+        if root then
+            local distance = (head.Position - root.Position).Magnitude
+            if distance > maxShootDistance then
+                return false
+            end
         end
     end
-end)
+    
+    return true
+end
 
--- Text input for shot delay (STEALTH)
+-- Combat Configuration
 CombatTab:CreateInput({
-    Name = "⏱️ Shot delay (0.15-2 sec)",
+    Name = "⏱️ Shot delay (0.08-2 sec)",
     PlaceholderText = "0.15",
     RemoveTextAfterFocusLost = false,
     Callback = function(text)
         local num = tonumber(text)
-        if num and num >= 0.15 and num <= 2 then
+        if num and num >= 0.08 and num <= 2 then
             shootDelay = num
             Rayfield:Notify({
                 Title = "Success",
@@ -305,7 +189,7 @@ CombatTab:CreateInput({
         else
             Rayfield:Notify({
                 Title = "Error",
-                Content = "Please enter a number between 0.15 and 2",
+                Content = "Please enter a number between 0.08 and 2",
                 Duration = 3,
                 Image = 4483362458
             })
@@ -313,300 +197,103 @@ CombatTab:CreateInput({
     end,
 })
 
--- Silent aim toggle
-local useSilentAim = true
-
-CombatTab:CreateToggle({
-    Name = "🎯 Silent Aim + Camera",
-    CurrentValue = true,
-    Flag = "SilentAim",
-    Callback = function(state)
-        useSilentAim = state
-        Rayfield:Notify({
-            Title = "Silent Aim System",
-            Content = "Silent aim " .. (state and "enabled" or "disabled") .. " - Crosshair independent + Camera hijacking for detection avoidance",
-            Duration = 4,
-            Image = 4483362458
-        })
+CombatTab:CreateSlider({
+    Name = "🎯 Max Shoot Range",
+    Range = {100, 1000},
+    Increment = 50,
+    Suffix = " studs",
+    CurrentValue = 500,
+    Flag = "MaxShootRange",
+    Callback = function(Value)
+        maxShootDistance = Value
     end
 })
 
-
 CombatTab:CreateToggle({
-    Name = "🔪 Auto Headshots (ZOMBIES + BOSSES)",
+    Name = "🔪 Auto Headshots (Smart Ray)",
     CurrentValue = false,
     Flag = "AutoKillZombies",
     Callback = function(state)
         autoKill = state
-        autoKillBosses = state -- Boss targeting is always enabled with auto headshots
         if state then
-            Rayfield:Notify({
-                Title = "Auto Headshots + Boss Kill",
-                Content = "Stealth auto headshots enabled - Targets zombies and bosses with detection resistance",
-                Duration = 4,
-                Image = 4483362458
-            })
             task.spawn(function()
                 while autoKill do
-                    -- Check if we can shoot (cooldown validation)
-                    if not canShoot() then
-                        task.wait(0.05)
-                            continue
+                    pcall(function()
+                        if not shouldAllowShot() then
+                            task.wait(1) -- Cooldown if rate limited
+                            return
                         end
                         
-                    
-                    local enemies = workspace:FindFirstChild("Enemies")
-                    local shootRemote = Remotes:FindFirstChild("ShootEnemy")
-                    
-                    if enemies and shootRemote then
-                        local weapon = getEquippedWeaponName()
-                        local closestTarget = nil
-                        local closestHead = nil
-                        local minDist = math.huge
-                        local playerPos = player.Character and player.Character.PrimaryPart and player.Character.PrimaryPart.Position
+                        local enemies = workspace:FindFirstChild("Enemies")
+                        local shootRemote = Remotes:FindFirstChild("ShootEnemy")
                         
-                        if not playerPos then
-                            task.wait(0.1)
-                            continue
-                        end
-                        
-                        -- Find closest zombie (more human-like)
-                        for _, zombie in pairs(enemies:GetChildren()) do
-                            if zombie:IsA("Model") and zombie:FindFirstChild("Head") then
-                                local head = zombie.Head
-                                local humanoid = zombie:FindFirstChildOfClass("Humanoid")
-                                
-                                -- Check if zombie is alive
-                                if humanoid and humanoid.Health > 0 then
-                                    local distance = (head.Position - playerPos).Magnitude
-                                    
-                                    -- Only target zombies within reasonable range
-                                    if distance < 200 and distance < minDist then
-                                        minDist = distance
-                                        closestTarget = zombie
-                                        closestHead = head
-                                    end
-                                end
-                            end
-                        end
-                        
-                        -- BOSS TARGETING: Check for bosses if enabled
-                        if autoKillBosses then
-                            local bossArena = workspace:FindFirstChild("BossArena")
-                            if bossArena then
-                                -- Look for boss models in BossArena
-                                for _, boss in pairs(bossArena:GetChildren()) do
-                                    if boss:IsA("Model") and boss:FindFirstChild("Head") then
-                                        local head = boss.Head
-                                        local humanoid = boss:FindFirstChildOfClass("Humanoid")
-                                        
-                                        -- Check if boss is alive
-                                        if humanoid and humanoid.Health > 0 then
-                                            local distance = (head.Position - playerPos).Magnitude
-                                            
-                                            -- Bosses have higher priority (closer range check)
-                                            if distance < 300 and distance < minDist then
-                                                minDist = distance
-                                                closestTarget = boss
-                                                closestHead = head
-                                            end
-                                end
-                            end
-                        end
-                        
-                                -- Also check BossArena.Decorations for boss parts
-                                local decorations = bossArena:FindFirstChild("Decorations")
-                                if decorations then
-                                    for _, decoration in pairs(decorations:GetChildren()) do
-                                        if decoration:IsA("Model") and decoration:FindFirstChild("Head") then
-                                            local head = decoration.Head
-                                            local humanoid = decoration:FindFirstChildOfClass("Humanoid")
-                                            
-                                            if humanoid and humanoid.Health > 0 then
-                                                local distance = (head.Position - playerPos).Magnitude
-                                                
-                                                if distance < 300 and distance < minDist then
-                                                    minDist = distance
-                                                    closestTarget = decoration
-                                                    closestHead = head
-                                                end
-                                            end
-                                        end
-                                    end
-                                end
-                            end
-                        end
-                        
-                        -- Update round info for adaptive stealth
-                        updateRoundInfo()
-                        
-                        -- Shoot closest target (zombie or boss) with ADAPTIVE STEALTH SYSTEM
-                        if closestTarget and closestHead then
-                            -- Adaptive miss chance (increases with rounds and risk)
-                            local missChance = math.random(1, 100)
-                            local totalMissChance = getAdaptiveMissChance(minDist)
+                        if enemies and shootRemote then
+                            local weapon = getEquippedWeaponName()
+                            local validTargets = {}
                             
-                            if missChance > totalMissChance then
-                                -- CRITICAL: Update detection risk before shooting
-                                updateDetectionRisk()
-                                
-                                -- ANTI-PATTERN: Vary behavior if needed
-                                if shouldVaryBehavior() then
-                                    local variationDelay = math.random(100, 300) / 1000
-                                    task.wait(variationDelay)
-                                end
-                                
-                                local success = false
-                                
-                                if useSilentAim then
-                                -- Validate timing and check for breaks
-                                if not validateShotTiming() then
-                                    return
-                                end
-                                
-                                if shouldTakeBreak() then
-                                    local breakDuration = math.random(200, 500) / 1000
-                                    task.wait(breakDuration)
-                                    shotCount = 0
-                                    return
-                                end
-                                
-                                -- Silent aim with camera hijacking
-                                AimAssist.Enabled = true
-                                AimAssist.Target = closestTarget
-                                
-                                local sessionAdaptation = getSessionAdaptation()
-                                local baseAimTime = math.random(8, 15) + (roundsSurvived * 2)
-                                local adaptedAimTime = baseAimTime + (sessionAdaptation.timingJitter * 100)
-                                task.wait(adaptedAimTime * 0.01)
+                            -- Collect ALL living enemies (no LOS restriction yet)
+                            for _, zombie in pairs(enemies:GetChildren()) do
+                                if zombie:IsA("Model") then
+                                    local head = zombie:FindFirstChild("Head")
+                                    local humanoid = zombie:FindFirstChild("Humanoid")
                                     
-                                    -- Enhanced raycasting with detection avoidance
-                                    local camera = workspace.CurrentCamera
-                                    local cameraPos = camera.CFrame.Position
-                                    local sessionAdaptation = getSessionAdaptation()
-                                    
-                                    -- Human-like camera position variation
-                                    local randomOffset = Vector3.new(
-                                        math.random(-2, 2) * sessionAdaptation.aimVariation,
-                                        math.random(-2, 2) * sessionAdaptation.aimVariation,
-                                        math.random(-2, 2) * sessionAdaptation.aimVariation
-                                    )
-                                    local adjustedCameraPos = cameraPos + randomOffset
-                                    
-                                    -- Calculate direction with aim variation
-                                    local targetPos = closestHead.Position
-                                    local baseDirection = (targetPos - adjustedCameraPos).Unit
-                                    
-                                    local aimVariation = Vector3.new(
-                                        math.random(-3, 3) * sessionAdaptation.aimVariation,
-                                        math.random(-3, 3) * sessionAdaptation.aimVariation,
-                                        math.random(-3, 3) * sessionAdaptation.aimVariation
-                                    )
-                                    local targetDirection = (baseDirection + aimVariation).Unit
-                                    
-                                    -- Raycast parameters
-                                    local raycastParams = RaycastParams.new()
-                                    raycastParams.FilterType = Enum.RaycastFilterType.Include
-                                    
-                                    local filterInstances = {workspace.Enemies, workspace.Misc}
-                                    if roundsSurvived >= 5 then
-                                        table.insert(filterInstances, workspace.BossArena.Decorations)
+                                    -- Basic validation only
+                                    if isValidTarget(zombie, head, humanoid) then
+                                        table.insert(validTargets, {
+                                            model = zombie,
+                                            head = head,
+                                            humanoid = humanoid
+                                        })
                                     end
-                                    raycastParams.FilterDescendantsInstances = filterInstances
+                                end
+                            end
+                            
+                            -- Try to shoot ONE target (with smart raycasting)
+                            if #validTargets > 0 then
+                                -- Randomize target order (human-like)
+                                local shuffled = {}
+                                for i = #validTargets, 1, -1 do
+                                    local j = math.random(i)
+                                    validTargets[i], validTargets[j] = validTargets[j], validTargets[i]
+                                end
+                                
+                                -- Try each target until we find one we can shoot
+                                local shotFired = false
+                                for _, target in ipairs(validTargets) do
+                                    -- Smart raycast - returns actual hit position and part
+                                    local hitPos, hitPart = getSmartShotPosition(target.head, target.model)
                                     
-                                    -- Multiple raycast attempts
-                                    local raycastResult = nil
-                                    local maxAttempts = 3
-                                    
-                                    for attempt = 1, maxAttempts do
-                                        local attemptOffset = Vector3.new(
-                                            math.random(-1, 1) * 0.05,
-                                            math.random(-1, 1) * 0.05,
-                                            math.random(-1, 1) * 0.05
-                                        )
-                                        local attemptPos = adjustedCameraPos + attemptOffset
+                                    if hitPos and hitPart then
+                                        -- We can shoot this target!
+                                        -- Args match EXACTLY what the game sends:
+                                        -- (EnemyModel, HitPart, HitPosition, Damage, WeaponName)
+                                        local args = {target.model, hitPart, hitPos, 0.5, weapon}
                                         
-                                        local attemptDirection = (targetPos - attemptPos).Unit
-                                        local attemptDistance = math.random(200, 300)
-                                        
-                                        raycastResult = workspace:Raycast(attemptPos, attemptDirection * attemptDistance, raycastParams)
-                                        
-                                        if raycastResult and raycastResult.Instance:IsDescendantOf(workspace.Enemies) then
-                                            break
-                                        end
-                                        
-                                        if attempt < maxAttempts then
-                                            task.wait(math.random(1, 3) * 0.01)
-                                        end
-                                    end
-                                    
-                                    -- Fire if raycast hits target
-                                    if raycastResult and raycastResult.Instance:IsDescendantOf(workspace.Enemies) then
-                                        lastShotTime = tick()
-                                        
-                                        local args = {
-                                            raycastResult.Instance.Parent,
-                                            raycastResult.Instance,
-                                            raycastResult.Position,
-                                            0,
-                                            weapon
-                                        }
-                                        
-                                        local fireDelay = math.random(10, 30) / 1000
-                                        task.wait(fireDelay)
-                                        
-                                        success = pcall(function() 
-                                            shootRemote:FireServer(unpack(args)) 
+                                        local success = pcall(function()
+                                            shootRemote:FireServer(unpack(args))
                                         end)
                                         
-                                        shotCount = shotCount + 1
-                                    else
-                                        -- Fallback for early rounds
-                                        if roundsSurvived < 3 then
-                                            local fallbackArgs = {closestTarget, closestHead, closestHead.Position, 0, weapon}
-                                            success = pcall(function() 
-                                                shootRemote:FireServer(unpack(fallbackArgs)) 
-                                            end)
+                                        if success then
+                                            lastShot = tick()
+                                            shotCount = shotCount + 1
+                                            shotFired = true
+                                            break -- Only shoot ONE target per cycle
                                         end
                                     end
                                     
-                                    -- Disable camera hijacking immediately
-                                    AimAssist.Enabled = false
-                                    AimAssist.Target = nil
-                                    
-                                    -- Add small delay for stealth
-                                    task.wait(math.random(5, 10) * 0.01)
-                                else
-                                    -- SIMPLE DIRECT SHOOTING (no camera hijacking)
-                                    local args = {closestZombie, closestHead, closestHead.Position, 0, weapon}
-                                    success = pcall(function() 
-                                        shootRemote:FireServer(unpack(args))
-                                    end)
+                                    -- If this target blocked, try next one (max 3 attempts)
+                                    if #validTargets > 3 and _ >= 3 then
+                                        break
+                                    end
                                 end
                                 
-                                    if success then
-                                        lastShotTime = tick()
-                                        shotsFired = shotsFired + 1
-                                        
-                                        -- Adaptive break patterns (more frequent in higher rounds)
-                                        local breakFrequency = math.max(8 - roundsSurvived, 3) -- More frequent breaks
-                                        local breakDuration = math.random(20 + roundsSurvived * 5, 50 + roundsSurvived * 10) * 0.01
-                                        
-                                        if shotsFired >= breakFrequency then
-                                            task.wait(breakDuration)
-                            shotsFired = 0
-                        end
-                        end
+                                -- If no shot fired, all targets blocked (legitimate game behavior)
                             end
                         end
-                    end
+                    end)
                     
-                        
-                        -- Adaptive delay for stealth (increases with rounds)
-                        local baseDelay = shootDelay + (roundsSurvived * 0.02) -- +0.02s per round
-                        local jitterRange = math.min(5 + roundsSurvived, 15) -- More jitter in higher rounds
-                        local delay = baseDelay + math.random(-jitterRange, jitterRange) * 0.01
-                        task.wait(math.max(0.1, delay))
+                    -- Use humanized delay
+                    task.wait(getSmartDelay(shootDelay))
                 end
             end)
         end
@@ -633,6 +320,56 @@ CombatTab:CreateToggle({
     end
 })
 
+-- Walk Speed with Smooth Transition (Anti-Detection)
+local targetWalkSpeed = 16
+local speedTransitionActive = false
+
+local function smoothTransitionSpeed(target)
+    if speedTransitionActive then return end
+    speedTransitionActive = true
+    
+    task.spawn(function()
+        pcall(function()
+            local character = player.Character
+            if not character then 
+                speedTransitionActive = false
+                return 
+            end
+            
+            local humanoid = character:FindFirstChild("Humanoid")
+            if not humanoid then 
+                speedTransitionActive = false
+                return 
+            end
+            
+            local current = humanoid.WalkSpeed
+            local difference = target - current
+            local steps = math.abs(difference) / 2 -- Gradual change
+            
+            -- Smooth transition over time (avoids instant detection)
+            for i = 1, steps do
+                if not character or not humanoid then break end
+                local progress = i / steps
+                humanoid.WalkSpeed = current + (difference * progress)
+                task.wait(0.05) -- Smooth increment
+            end
+            
+            if humanoid then
+                humanoid.WalkSpeed = target
+            end
+        end)
+        speedTransitionActive = false
+    end)
+end
+
+-- Maintain speed on respawn
+player.CharacterAdded:Connect(function(char)
+    task.wait(0.5)
+    if targetWalkSpeed ~= 16 then
+        smoothTransitionSpeed(targetWalkSpeed)
+    end
+end)
+
 CombatTab:CreateSlider({
     Name = "🏃‍♂️ Walk Speed",
     Range = {16, 200},
@@ -641,7 +378,8 @@ CombatTab:CreateSlider({
     CurrentValue = 16,
     Flag = "WalkSpeed",
     Callback = function(Value)
-        game.Players.LocalPlayer.Character:WaitForChild("Humanoid").WalkSpeed = Value
+        targetWalkSpeed = Value
+        smoothTransitionSpeed(Value)
     end
 })
 
@@ -740,9 +478,9 @@ MiscTab:CreateButton({
         }  
 
         for _, attr in ipairs(enchants) do  
-            if vars:GetAttribute(attr) ~= nil then
+            if vars:GetAttribute(attr) ~= nil then  
                 vars:SetAttribute(attr, true)  
-            end
+            end  
         end
         Rayfield:Notify({
             Title = "Enhancement",
@@ -760,10 +498,10 @@ MiscTab:CreateButton({
         local gunData = player:FindFirstChild("GunData")
         if not gunData then return end
 
-        for _, value in ipairs(gunData:GetChildren()) do
-            if value:IsA("StringValue") then
+        for _, value in ipairs(gunData:GetChildren()) do  
+            if value:IsA("StringValue") then  
                 value.Value = "celestial"  
-            end
+            end  
         end
         Rayfield:Notify({
             Title = "Weapons",
@@ -807,6 +545,17 @@ OpenTab:CreateDropdown({
     end,
 })
 
+-- Crate Opening Anti-Spam System
+local function getRandomCrateDelay()
+    -- Random delay between 0.12-0.18 seconds
+    return 0.12 + (math.random() * 0.06)
+end
+
+local function getBatchDelay()
+    -- Random delay between batches: 0.7-1.3 seconds
+    return 0.7 + (math.random() * 0.6)
+end
+
 -- 🕶️ Camo Crates
 local autoOpenCamo = false
 OpenTab:CreateToggle({
@@ -819,11 +568,14 @@ OpenTab:CreateToggle({
                 while autoOpenCamo do
                     pcall(function()
                         for i = 1, selectedQuantity do
-                            ReplicatedStorage.Remotes.OpenCamoCrate:InvokeServer("Random")
-                            task.wait(0.1)
+                            local remote = ReplicatedStorage.Remotes:FindFirstChild("OpenCamoCrate")
+                            if remote then
+                                remote:InvokeServer("Random")
+                                task.wait(getRandomCrateDelay())
+                            end
                         end
                     end)
-                    task.wait(1)
+                    task.wait(getBatchDelay())
                 end
             end)
         end
@@ -842,11 +594,14 @@ OpenTab:CreateToggle({
                 while autoOpenOutfit do
                     pcall(function()
                         for i = 1, selectedQuantity do
-                            ReplicatedStorage.Remotes.OpenOutfitCrate:InvokeServer(selectedOutfitType)
-                            task.wait(0.1)
+                            local remote = ReplicatedStorage.Remotes:FindFirstChild("OpenOutfitCrate")
+                            if remote then
+                                remote:InvokeServer(selectedOutfitType)
+                                task.wait(getRandomCrateDelay())
+                            end
                         end
                     end)
-                    task.wait(1)
+                    task.wait(getBatchDelay())
                 end
             end)
         end
@@ -857,22 +612,25 @@ OpenTab:CreateToggle({
 local autoOpenPet = false
 OpenTab:CreateToggle({
     Name = "🐾 Pet Crates",
-        CurrentValue = false,
-        Callback = function(state)
+    CurrentValue = false,
+    Callback = function(state)
         autoOpenPet = state
-            if state then
-                task.spawn(function()
+        if state then
+            task.spawn(function()
                 while autoOpenPet do
-                            pcall(function()
+                    pcall(function()
                         for i = 1, selectedQuantity do
-                            ReplicatedStorage.Remotes.OpenPetCrate:InvokeServer(1)
-                            task.wait(0.1)
+                            local remote = ReplicatedStorage.Remotes:FindFirstChild("OpenPetCrate")
+                            if remote then
+                                remote:InvokeServer(1)
+                                task.wait(getRandomCrateDelay())
+                            end
                         end
                     end)
-                    task.wait(0.1)
+                    task.wait(getBatchDelay())
                 end
-                            end)
-                        end
+            end)
+        end
     end
 })
 
@@ -888,82 +646,113 @@ OpenTab:CreateToggle({
                 while autoOpenGun do
                     pcall(function()
                         for i = 1, selectedQuantity do
-                            ReplicatedStorage.Remotes.OpenGunCrate:InvokeServer(1)
-                            task.wait(0.1)
+                            local remote = ReplicatedStorage.Remotes:FindFirstChild("OpenGunCrate")
+                            if remote then
+                                remote:InvokeServer(1)
+                                task.wait(getRandomCrateDelay())
+                            end
                         end
                     end)
-                        task.wait(0.1)
-                    end
-                end)
-            end
+                    task.wait(getBatchDelay())
+                end
+            end)
         end
-    })
+    end
+})
 
 
 -- Mod Tab
 local ModTab = Window:CreateTab("🌀 Mods", "Skull")
 
--- ⬇ Змінні оголошуються глобально (всередині скрипта, але поза функціями)
+-- Orbit System with Anti-Detection (Smooth Movement)
 local spinning = false
 local angle = 0
-local speed = 5      -- ✅ глобально
-local radius = 15    -- ✅ глобально
+local speed = 5
+local radius = 15
+local lastCFrame = nil
+local smoothness = 0.15 -- Interpolation smoothness (lower = smoother)
 
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local player = Players.LocalPlayer
+local TweenService = game:GetService("TweenService")
 local HRP = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
 
 player.CharacterAdded:Connect(function(char)
+    task.wait(0.2)
     HRP = char:WaitForChild("HumanoidRootPart")
+    lastCFrame = nil -- Reset on respawn
 end)
 
--- 🔁 Головне коло
-RunService.RenderStepped:Connect(function(dt)
-    if spinning and HRP then
-        local function findNearestBoss()
-            local bosses = {
-                workspace.Enemies:FindFirstChild("GoblinKing"),
-                workspace.Enemies:FindFirstChild("CaptainBoom"),
-                workspace.Enemies:FindFirstChild("Fungarth")
-            }
-
-            local nearestBoss = nil
-            local shortestDistance = math.huge
-
-            for _, boss in pairs(bosses) do
-                if boss and boss:FindFirstChild("Head") then
-                    local distance = (boss.Head.Position - HRP.Position).Magnitude
-                    if distance < shortestDistance then
-                        shortestDistance = distance
-                        nearestBoss = boss
-                    end
+-- Boss finding with health check
+local function findNearestBoss()
+    local bosses = {
+        workspace.Enemies:FindFirstChild("GoblinKing"),
+        workspace.Enemies:FindFirstChild("CaptainBoom"),
+        workspace.Enemies:FindFirstChild("Fungarth")
+    }
+    
+    local nearestBoss = nil
+    local shortestDistance = math.huge
+    
+    for _, boss in pairs(bosses) do
+        if boss and boss:FindFirstChild("Head") then
+            local humanoid = boss:FindFirstChild("Humanoid")
+            -- Only target living bosses
+            if humanoid and humanoid.Health > 0 then
+                local distance = (boss.Head.Position - HRP.Position).Magnitude
+                if distance < shortestDistance then
+                    shortestDistance = distance
+                    nearestBoss = boss
                 end
             end
-            return nearestBoss
         end
+    end
+    return nearestBoss
+end
 
-        local boss = findNearestBoss()
-        if boss and boss:FindFirstChild("Head") then
-            angle += dt * speed  -- ✅ використовує глобальну змінну
-            local bossPos = boss.Head.Position
-            local offset = Vector3.new(math.cos(angle), 0, math.sin(angle)) * radius -- ✅ радіус
-            local orbitPos = bossPos + offset
-            HRP.CFrame = CFrame.new(Vector3.new(orbitPos.X, bossPos.Y, orbitPos.Z), bossPos)
-        end
+-- Smooth orbit with interpolation (prevents teleport detection)
+RunService.RenderStepped:Connect(function(dt)
+    if spinning and HRP then
+        pcall(function()
+            local boss = findNearestBoss()
+            if boss and boss:FindFirstChild("Head") then
+                -- Smooth angle progression
+                angle = angle + (dt * speed)
+                if angle >= math.pi * 2 then
+                    angle = angle - math.pi * 2
+                end
+                
+                local bossPos = boss.Head.Position
+                local offset = Vector3.new(math.cos(angle), 0, math.sin(angle)) * radius
+                local targetPos = bossPos + offset
+                local targetCFrame = CFrame.new(
+                    Vector3.new(targetPos.X, bossPos.Y, targetPos.Z),
+                    Vector3.new(bossPos.X, bossPos.Y, bossPos.Z)
+                )
+                
+                -- Smooth interpolation (avoids instant teleport)
+                if lastCFrame then
+                    HRP.CFrame = lastCFrame:Lerp(targetCFrame, smoothness)
+                else
+                    HRP.CFrame = targetCFrame
+                end
+                
+                lastCFrame = HRP.CFrame
+            end
+        end)
     end
 end)
 
--- 🔘 Кнопка в меню
 ModTab:CreateToggle({
-    Name = "🌪️ Orbit Around Boss",
+    Name = "🌪️ Orbit Boss (360° Smooth)",
     CurrentValue = false,
     Callback = function(value)
         spinning = value
+        if value then
+            angle = 0 -- Reset angle
+            lastCFrame = nil -- Reset interpolation
+        end
     end
 })
 
--- ⚙️ Слайдер швидкості
 ModTab:CreateSlider({
     Name = "⚡ Rotation Speed",
     Range = {1, 20},
@@ -971,11 +760,10 @@ ModTab:CreateSlider({
     Suffix = "x",
     CurrentValue = 5,
     Callback = function(val)
-        speed = val   -- ✅ оновлює глобальну змінну
+        speed = val
     end
 })
 
--- 📏 Слайдер радіуса
 ModTab:CreateSlider({
     Name = "📏 Orbit Radius",
     Range = {5, 100},
@@ -983,7 +771,18 @@ ModTab:CreateSlider({
     Suffix = "units",
     CurrentValue = 15,
     Callback = function(val)
-        radius = val  -- ✅ оновлює глобальну змінну
+        radius = val
+    end
+})
+
+ModTab:CreateSlider({
+    Name = "🎯 Movement Smoothness",
+    Range = {0.05, 0.5},
+    Increment = 0.01,
+    Suffix = "",
+    CurrentValue = 0.15,
+    Callback = function(val)
+        smoothness = val
     end
 })
 
