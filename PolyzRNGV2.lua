@@ -1079,4 +1079,4 @@ ModTab:CreateButton({
 
 
 -- Load config
-Rayfield:LoadConfigurati
+Rayfield:LoadConfiguration()
