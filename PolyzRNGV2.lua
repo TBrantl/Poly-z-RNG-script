@@ -65,70 +65,25 @@ local lastShot = 0
 local shotCount = 0
 local maxShootDistance = 500 -- Maximum shooting range
 
--- ENHANCED Anti-Detection: Advanced humanized timing with multiple patterns
-local lastDelayPattern = 0
-local burstPattern = 0
-local humanPatterns = {0.95, 1.02, 0.98, 1.05, 0.97, 1.01, 0.99, 1.03}
-
+-- Anti-pattern: Humanized timing with variance
 local function getSmartDelay(base)
-    -- Advanced variance with human-like patterns (5-15% variance)
-    local variance = base * (0.05 + math.random() * 0.10)
+    -- Ultra-minimal variance for maximum speed (2-8% variance)
+    local variance = base * (0.02 + math.random() * 0.06)
     local offset = (math.random() > 0.5) and variance or -variance
-    
-    -- Add human-like micro-patterns to avoid detection
-    lastDelayPattern = (lastDelayPattern % #humanPatterns) + 1
-    local patternMultiplier = humanPatterns[lastDelayPattern]
-    
-    -- Less frequent "human hesitation" for better performance (1 in 100 chance)
-    if math.random(1, 100) == 1 then
-        patternMultiplier = patternMultiplier * (1.1 + math.random() * 0.2) -- Smaller hesitation
-    end
-    
-    local finalDelay = (base + offset) * patternMultiplier
-    return math.max(0.008, finalDelay)
+    return math.max(0.008, base + offset) -- Minimum 0.008s (125 shots/sec max)
 end
 
--- ENHANCED Anti-Detection: Smart rate limiting with dynamic patterns
-local detectionRisk = 0
-local lastBurstTime = 0
-local burstCooldownActive = false
-
+-- Anti-spam: Track shots and add cooldown if too many
 local function shouldAllowShot()
     local currentTime = tick()
     
     -- Reset counter every 5 seconds
     if currentTime - lastShot > 5 then
         shotCount = 0
-        detectionRisk = math.max(0, detectionRisk - 10) -- Reduce risk over time
     end
     
-    -- More aggressive burst limits (less conservative)
-    local maxShots = 250 -- Increased base limit
-    if detectionRisk > 70 then -- Higher threshold
-        maxShots = 200 -- Less reduction
-    elseif detectionRisk > 90 then -- Much higher threshold
-        maxShots = 150 -- Still aggressive
-    end
-    
-    -- Limit shots per burst
-    if shotCount >= maxShots then
-        detectionRisk = detectionRisk + 5
-        return false
-    end
-    
-    -- Less frequent forced cooldowns for better performance
-    if shotCount > 0 and shotCount % 150 == 0 and not burstCooldownActive then -- Every 150 shots instead of 100
-        burstCooldownActive = true
-        lastBurstTime = currentTime
-        task.spawn(function()
-            task.wait(0.05 + math.random() * 0.1) -- 0.05-0.15s shorter pause
-            burstCooldownActive = false
-        end)
-        return false
-    end
-    
-    -- Don't shoot during burst cooldown
-    if burstCooldownActive then
+    -- Limit to 200 shots per 5 seconds (GODMODE bursts)
+    if shotCount >= 200 then
         return false
     end
     
@@ -295,58 +250,6 @@ CombatTab:CreateSlider({
     end
 })
 
--- Detection Risk Monitor
-local riskLabel = CombatTab:CreateLabel("🛡️ Detection Risk: 0% (Safe)")
-
-task.spawn(function()
-    while true do
-        local riskLevel = math.min(100, detectionRisk)
-        local riskText = "🛡️ Detection Risk: " .. math.floor(riskLevel) .. "%"
-        
-        if riskLevel < 25 then
-            riskText = riskText .. " (Safe)"
-        elseif riskLevel < 50 then
-            riskText = riskText .. " (Low)"
-        elseif riskLevel < 75 then
-            riskText = riskText .. " (Medium)"
-        else
-            riskText = riskText .. " (HIGH)"
-        end
-        
-        riskLabel:Set(riskText)
-        task.wait(1)
-    end
-end)
-
-CombatTab:CreateButton({
-    Name = "🛡️ RESET DETECTION RISK",
-    Callback = function()
-        detectionRisk = 0
-        shotCount = 0
-        burstCooldownActive = false
-        Rayfield:Notify({
-            Title = "🛡️ PROTECTION",
-            Content = "Detection risk reset to 0%!",
-            Duration = 3,
-            Image = 4483362458
-        })
-    end
-})
-
-CombatTab:CreateButton({
-    Name = "⚡ PERFORMANCE MODE",
-    Callback = function()
-        shootDelay = 0.008
-        detectionRisk = 0 -- Reset risk for maximum performance
-        Rayfield:Notify({
-            Title = "⚡ PERFORMANCE MODE",
-            Content = "Optimized for maximum crowd control!",
-            Duration = 3,
-            Image = 4483362458
-        })
-    end
-})
-
 CombatTab:CreateButton({
     Name = "🚀 GODMODE (MAXIMUM)",
     Callback = function()
@@ -371,26 +274,15 @@ CombatTab:CreateButton({
             Image = 4483362458
         })
         
-        -- Enhanced warning system for NUCLEAR mode
+        -- Warning after 10 seconds
         task.spawn(function()
-            task.wait(5)
+            task.wait(10)
             Rayfield:Notify({
-                Title = "⚠️ NUCLEAR ACTIVE",
-                Content = "Monitor detection risk closely!",
+                Title = "⚠️ NUCLEAR WARNING",
+                Content = "Reduce speed if detected!",
                 Duration = 3,
                 Image = 4483362458
             })
-            
-            task.wait(10)
-            if detectionRisk > 75 then
-                shootDelay = 0.01 -- Auto-reduce to GODMODE if high risk
-                Rayfield:Notify({
-                    Title = "🛡️ AUTO-PROTECTION",
-                    Content = "Reduced to GODMODE (high risk detected)!",
-                    Duration = 4,
-                    Image = 4483362458
-                })
-            end
         end)
     end
 })
@@ -406,12 +298,7 @@ CombatTab:CreateToggle({
                 while autoKill do
                     pcall(function()
                         if not shouldAllowShot() then
-                            -- Minimal dynamic cooldown for better performance
-                            local cooldownTime = 0.01 + (detectionRisk * 0.0005) -- Much less impact from risk
-                            if burstCooldownActive then
-                                cooldownTime = 0.08 + math.random() * 0.05 -- Shorter human-like pause
-                            end
-                            task.wait(cooldownTime)
+                            task.wait(0.02) -- GODMODE cooldown (nearly instant recovery)
                             return
                         end
                         
@@ -462,16 +349,9 @@ CombatTab:CreateToggle({
                                     return a.distance < b.distance
                                 end)
                                 
-                                -- ENHANCED CROWD CONTROL: Dynamic multi-targeting with detection protection
+                                -- CROWD CONTROL: Try to shoot multiple targets per cycle for better defense
                                 local shotsFired = 0
-                                -- Less aggressive multi-shot reduction for better crowd control
-                                local baseShotsPerCycle = 6 -- Increased base
-                                if detectionRisk > 75 then -- Higher threshold
-                                    baseShotsPerCycle = 4 -- Less reduction
-                                elseif detectionRisk > 95 then -- Much higher threshold
-                                    baseShotsPerCycle = 3 -- Still good crowd control
-                                end
-                                local maxShotsPerCycle = math.min(baseShotsPerCycle, #validTargets)
+                                local maxShotsPerCycle = math.min(5, #validTargets) -- Up to 5 shots per cycle (MAXIMUM CARNAGE)
                                 
                                 for _, target in ipairs(validTargets) do
                                     if shotsFired >= maxShotsPerCycle then break end
@@ -496,11 +376,6 @@ CombatTab:CreateToggle({
                                             shotCount = shotCount + 1
                                             shotsFired = shotsFired + 1
                                             
-                                            -- Much less risk increase for better performance
-                                            if shotsFired > 2 then -- Only after 3+ shots
-                                                detectionRisk = detectionRisk + 0.2 -- Much smaller increase
-                                            end
-                                            
                                             -- Notify when boss is targeted (for debugging)
                                             if isBoss and math.random(1, 30) == 1 then -- Reduced spam chance
                                                 Rayfield:Notify({
@@ -511,10 +386,9 @@ CombatTab:CreateToggle({
                                                 })
                                             end
                                             
-                                            -- Minimal delay between multi-shots for maximum crowd control
+                                            -- Minimal delay between multi-shots for MAXIMUM SPEED
                                             if shotsFired < maxShotsPerCycle then
-                                                local multiShotDelay = 0.003 + (detectionRisk * 0.00005) -- Much faster
-                                                task.wait(multiShotDelay)
+                                                task.wait(0.005) -- Ultra-tiny delay between rapid shots
                                             end
                                         end
                                     end
