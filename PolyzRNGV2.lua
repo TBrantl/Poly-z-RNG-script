@@ -702,7 +702,7 @@ MiscTab:CreateButton({
 MiscTab:CreateSection("⚠️ EXPERIMENTAL (HIGH DETECTION RISK)")
 
 MiscTab:CreateButton({
-    Name = "💰 INSANE Gold Bonus (RISKY)",
+    Name = "💰 GODLIKE Gold Bonus (EXTREME RISK)",
     Callback = function()
         local petInventory = player:FindFirstChild("PetInventory")
         if not petInventory then 
@@ -717,12 +717,12 @@ MiscTab:CreateButton({
 
         -- WARNING: This WILL be detected by KnightMare eventually
         pcall(function()
-            petInventory:SetAttribute("GOLD", 50.0)  -- +5000% gold bonus (INSANE!)
+            petInventory:SetAttribute("GOLD", 2500.0)  -- +250,000% gold bonus (ABSOLUTELY INSANE!)
         end)
         
         Rayfield:Notify({
             Title = "⚠️ EXPERIMENTAL",
-            Content = "GOLD +5000%! (HIGH DETECTION RISK)",
+            Content = "GOLD +250,000%! (EXTREME RISK)",
             Duration = 5,
             Image = 4483362458
         })
