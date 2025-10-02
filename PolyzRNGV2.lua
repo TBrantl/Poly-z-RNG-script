@@ -12,22 +12,22 @@ local Remotes
 task.spawn(function()
     Remotes = ReplicatedStorage:WaitForChild("Remotes", 10)
     if not Remotes then
-        warn("[POLY-Z V2] Remotes folder not found - some features may not work")
+        warn("[Freezy HUB] Remotes folder not found - some features may not work")
     end
 end)
 
 -- UI Window Configuration
 local Window = Rayfield:CreateWindow({
-    Name = "✨ LimerHub V2 ✨ | POLY-Z",
+    Name = "❄️ Freezy HUB ❄️ | POLY-Z",
     Icon = 71338090068856,
-    LoadingTitle = "Loading V2...",
-    LoadingSubtitle = "Enhanced Features",
-    Theme = "BlackWhite",
+    LoadingTitle = "⚡ Initializing Freezy HUB...",
+    LoadingSubtitle = "Ice Cold Performance",
+    Theme = "Ocean",
     ToggleUIKeybind = Enum.KeyCode.K,
     ConfigurationSaving = {
         Enabled = true,
-        FolderName = "ZombieHub",
-        FileName = "ConfigV2"
+        FolderName = "FreezyHub",
+        FileName = "FreezyConfig"
     }
 })
 
@@ -45,15 +45,15 @@ local function getEquippedWeaponName()
 end
 
 -- Combat Tab
-local CombatTab = Window:CreateTab("⚔️ Combat", "Skull")
+local CombatTab = Window:CreateTab("⚔️ Warfare", "Sword")
 
 -- Weapon Label
-local weaponLabel = CombatTab:CreateLabel("🔫 Current Weapon: Loading...")
+local weaponLabel = CombatTab:CreateLabel("🔫 Equipped Weapon: Loading...")
 
 -- Update label
 task.spawn(function()
     while true do
-        weaponLabel:Set("🔫 Current Weapon: " .. getEquippedWeaponName())
+        weaponLabel:Set("🔫 Equipped Weapon: " .. getEquippedWeaponName())
         task.wait(0.1)
     end
 end)
@@ -206,32 +206,32 @@ end
 
 -- Combat Configuration
 CombatTab:CreateInput({
-    Name = "⏱️ Shot delay (0.08-2 sec)",
+    Name = "⚡ Shot Delay (0.08-2s)",
     PlaceholderText = "0.15",
     RemoveTextAfterFocusLost = false,
     Callback = function(text)
         local num = tonumber(text)
         if num and num >= 0.08 and num <= 2 then
             shootDelay = num
-            Rayfield:Notify({
-                Title = "Success",
-                Content = "Shot delay set to "..num.." seconds",
-                Duration = 3,
-                Image = 4483362458
-            })
-        else
-            Rayfield:Notify({
-                Title = "Error",
-                Content = "Please enter a number between 0.08 and 2",
-                Duration = 3,
-                Image = 4483362458
-            })
+                    Rayfield:Notify({
+                        Title = "⚡ Freezy HUB",
+                        Content = "Shot delay set to "..num.."s",
+                        Duration = 3,
+                        Image = 4483362458
+                    })
+                else
+                    Rayfield:Notify({
+                        Title = "❌ Invalid Input",
+                        Content = "Enter a value between 0.08 and 2",
+                        Duration = 3,
+                        Image = 4483362458
+                    })
         end
     end,
 })
 
 CombatTab:CreateSlider({
-    Name = "🎯 Max Shoot Range",
+    Name = "🎯 Combat Range",
     Range = {100, 1000},
     Increment = 50,
     Suffix = " studs",
@@ -243,7 +243,7 @@ CombatTab:CreateSlider({
 })
 
 CombatTab:CreateToggle({
-    Name = "🔪 Auto Headshots (Smart Ray)",
+    Name = "💀 Auto Elimination (Smart)",
     CurrentValue = false,
     Flag = "AutoKillZombies",
     Callback = function(state)
@@ -347,7 +347,7 @@ CombatTab:CreateToggle({
 })
 
 CombatTab:CreateToggle({
-    Name = "⏩ Auto Skip Round",
+    Name = "⏩ Round Skipper",
     CurrentValue = false,
     Flag = "AutoSkipRound",
     Callback = function(state)
@@ -430,7 +430,7 @@ CombatTab:CreateSlider({
 })
 
 -- Misc Tab
-local MiscTab = Window:CreateTab("✨ Utilities", "Sparkles")
+local MiscTab = Window:CreateTab("🔷 Utilities", "Settings")
 
 MiscTab:CreateSection("💰 Auto Collection")
 
@@ -551,15 +551,15 @@ local function collectNearbyItems()
 end
 
 MiscTab:CreateToggle({
-    Name = "💰 Auto Collect Items",
+    Name = "💎 Auto Loot Collector",
     CurrentValue = false,
     Flag = "AutoCollect",
     Callback = function(state)
         autoCollect = state
         if state then
             Rayfield:Notify({
-                Title = "Auto Collect",
-                Content = "Now collecting nearby items!",
+                Title = "💎 Freezy HUB",
+                Content = "Auto-collector activated!",
                 Duration = 3,
                 Image = 4483362458
             })
@@ -575,7 +575,7 @@ MiscTab:CreateToggle({
 })
 
 MiscTab:CreateSlider({
-    Name = "📏 Collection Radius",
+    Name = "📏 Collector Radius",
     Range = {50, 200},
     Increment = 10,
     Suffix = " studs",
@@ -586,10 +586,10 @@ MiscTab:CreateSlider({
     end
 })
 
-MiscTab:CreateSection("🔧 Tools")
+MiscTab:CreateSection("🔷 Quick Tools")
 
 MiscTab:CreateButton({
-    Name = "🚪 Delete All Doors",
+    Name = "🚪 Remove Doors",
     Callback = function()
         local doorsFolder = workspace:FindFirstChild("Doors")
         if doorsFolder then
@@ -599,8 +599,8 @@ MiscTab:CreateButton({
                 end
             end
             Rayfield:Notify({
-                Title = "Success",
-                Content = "All doors deleted!",
+                Title = "🚪 Freezy HUB",
+                Content = "All doors removed!",
                 Duration = 3,
                 Image = 4483362458
             })
@@ -609,7 +609,7 @@ MiscTab:CreateButton({
 })
 
 MiscTab:CreateButton({
-    Name = "🎯 Infinite Magazines",
+    Name = "♾️ Infinite Ammo",
     Callback = function()
         local vars = player:FindFirstChild("Variables")
         if not vars then return end
@@ -625,24 +625,24 @@ MiscTab:CreateButton({
             end  
         end
         Rayfield:Notify({
-            Title = "Magazines",
-            Content = "Infinite magazines set!",
+            Title = "♾️ Freezy HUB",
+            Content = "Infinite ammo enabled!",
             Duration = 3,
             Image = 4483362458
         })
     end
 })
 
-MiscTab:CreateSection("💎 Enhancements (FUNCTIONAL)")
+MiscTab:CreateSection("⚡ Power Enhancements")
 
 MiscTab:CreateButton({
-    Name = "🌟 Activate All Perks (FULL)",
+    Name = "⚡ Unlock All Perks",
     Callback = function()
         local vars = player:FindFirstChild("Variables")
         if not vars then 
             Rayfield:Notify({
-                Title = "Error",
-                Content = "Variables not found! Wait for game to load.",
+                Title = "❌ Error",
+                Content = "Wait for game to load...",
                 Duration = 3,
                 Image = 4483362458
             })
@@ -669,8 +669,8 @@ MiscTab:CreateButton({
         end
         
         Rayfield:Notify({
-            Title = "Perks Activated",
-            Content = activated .. "/8 perks enabled (FUNCTIONAL)",
+            Title = "⚡ Freezy HUB",
+            Content = activated .. "/8 perks unlocked!",
             Duration = 3,
             Image = 4483362458
         })
@@ -678,13 +678,13 @@ MiscTab:CreateButton({
 })
 
 MiscTab:CreateButton({
-    Name = "🔫 Enhance Weapons (FULL)",
+    Name = "🔫 Weapon Enhancer",
     Callback = function()
         local vars = player:FindFirstChild("Variables")
         if not vars then 
             Rayfield:Notify({
-                Title = "Error",
-                Content = "Variables not found!",
+                Title = "❌ Error",
+                Content = "Wait for game to load...",
                 Duration = 3,
                 Image = 4483362458
             })
@@ -706,8 +706,8 @@ MiscTab:CreateButton({
         end
         
         Rayfield:Notify({
-            Title = "Weapons Enhanced",
-            Content = enhanced .. "/2 weapons upgraded (FUNCTIONAL)",
+            Title = "🔫 Freezy HUB",
+            Content = enhanced .. "/2 weapons enhanced!",
             Duration = 3,
             Image = 4483362458
         })
@@ -716,13 +716,13 @@ MiscTab:CreateButton({
 
 
 MiscTab:CreateButton({
-    Name = "💫 Transcendent Weapons (MAX)",
+    Name = "❄️ Max Tier Weapons",
     Callback = function()
         local gunData = player:FindFirstChild("GunData")
         if not gunData then 
             Rayfield:Notify({
-                Title = "Error",
-                Content = "GunData not found!",
+                Title = "❌ Error",
+                Content = "Wait for game to load...",
                 Duration = 3,
                 Image = 4483362458
             })
@@ -740,8 +740,8 @@ MiscTab:CreateButton({
         end
         
         Rayfield:Notify({
-            Title = "Transcendent Applied",
-            Content = modified .. " weapons set to MAX tier (0.00004% rarity!)",
+            Title = "❄️ Freezy HUB",
+            Content = modified .. " weapons maxed (0.00004% rarity!)",
             Duration = 3,
             Image = 4483362458
         })
@@ -749,7 +749,7 @@ MiscTab:CreateButton({
 })
 
 -- Open Tab
-local OpenTab = Window:CreateTab("🎁 Crates", "Gift")
+local OpenTab = Window:CreateTab("📦 Crates", "Box")
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local selectedQuantity = 1
@@ -898,7 +898,7 @@ OpenTab:CreateToggle({
 
 
 -- Mod Tab
-local ModTab = Window:CreateTab("🌀 Mods", "Skull")
+local ModTab = Window:CreateTab("🌀 Movement", "User")
 
 -- Orbit System with Anti-Detection (Smooth Movement)
 local spinning = false
@@ -990,7 +990,7 @@ ModTab:CreateToggle({
 })
 
 ModTab:CreateSlider({
-    Name = "⚡ Rotation Speed",
+    Name = "⚡ Orbit Speed",
     Range = {1, 20},
     Increment = 0.1,
     Suffix = "x",
@@ -1012,7 +1012,7 @@ ModTab:CreateSlider({
 })
 
 ModTab:CreateSlider({
-    Name = "🎯 Movement Smoothness",
+    Name = "🎯 Orbit Smoothness",
     Range = {0.05, 0.5},
     Increment = 0.01,
     Suffix = "",
