@@ -1,14 +1,51 @@
+-- Wait for game to fully load
+task.wait(1)
+
 -- Services
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
-local Remotes = ReplicatedStorage:WaitForChild("Remotes")
+
+-- Wait for Remotes with timeout and error handling
+local Remotes
+local success, error = pcall(function()
+    Remotes = ReplicatedStorage:WaitForChild("Remotes", 10) -- 10 second timeout
+end)
+
+if not success or not Remotes then
+    warn("Failed to find Remotes folder, script may not work properly")
+    -- Create a dummy remotes table to prevent errors
+    Remotes = {
+        FindFirstChild = function() return nil end,
+        ShootEnemy = { FireServer = function() end }
+    }
+end
 
 -- Load Rayfield UI Library with error handling
 local Rayfield, Window
 local success, error = pcall(function()
-    Rayfield = loadstring(game:HttpGet('https://limerbro.github.io/Roblox-Limer/rayfield.lua'))()
+    -- Try multiple Rayfield sources for better compatibility
+    local rayfieldSources = {
+        'https://limerbro.github.io/Roblox-Limer/rayfield.lua',
+        'https://sirius.menu/rayfield',
+        'https://raw.githubusercontent.com/shlexware/Rayfield/main/source'
+    }
+    
+    for i, source in ipairs(rayfieldSources) do
+        local success, result = pcall(function()
+            return loadstring(game:HttpGet(source))()
+        end)
+        
+        if success and result then
+            Rayfield = result
+            break
+        end
+    end
+    
+    if not Rayfield then
+        error("Failed to load Rayfield from any source")
+    end
     
     -- UI Window Configuration
     Window = Rayfield:CreateWindow({
@@ -28,16 +65,24 @@ end)
 
 if not success then
     warn("Failed to load Rayfield UI:", error)
+    -- Create a fallback notification system
+    game.StarterGui:SetCore("SendNotification", {
+        Title = "Script Error",
+        Text = "Failed to load Rayfield UI. Please check your internet connection and try again.",
+        Duration = 5
+    })
     return
 end
 
--- Success notification
-Rayfield:Notify({
-    Title = "Script Loaded",
-    Content = "Poly-z RNG Script loaded successfully! Press K to toggle GUI.",
-    Duration = 5,
-    Image = 4483362458
-})
+-- Success notification with error handling
+pcall(function()
+    Rayfield:Notify({
+        Title = "Script Loaded",
+        Content = "Poly-z RNG Script loaded successfully! Press K to toggle GUI.",
+        Duration = 5,
+        Image = 4483362458
+    })
+end)
 
 -- GHOST MODE DETECTION RESISTANCE SYSTEM (completely undetectable)
 local lastShotTime = 0
