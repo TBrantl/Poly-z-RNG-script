@@ -686,7 +686,7 @@ MiscTab:CreateButton({
 })
 
 MiscTab:CreateButton({
-    Name = "💎 Max Pet Bonuses",
+    Name = "💎 Max Pet Bonuses (Safe)",
     Callback = function()
         local petInventory = player:FindFirstChild("PetInventory")
         if not petInventory then 
@@ -699,20 +699,19 @@ MiscTab:CreateButton({
             return 
         end
 
-        -- Set all pet bonus attributes to maximum values
+        -- Set realistic pet bonus values (undetectable range)
         pcall(function()
-            petInventory:SetAttribute("GOLD", 999)      -- +999% gold bonus
-            petInventory:SetAttribute("DMG", 999)       -- +999% damage bonus  
-            petInventory:SetAttribute("MAG", 999)       -- +999% magazine bonus
-            petInventory:SetAttribute("HP", 999)        -- +999% health bonus
-            petInventory:SetAttribute("SPEED", 999)     -- +999% speed bonus
-            petInventory:SetAttribute("LUCK", 999)      -- +999% luck bonus
-            petInventory:SetAttribute("DoublePetStats", true)  -- Double all pet stats!
+            petInventory:SetAttribute("GOLD", 5)      -- +500% gold (realistic max)
+            petInventory:SetAttribute("DMG", 3)       -- +300% damage  
+            petInventory:SetAttribute("MAG", 2)       -- +200% magazine
+            petInventory:SetAttribute("HP", 2)        -- +200% health
+            petInventory:SetAttribute("SPEED", 1)     -- +100% speed
+            petInventory:SetAttribute("LUCK", 5)      -- +500% luck
         end)
         
         Rayfield:Notify({
             Title = "💎 Freezy HUB",
-            Content = "Pet bonuses maxed! (+999% all stats)",
+            Content = "Pet bonuses set (safe values)",
             Duration = 3,
             Image = 4483362458
         })
@@ -720,13 +719,16 @@ MiscTab:CreateButton({
 })
 
 MiscTab:CreateButton({
-    Name = "❤️ Max Health + Stamina",
+    Name = "❤️ Boost Health + Stamina",
     Callback = function()
         local vars = player:FindFirstChild("Variables")
-        if not vars then 
+        local character = player.Character
+        local humanoid = character and character:FindFirstChild("Humanoid")
+        
+        if not vars or not humanoid then 
             Rayfield:Notify({
                 Title = "❌ Error",
-                Content = "Variables not found!",
+                Content = "Wait for character to load...",
                 Duration = 3,
                 Image = 4483362458
             })
@@ -734,15 +736,23 @@ MiscTab:CreateButton({
         end
 
         pcall(function()
-            vars:SetAttribute("Max_Health", 999999)  -- Max health cap
-            vars:SetAttribute("Health", 999999)      -- Current health
-            vars:SetAttribute("Max_Stamina", 999999) -- Max stamina cap
-            vars:SetAttribute("Stamina", 999999)     -- Current stamina
+            -- Get current max values and increase by reasonable amount
+            local currentMaxHealth = vars:GetAttribute("Max_Health") or humanoid.MaxHealth
+            local currentMaxStamina = vars:GetAttribute("Max_Stamina") or 100
+            
+            -- Set to 3x normal max (undetectable range)
+            local newMaxHealth = math.min(currentMaxHealth * 3, 1000)
+            local newMaxStamina = math.min(currentMaxStamina * 3, 500)
+            
+            vars:SetAttribute("Max_Health", newMaxHealth)
+            vars:SetAttribute("Health", newMaxHealth)
+            vars:SetAttribute("Max_Stamina", newMaxStamina)
+            vars:SetAttribute("Stamina", newMaxStamina)
         end)
         
         Rayfield:Notify({
             Title = "❤️ Freezy HUB",
-            Content = "Health & Stamina maxed!",
+            Content = "Health & Stamina boosted (3x)",
             Duration = 3,
             Image = 4483362458
         })
