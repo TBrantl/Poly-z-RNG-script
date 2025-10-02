@@ -114,8 +114,8 @@ local weaponLabel = CombatTab:CreateLabel("🔫 Current Weapon: Loading...")
 task.spawn(function()
     while true do
         local weapon = getEquippedWeaponName()
-        if weapon then
-            weaponLabel:Set("🔫 Current Weapon: " .. weapon)
+        if weapon and weapon ~= "" then
+            weaponLabel:Set("🔫 Current Weapon: " .. tostring(weapon))
         else
             weaponLabel:Set("🔫 Current Weapon: Unknown")
         end
@@ -139,7 +139,7 @@ CombatTab:CreateInput({
             shootDelay = num
             Rayfield:Notify({
                 Title = "Success",
-                Content = "Shot delay set to "..num.." seconds",
+                Content = "Shot delay set to " .. tostring(num) .. " seconds",
                 Duration = 3,
                 Image = 4483362458
             })
