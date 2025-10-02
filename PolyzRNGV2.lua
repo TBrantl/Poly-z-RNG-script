@@ -1,3 +1,6 @@
+-- Poly-z RNG Script V2 - Fixed Version
+print("[Poly-z RNG V2] Script starting...")
+
 -- Services
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -110,7 +113,12 @@ local weaponLabel = CombatTab:CreateLabel("🔫 Current Weapon: Loading...")
 -- Update label
 task.spawn(function()
     while true do
-        weaponLabel:Set("🔫 Current Weapon: " .. getEquippedWeaponName())
+        local weapon = getEquippedWeaponName()
+        if weapon then
+            weaponLabel:Set("🔫 Current Weapon: " .. weapon)
+        else
+            weaponLabel:Set("🔫 Current Weapon: Unknown")
+        end
         task.wait(0.1)
     end
 end)
@@ -159,12 +167,14 @@ CombatTab:CreateToggle({
                     local shootRemote = Remotes:FindFirstChild("ShootEnemy")
                     if enemies and shootRemote then
                         local weapon = getEquippedWeaponName()
-                        for _, zombie in pairs(enemies:GetChildren()) do
-                            if zombie:IsA("Model") then
-                                local head = zombie:FindFirstChild("Head")
-                                if head then
-                                    local args = {zombie, head, head.Position, 0.5, weapon}
-                                    pcall(function() shootRemote:FireServer(unpack(args)) end)
+                        if weapon then
+                            for _, zombie in pairs(enemies:GetChildren()) do
+                                if zombie:IsA("Model") then
+                                    local head = zombie:FindFirstChild("Head")
+                                    if head then
+                                        local args = {zombie, head, head.Position, 0.5, weapon}
+                                        pcall(function() shootRemote:FireServer(unpack(args)) end)
+                                    end
                                 end
                             end
                         end
