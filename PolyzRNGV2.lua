@@ -1083,8 +1083,78 @@ ModTab:CreateButton({
     end
 })
 
+-- ❄️ FREEZY HUB SETTINGS SECTION
+MiscTab:CreateSection("❄️ Freezy HUB Settings")
 
+MiscTab:CreateButton({
+    Name = "🔌 Unload Freezy HUB",
+    Callback = function()
+        -- Disable all active features
+        autoKill = false
+        autoCollect = false
+        autoOpenCrates = false
+        orbitEnabled = false
+        
+        -- Clear any active tweens
+        for item, _ in pairs(activeTweens or {}) do
+            activeTweens[item] = nil
+        end
+        
+        -- Reset player properties to normal
+        pcall(function()
+            local character = player.Character
+            if character then
+                local humanoid = character:FindFirstChild("Humanoid")
+                if humanoid then
+                    humanoid.WalkSpeed = 16 -- Default Roblox speed
+                end
+            end
+        end)
+        
+        -- Clean up any created platforms
+        pcall(function()
+            for _, obj in pairs(workspace:GetChildren()) do
+                if obj.Name == "SmartPlatform" then
+                    obj:Destroy()
+                end
+            end
+        end)
+        
+        -- Final notification and destroy GUI
+        Rayfield:Notify({
+            Title = "❄️ Freezy HUB",
+            Content = "Script safely unloaded! Stay frosty! 🧊",
+            Duration = 3,
+            Image = 4483362458
+        })
+        
+        -- Wait a moment then destroy the GUI
+        task.wait(2)
+        pcall(function()
+            if Rayfield and Rayfield.Main then
+                Rayfield.Main:Destroy()
+            end
+        end)
+        
+        -- Clean up global variables
+        getgenv().FreezyHubLoaded = nil
+    end
+})
 
+MiscTab:CreateButton({
+    Name = "💾 Save Configuration",
+    Callback = function()
+        pcall(function()
+            Rayfield:SaveConfiguration()
+            Rayfield:Notify({
+                Title = "❄️ Success",
+                Content = "Configuration saved successfully!",
+                Duration = 3,
+                Image = 4483362458
+            })
+        end)
+    end
+})
 
 -- Load config
 Rayfield:LoadConfiguration()
