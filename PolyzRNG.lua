@@ -23,7 +23,7 @@ local Window = Rayfield:CreateWindow({
     }
 })
 
--- CRITICAL DETECTION RESISTANCE SYSTEM
+-- Auto Headshot System Variables
 local lastShotTime = 0
 local shotCount = 0
 local sessionStartTime = tick()
@@ -34,6 +34,7 @@ local humanBehaviorPattern = {
     breakFrequency = {8, 15},
     missChance = {0.05, 0.15}
 }
+
 
 -- Enhanced weapon validation (matches game exactly)
 local function getEquippedWeaponName()
@@ -108,35 +109,26 @@ local function getSessionAdaptation()
     }
 end
 
--- REFINED: Detection monitoring system (optimized)
+-- CRITICAL: Detection monitoring system
 local detectionRisk = 0
-local lastRiskUpdate = 0
 local function updateDetectionRisk()
-    local currentTime = tick()
-    
-    -- Performance optimization: only update risk every 2 seconds
-    if currentTime - lastRiskUpdate < 2 then
-        return
-    end
-    
-    lastRiskUpdate = currentTime
-    local sessionTime = currentTime - sessionStartTime
+    local sessionTime = tick() - sessionStartTime
     local shotsPerMinute = (shotCount / (sessionTime / 60))
     
-    -- Refined risk calculation
+    -- Calculate risk based on multiple factors
     local timeRisk = math.min(sessionTime / 600, 1) -- 10 minute risk
-    local shotRisk = math.min(shotsPerMinute / 50, 1) -- 50 shots/minute risk (more conservative)
-    local patternRisk = shotCount % 15 == 0 and 0.05 or 0 -- Reduced pattern detection
+    local shotRisk = math.min(shotsPerMinute / 60, 1) -- 60 shots/minute risk
+    local patternRisk = shotCount % 20 == 0 and 0.1 or 0 -- Pattern detection
     
     detectionRisk = (timeRisk + shotRisk + patternRisk) / 3
     
-    -- Adaptive behavior based on risk (refined thresholds)
-    if detectionRisk > 0.6 then
-        humanBehaviorPattern.missChance = {0.20, 0.30}
-        humanBehaviorPattern.breakFrequency = {4, 8}
-    elseif detectionRisk > 0.3 then
+    -- Adaptive behavior based on risk
+    if detectionRisk > 0.7 then
         humanBehaviorPattern.missChance = {0.15, 0.25}
-        humanBehaviorPattern.breakFrequency = {6, 10}
+        humanBehaviorPattern.breakFrequency = {5, 10}
+    elseif detectionRisk > 0.4 then
+        humanBehaviorPattern.missChance = {0.10, 0.20}
+        humanBehaviorPattern.breakFrequency = {6, 12}
     end
 end
 
@@ -158,9 +150,8 @@ end
 local CombatTab = Window:CreateTab("⚔️ Combat", "Skull")
 
 -- Stealth Information
-CombatTab:CreateLabel("🛡️ REFINED DETECTION RESISTANCE:")
-CombatTab:CreateLabel("✅ Zombie-Focused Targeting | ✅ Human Behavior Simulation | ✅ Perfect Game Sync")
-CombatTab:CreateLabel("✅ Session Adaptation | ✅ Behavioral Patterns | ✅ Optimized Performance")
+CombatTab:CreateLabel("🛡️ STEALTH AUTO HEADSHOT SYSTEM:")
+CombatTab:CreateLabel("✅ Zombie + Boss Targeting | ✅ Detection Resistance | ✅ Human Behavior")
 CombatTab:CreateLabel("━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 
 -- Weapon Label
@@ -172,6 +163,7 @@ local roundLabel = CombatTab:CreateLabel("🎯 Round: 0 | Risk: 0% | Shots: 0")
 -- Detection Risk Label
 local riskLabel = CombatTab:CreateLabel("🛡️ Detection Risk: 0% | Session: 0m")
 
+
 -- Update labels
 task.spawn(function()
     while true do
@@ -179,12 +171,15 @@ task.spawn(function()
         weaponLabel:Set("🔫 Current Weapon: " .. getEquippedWeaponName())
         roundLabel:Set("🎯 Round: " .. roundsSurvived .. " | Risk: " .. math.floor(detectionRisk * 100) .. "% | Shots: " .. shotCount)
         riskLabel:Set("🛡️ Detection Risk: " .. math.floor(detectionRisk * 100) .. "% | Session: " .. sessionTime .. "m")
+        
+        
         task.wait(0.1)
     end
 end)
 
 -- Auto Headshots (ULTRA STEALTH)
 local autoKill = false
+local autoKillBosses = false
 local shootDelay = 0.25
 local lastShotTime = 0
 local shotsFired = 0
@@ -336,27 +331,36 @@ CombatTab:CreateToggle({
     end
 })
 
+
 CombatTab:CreateToggle({
-    Name = "🔪 Auto Headshots (STEALTH)",
+    Name = "🔪 Auto Headshots (ZOMBIES + BOSSES)",
     CurrentValue = false,
     Flag = "AutoKillZombies",
     Callback = function(state)
         autoKill = state
+        autoKillBosses = state -- Boss targeting is always enabled with auto headshots
         if state then
+            Rayfield:Notify({
+                Title = "Auto Headshots + Boss Kill",
+                Content = "Stealth auto headshots enabled - Targets zombies and bosses with detection resistance",
+                Duration = 4,
+                Image = 4483362458
+            })
             task.spawn(function()
                 while autoKill do
                     -- Check if we can shoot (cooldown validation)
                     if not canShoot() then
                         task.wait(0.05)
-                        continue
-                    end
+                            continue
+                        end
+                        
                     
                     local enemies = workspace:FindFirstChild("Enemies")
                     local shootRemote = Remotes:FindFirstChild("ShootEnemy")
                     
                     if enemies and shootRemote then
                         local weapon = getEquippedWeaponName()
-                        local closestZombie = nil
+                        local closestTarget = nil
                         local closestHead = nil
                         local minDist = math.huge
                         local playerPos = player.Character and player.Character.PrimaryPart and player.Character.PrimaryPart.Position
@@ -366,30 +370,68 @@ CombatTab:CreateToggle({
                             continue
                         end
                         
-                        -- OPTIMIZED ZOMBIE TARGETING (performance + stealth)
-                        local zombieCount = 0
+                        -- Find closest zombie (more human-like)
                         for _, zombie in pairs(enemies:GetChildren()) do
                             if zombie:IsA("Model") and zombie:FindFirstChild("Head") then
-                                zombieCount = zombieCount + 1
-                                
-                                -- Performance optimization: limit target scanning
-                                if zombieCount > 20 then break end
-                                
                                 local head = zombie.Head
                                 local humanoid = zombie:FindFirstChildOfClass("Humanoid")
                                 
-                                -- Check if zombie is alive and visible
+                                -- Check if zombie is alive
                                 if humanoid and humanoid.Health > 0 then
                                     local distance = (head.Position - playerPos).Magnitude
                                     
-                                    -- Adaptive range based on rounds (more conservative in higher rounds)
-                                    local maxRange = roundsSurvived > 5 and 150 or 200
-                                    
-                                    -- Only target zombies within adaptive range
-                                    if distance < maxRange and distance < minDist then
+                                    -- Only target zombies within reasonable range
+                                    if distance < 200 and distance < minDist then
                                         minDist = distance
-                                        closestZombie = zombie
+                                        closestTarget = zombie
                                         closestHead = head
+                                    end
+                                end
+                            end
+                        end
+                        
+                        -- BOSS TARGETING: Check for bosses if enabled
+                        if autoKillBosses then
+                            local bossArena = workspace:FindFirstChild("BossArena")
+                            if bossArena then
+                                -- Look for boss models in BossArena
+                                for _, boss in pairs(bossArena:GetChildren()) do
+                                    if boss:IsA("Model") and boss:FindFirstChild("Head") then
+                                        local head = boss.Head
+                                        local humanoid = boss:FindFirstChildOfClass("Humanoid")
+                                        
+                                        -- Check if boss is alive
+                                        if humanoid and humanoid.Health > 0 then
+                                            local distance = (head.Position - playerPos).Magnitude
+                                            
+                                            -- Bosses have higher priority (closer range check)
+                                            if distance < 300 and distance < minDist then
+                                                minDist = distance
+                                                closestTarget = boss
+                                                closestHead = head
+                                            end
+                                end
+                            end
+                        end
+                        
+                                -- Also check BossArena.Decorations for boss parts
+                                local decorations = bossArena:FindFirstChild("Decorations")
+                                if decorations then
+                                    for _, decoration in pairs(decorations:GetChildren()) do
+                                        if decoration:IsA("Model") and decoration:FindFirstChild("Head") then
+                                            local head = decoration.Head
+                                            local humanoid = decoration:FindFirstChildOfClass("Humanoid")
+                                            
+                                            if humanoid and humanoid.Health > 0 then
+                                                local distance = (head.Position - playerPos).Magnitude
+                                                
+                                                if distance < 300 and distance < minDist then
+                                                    minDist = distance
+                                                    closestTarget = decoration
+                                                    closestHead = head
+                                                end
+                                            end
+                                        end
                                     end
                                 end
                             end
@@ -398,8 +440,8 @@ CombatTab:CreateToggle({
                         -- Update round info for adaptive stealth
                         updateRoundInfo()
                         
-                        -- Shoot closest zombie with ADAPTIVE STEALTH SYSTEM
-                        if closestZombie and closestHead then
+                        -- Shoot closest target (zombie or boss) with ADAPTIVE STEALTH SYSTEM
+                        if closestTarget and closestHead then
                             -- Adaptive miss chance (increases with rounds and risk)
                             local missChance = math.random(1, 100)
                             local totalMissChance = getAdaptiveMissChance(minDist)
@@ -417,37 +459,33 @@ CombatTab:CreateToggle({
                                 local success = false
                                 
                                 if useSilentAim then
-                                    -- CRITICAL DETECTION RESISTANCE: Validate timing first
-                                    if not validateShotTiming() then
-                                        return -- Skip shot if timing is invalid
-                                    end
+                                -- Validate timing and check for breaks
+                                if not validateShotTiming() then
+                                    return
+                                end
+                                
+                                if shouldTakeBreak() then
+                                    local breakDuration = math.random(200, 500) / 1000
+                                    task.wait(breakDuration)
+                                    shotCount = 0
+                                    return
+                                end
+                                
+                                -- Silent aim with camera hijacking
+                                AimAssist.Enabled = true
+                                AimAssist.Target = closestTarget
+                                
+                                local sessionAdaptation = getSessionAdaptation()
+                                local baseAimTime = math.random(8, 15) + (roundsSurvived * 2)
+                                local adaptedAimTime = baseAimTime + (sessionAdaptation.timingJitter * 100)
+                                task.wait(adaptedAimTime * 0.01)
                                     
-                                    -- HUMAN BEHAVIOR: Check if should take break
-                                    if shouldTakeBreak() then
-                                        local breakDuration = math.random(200, 500) / 1000
-                                        task.wait(breakDuration)
-                                        shotCount = 0 -- Reset counter
-                                        return
-                                    end
-                                    
-                                    -- SILENT AIM WITH CAMERA HIJACKING (detection avoidance)
-                                    AimAssist.Enabled = true
-                                    AimAssist.Target = closestZombie
-                                    
-                                    -- Session-adapted camera aim time
-                                    local sessionAdaptation = getSessionAdaptation()
-                                    local baseAimTime = math.random(8, 15) + (roundsSurvived * 2)
-                                    local adaptedAimTime = baseAimTime + (sessionAdaptation.timingJitter * 100)
-                                    task.wait(adaptedAimTime * 0.01)
-                                    
-                                    -- ENHANCED RAYCASTING WITH DETECTION AVOIDANCE
+                                    -- Enhanced raycasting with detection avoidance
                                     local camera = workspace.CurrentCamera
                                     local cameraPos = camera.CFrame.Position
-                                    
-                                    -- PERFECT GAME SYNCHRONIZATION: Match exact game raycast parameters
                                     local sessionAdaptation = getSessionAdaptation()
                                     
-                                    -- Human-like camera position variation (detection avoidance)
+                                    -- Human-like camera position variation
                                     local randomOffset = Vector3.new(
                                         math.random(-2, 2) * sessionAdaptation.aimVariation,
                                         math.random(-2, 2) * sessionAdaptation.aimVariation,
@@ -455,11 +493,10 @@ CombatTab:CreateToggle({
                                     )
                                     local adjustedCameraPos = cameraPos + randomOffset
                                     
-                                    -- Calculate direction with human-like aim variation
+                                    -- Calculate direction with aim variation
                                     local targetPos = closestHead.Position
                                     local baseDirection = (targetPos - adjustedCameraPos).Unit
                                     
-                                    -- Session-adapted aim variation for realism
                                     local aimVariation = Vector3.new(
                                         math.random(-3, 3) * sessionAdaptation.aimVariation,
                                         math.random(-3, 3) * sessionAdaptation.aimVariation,
@@ -467,70 +504,54 @@ CombatTab:CreateToggle({
                                     )
                                     local targetDirection = (baseDirection + aimVariation).Unit
                                     
-                                    -- REFINED RAYCAST PARAMETERS (zombie-focused optimization)
+                                    -- Raycast parameters
                                     local raycastParams = RaycastParams.new()
                                     raycastParams.FilterType = Enum.RaycastFilterType.Include
                                     
-                                    -- Optimized filter instances (zombie-focused)
                                     local filterInstances = {workspace.Enemies, workspace.Misc}
-                                    
-                                    -- Only include BossArena.Decorations if it exists and we're in higher rounds
                                     if roundsSurvived >= 5 then
-                                        local bossArena = workspace:FindFirstChild("BossArena")
-                                        if bossArena and bossArena:FindFirstChild("Decorations") then
-                                            table.insert(filterInstances, bossArena.Decorations)
-                                        end
+                                        table.insert(filterInstances, workspace.BossArena.Decorations)
                                     end
-                                    
                                     raycastParams.FilterDescendantsInstances = filterInstances
                                     
-                                    -- Variable raycast distance (more realistic)
-                                    local raycastDistance = math.random(200, 300)
-                                    
-                                    -- OPTIMIZED RAYCAST ATTEMPTS (performance + stealth)
+                                    -- Multiple raycast attempts
                                     local raycastResult = nil
-                                    local maxAttempts = roundsSurvived > 3 and 2 or 3 -- Fewer attempts in higher rounds
+                                    local maxAttempts = 3
                                     
                                     for attempt = 1, maxAttempts do
-                                        -- Refined raycast positioning
                                         local attemptOffset = Vector3.new(
-                                            math.random(-1, 1) * 0.03,
-                                            math.random(-1, 1) * 0.03,
-                                            math.random(-1, 1) * 0.03
+                                            math.random(-1, 1) * 0.05,
+                                            math.random(-1, 1) * 0.05,
+                                            math.random(-1, 1) * 0.05
                                         )
                                         local attemptPos = adjustedCameraPos + attemptOffset
                                         
                                         local attemptDirection = (targetPos - attemptPos).Unit
-                                        local attemptDistance = math.random(180, 250) -- Slightly reduced range
+                                        local attemptDistance = math.random(200, 300)
                                         
                                         raycastResult = workspace:Raycast(attemptPos, attemptDirection * attemptDistance, raycastParams)
                                         
-                                        -- If we hit an enemy, use this result immediately
                                         if raycastResult and raycastResult.Instance:IsDescendantOf(workspace.Enemies) then
                                             break
                                         end
                                         
-                                        -- Minimal delay between attempts (performance optimization)
                                         if attempt < maxAttempts then
-                                            task.wait(math.random(1, 2) * 0.01)
+                                            task.wait(math.random(1, 3) * 0.01)
                                         end
                                     end
                                     
-                                    -- SERVER-SIDE VALIDATION BYPASS: Only fire if raycast hits the target
+                                    -- Fire if raycast hits target
                                     if raycastResult and raycastResult.Instance:IsDescendantOf(workspace.Enemies) then
-                                        -- CRITICAL: Update shot timing for validation
                                         lastShotTime = tick()
                                         
-                                        -- Use EXACT GAME PARAMETERS with timing validation
-                                    local args = {
-                                            raycastResult.Instance.Parent,  -- zombie model
-                                            raycastResult.Instance,        -- hit part
-                                            raycastResult.Position,        -- hit position
-                                            0,                            -- damage multiplier (EXACT GAME VALUE)
-                                            weapon                        -- weapon name
+                                        local args = {
+                                            raycastResult.Instance.Parent,
+                                            raycastResult.Instance,
+                                            raycastResult.Position,
+                                            0,
+                                            weapon
                                         }
                                         
-                                        -- Add human-like delay before firing
                                         local fireDelay = math.random(10, 30) / 1000
                                         task.wait(fireDelay)
                                         
@@ -538,12 +559,11 @@ CombatTab:CreateToggle({
                                             shootRemote:FireServer(unpack(args)) 
                                         end)
                                         
-                                        -- CRITICAL: Update shot count for behavioral tracking
                                         shotCount = shotCount + 1
                                     else
-                                        -- FALLBACK: Direct shooting if raycast fails (stealth mode)
-                                        if roundsSurvived < 3 then -- Only in early rounds
-                                            local fallbackArgs = {closestZombie, closestHead, closestHead.Position, 0, weapon}
+                                        -- Fallback for early rounds
+                                        if roundsSurvived < 3 then
+                                            local fallbackArgs = {closestTarget, closestHead, closestHead.Position, 0, weapon}
                                             success = pcall(function() 
                                                 shootRemote:FireServer(unpack(fallbackArgs)) 
                                             end)
@@ -574,18 +594,19 @@ CombatTab:CreateToggle({
                                         
                                         if shotsFired >= breakFrequency then
                                             task.wait(breakDuration)
-                                            shotsFired = 0
-                            end
+                            shotsFired = 0
+                        end
                         end
                             end
                         end
                     end
                     
-                    -- Adaptive delay for stealth (increases with rounds)
-                    local baseDelay = shootDelay + (roundsSurvived * 0.02) -- +0.02s per round
-                    local jitterRange = math.min(5 + roundsSurvived, 15) -- More jitter in higher rounds
-                    local delay = baseDelay + math.random(-jitterRange, jitterRange) * 0.01
-                    task.wait(math.max(0.1, delay))
+                        
+                        -- Adaptive delay for stealth (increases with rounds)
+                        local baseDelay = shootDelay + (roundsSurvived * 0.02) -- +0.02s per round
+                        local jitterRange = math.min(5 + roundsSurvived, 15) -- More jitter in higher rounds
+                        local delay = baseDelay + math.random(-jitterRange, jitterRange) * 0.01
+                        task.wait(math.max(0.1, delay))
                 end
             end)
         end
@@ -850,8 +871,8 @@ OpenTab:CreateToggle({
                     end)
                     task.wait(0.1)
                 end
-            end)
-        end
+                            end)
+                        end
     end
 })
 
