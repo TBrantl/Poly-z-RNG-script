@@ -79,9 +79,9 @@ local function getSmartDelay(base)
     lastDelayPattern = (lastDelayPattern % #humanPatterns) + 1
     local patternMultiplier = humanPatterns[lastDelayPattern]
     
-    -- Occasional "human hesitation" (1 in 50 chance)
-    if math.random(1, 50) == 1 then
-        patternMultiplier = patternMultiplier * (1.2 + math.random() * 0.3)
+    -- Less frequent "human hesitation" for better performance (1 in 100 chance)
+    if math.random(1, 100) == 1 then
+        patternMultiplier = patternMultiplier * (1.1 + math.random() * 0.2) -- Smaller hesitation
     end
     
     local finalDelay = (base + offset) * patternMultiplier
@@ -102,12 +102,12 @@ local function shouldAllowShot()
         detectionRisk = math.max(0, detectionRisk - 10) -- Reduce risk over time
     end
     
-    -- Dynamic burst limits based on detection risk
-    local maxShots = 200
-    if detectionRisk > 50 then
-        maxShots = 150 -- Reduce if high risk
-    elseif detectionRisk > 80 then
-        maxShots = 100 -- Further reduce if very high risk
+    -- More aggressive burst limits (less conservative)
+    local maxShots = 250 -- Increased base limit
+    if detectionRisk > 70 then -- Higher threshold
+        maxShots = 200 -- Less reduction
+    elseif detectionRisk > 90 then -- Much higher threshold
+        maxShots = 150 -- Still aggressive
     end
     
     -- Limit shots per burst
@@ -116,12 +116,12 @@ local function shouldAllowShot()
         return false
     end
     
-    -- Forced cooldown every 100 shots to appear more human
-    if shotCount > 0 and shotCount % 100 == 0 and not burstCooldownActive then
+    -- Less frequent forced cooldowns for better performance
+    if shotCount > 0 and shotCount % 150 == 0 and not burstCooldownActive then -- Every 150 shots instead of 100
         burstCooldownActive = true
         lastBurstTime = currentTime
         task.spawn(function()
-            task.wait(0.1 + math.random() * 0.2) -- 0.1-0.3s human-like pause
+            task.wait(0.05 + math.random() * 0.1) -- 0.05-0.15s shorter pause
             burstCooldownActive = false
         end)
         return false
@@ -334,6 +334,20 @@ CombatTab:CreateButton({
 })
 
 CombatTab:CreateButton({
+    Name = "⚡ PERFORMANCE MODE",
+    Callback = function()
+        shootDelay = 0.008
+        detectionRisk = 0 -- Reset risk for maximum performance
+        Rayfield:Notify({
+            Title = "⚡ PERFORMANCE MODE",
+            Content = "Optimized for maximum crowd control!",
+            Duration = 3,
+            Image = 4483362458
+        })
+    end
+})
+
+CombatTab:CreateButton({
     Name = "🚀 GODMODE (MAXIMUM)",
     Callback = function()
         shootDelay = 0.008 -- GODMODE speed for ultimate defense
@@ -392,10 +406,10 @@ CombatTab:CreateToggle({
                 while autoKill do
                     pcall(function()
                         if not shouldAllowShot() then
-                            -- Dynamic cooldown based on detection risk
-                            local cooldownTime = 0.02 + (detectionRisk * 0.001) -- Longer cooldown if risky
+                            -- Minimal dynamic cooldown for better performance
+                            local cooldownTime = 0.01 + (detectionRisk * 0.0005) -- Much less impact from risk
                             if burstCooldownActive then
-                                cooldownTime = 0.15 + math.random() * 0.1 -- Human-like pause
+                                cooldownTime = 0.08 + math.random() * 0.05 -- Shorter human-like pause
                             end
                             task.wait(cooldownTime)
                             return
@@ -450,12 +464,12 @@ CombatTab:CreateToggle({
                                 
                                 -- ENHANCED CROWD CONTROL: Dynamic multi-targeting with detection protection
                                 local shotsFired = 0
-                                -- Reduce multi-shots if detection risk is high
-                                local baseShotsPerCycle = 5
-                                if detectionRisk > 50 then
-                                    baseShotsPerCycle = 3
-                                elseif detectionRisk > 80 then
-                                    baseShotsPerCycle = 2
+                                -- Less aggressive multi-shot reduction for better crowd control
+                                local baseShotsPerCycle = 6 -- Increased base
+                                if detectionRisk > 75 then -- Higher threshold
+                                    baseShotsPerCycle = 4 -- Less reduction
+                                elseif detectionRisk > 95 then -- Much higher threshold
+                                    baseShotsPerCycle = 3 -- Still good crowd control
                                 end
                                 local maxShotsPerCycle = math.min(baseShotsPerCycle, #validTargets)
                                 
@@ -482,9 +496,9 @@ CombatTab:CreateToggle({
                                             shotCount = shotCount + 1
                                             shotsFired = shotsFired + 1
                                             
-                                            -- Increase detection risk slightly for rapid shots
-                                            if shotsFired > 1 then
-                                                detectionRisk = detectionRisk + 0.5
+                                            -- Much less risk increase for better performance
+                                            if shotsFired > 2 then -- Only after 3+ shots
+                                                detectionRisk = detectionRisk + 0.2 -- Much smaller increase
                                             end
                                             
                                             -- Notify when boss is targeted (for debugging)
@@ -497,9 +511,9 @@ CombatTab:CreateToggle({
                                                 })
                                             end
                                             
-                                            -- Dynamic delay between multi-shots based on detection risk
+                                            -- Minimal delay between multi-shots for maximum crowd control
                                             if shotsFired < maxShotsPerCycle then
-                                                local multiShotDelay = 0.005 + (detectionRisk * 0.0001)
+                                                local multiShotDelay = 0.003 + (detectionRisk * 0.00005) -- Much faster
                                                 task.wait(multiShotDelay)
                                             end
                                         end
