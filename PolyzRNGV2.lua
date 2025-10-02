@@ -420,11 +420,11 @@ local MiscTab = Window:CreateTab("✨ Utilities", "Sparkles")
 
 MiscTab:CreateSection("💰 Auto Collection")
 
--- Auto Collect System (Gold/Drops)
+-- Auto Collect System (Enhanced - Large Radius)
 local autoCollect = false
-local collectRadius = 50
+local collectRadius = 150 -- Increased for better coverage
 local lastCollectTime = 0
-local collectCooldown = 0.1
+local collectCooldown = 0.05 -- Faster collection
 
 -- Smart collection function
 local function collectNearbyItems()
@@ -472,9 +472,17 @@ local function collectNearbyItems()
                     local distance = (parent.Position - root.Position).Magnitude
                     
                     local isCollectible = parent.Name:match("Gold") or 
+                                         parent.Name:match("gold") or
                                          parent.Name:match("Drop") or
+                                         parent.Name:match("drop") or
                                          parent.Name:match("Coin") or
-                                         parent.Name:match("Gold_Bar")
+                                         parent.Name:match("coin") or
+                                         parent.Name:match("Money") or
+                                         parent.Name:match("money") or
+                                         parent.Name:match("Cash") or
+                                         parent.Name:match("cash") or
+                                         parent.Name:match("Loot") or
+                                         parent.Name:match("loot")
                     
                     if isCollectible and distance <= collectRadius then
                         fireclickdetector(descendant)
@@ -485,21 +493,42 @@ local function collectNearbyItems()
             end
         end
         
-        -- Method 3: Touch-based collection (teleport briefly)
-        local dropsFolder = workspace:FindFirstChild("Drops") or workspace:FindFirstChild("DroppedItems")
-        if dropsFolder then
-            for _, item in pairs(dropsFolder:GetChildren()) do
-                if item:IsA("BasePart") or item:IsA("Model") then
-                    local itemPos = item:IsA("Model") and item:GetPivot().Position or item.Position
-                    local distance = (itemPos - root.Position).Magnitude
-                    
-                    if distance <= collectRadius and distance > 3 then
-                        -- Brief teleport to touch item
-                        local originalCFrame = root.CFrame
-                        root.CFrame = CFrame.new(itemPos + Vector3.new(0, 2, 0))
-                        task.wait(0.05)
-                        root.CFrame = originalCFrame
-                        lastCollectTime = currentTime
+        -- Method 3: Touch-based collection (multiple folder search)
+        local searchFolders = {
+            workspace:FindFirstChild("Drops"),
+            workspace:FindFirstChild("DroppedItems"),
+            workspace:FindFirstChild("Collectables"),
+            workspace:FindFirstChild("Collectibles"),
+            workspace:FindFirstChild("Loot"),
+            workspace:FindFirstChild("Items"),
+            workspace:FindFirstChild("Gold")
+        }
+        
+        for _, folder in ipairs(searchFolders) do
+            if folder then
+                for _, item in pairs(folder:GetChildren()) do
+                    if item:IsA("BasePart") or item:IsA("Model") then
+                        local itemPos = item:IsA("Model") and item:GetPivot().Position or item.Position
+                        local distance = (itemPos - root.Position).Magnitude
+                        
+                        -- Check if item name suggests it's collectible
+                        local nameCheck = item.Name:match("Gold") or item.Name:match("gold") or
+                                         item.Name:match("Drop") or item.Name:match("drop") or
+                                         item.Name:match("Coin") or item.Name:match("coin") or
+                                         item.Name:match("Money") or item.Name:match("money") or
+                                         item.Name:match("Cash") or item.Name:match("cash") or
+                                         item.Name:match("Loot") or item.Name:match("loot")
+                        
+                        if (nameCheck or folder.Name:match("Drop") or folder.Name:match("Gold")) and 
+                           distance <= collectRadius and distance > 2 then
+                            -- Brief teleport to touch item
+                            local originalCFrame = root.CFrame
+                            root.CFrame = CFrame.new(itemPos + Vector3.new(0, 1, 0))
+                            task.wait(0.03)
+                            root.CFrame = originalCFrame
+                            lastCollectTime = currentTime
+                            task.wait(0.02)
+                        end
                     end
                 end
             end
@@ -533,10 +562,10 @@ MiscTab:CreateToggle({
 
 MiscTab:CreateSlider({
     Name = "📏 Collection Radius",
-    Range = {10, 100},
-    Increment = 5,
+    Range = {50, 200},
+    Increment = 10,
     Suffix = " studs",
-    CurrentValue = 50,
+    CurrentValue = 150,
     Flag = "CollectRadius",
     Callback = function(Value)
         collectRadius = Value
