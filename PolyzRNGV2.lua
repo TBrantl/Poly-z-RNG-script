@@ -152,21 +152,29 @@ local function getSmartShotPosition(targetHead, targetModel)
                 end
             end
             
-            -- Last resort: Try ANY part in the model that's visible
-            for _, part in pairs(targetModel:GetDescendants()) do
-                if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
-                    local partDir = (part.Position - origin).Unit
-                    local partDist = (part.Position - origin).Magnitude
+                    -- Last resort: Try ANY part in the model that's visible (BOSS PRIORITY)
+                    local isBoss = targetModel.Name == "GoblinKing" or targetModel.Name == "CaptainBoom" or targetModel.Name == "Fungarth"
                     
-                    if partDist <= maxShootDistance then
-                        local partRay = workspace:Raycast(origin, partDir * partDist, raycastParams)
-                        
-                        if partRay and partRay.Instance:IsDescendantOf(workspace.Enemies) then
-                            return partRay.Position, partRay.Instance
+                    for _, part in pairs(targetModel:GetDescendants()) do
+                        if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
+                            local partDir = (part.Position - origin).Unit
+                            local partDist = (part.Position - origin).Magnitude
+                            
+                            if partDist <= maxShootDistance then
+                                local partRay = workspace:Raycast(origin, partDir * partDist, raycastParams)
+                                
+                                if partRay and partRay.Instance:IsDescendantOf(workspace.Enemies) then
+                                    -- For bosses, be more aggressive - accept ANY hit
+                                    if isBoss then
+                                        return partRay.Position, partRay.Instance
+                                    -- For regular enemies, check if it's the same model
+                                    elseif partRay.Instance.Parent == targetModel then
+                                        return partRay.Position, partRay.Instance
+                                    end
+                                end
+                            end
                         end
                     end
-                end
-            end
             
             -- If nothing visible, return nil (skip this target)
             return nil
@@ -290,10 +298,11 @@ CombatTab:CreateToggle({
                             if #validTargets > 0 then
                                 -- Prioritize: 1) Bosses, 2) Closer enemies
                                 table.sort(validTargets, function(a, b)
-                                    local aBoss = a.model.Name:match("King") or a.model.Name:match("Captain") or 
-                                                  a.model.Name:match("Fungarth") or a.model.Name:match("Boss")
-                                    local bBoss = b.model.Name:match("King") or b.model.Name:match("Captain") or 
-                                                  b.model.Name:match("Fungarth") or b.model.Name:match("Boss")
+                                    -- FIXED: Use exact boss names from the game
+                                    local aBoss = a.model.Name == "GoblinKing" or a.model.Name == "CaptainBoom" or 
+                                                  a.model.Name == "Fungarth"
+                                    local bBoss = b.model.Name == "GoblinKing" or b.model.Name == "CaptainBoom" or 
+                                                  b.model.Name == "Fungarth"
                                     
                                     -- Bosses always first
                                     if aBoss and not bBoss then return true end
@@ -306,6 +315,8 @@ CombatTab:CreateToggle({
                                 -- Try each target until we find one we can shoot
                                 local shotFired = false
                                 for _, target in ipairs(validTargets) do
+                                    -- Debug: Check if we're targeting a boss
+                                    local isBoss = target.model.Name == "GoblinKing" or target.model.Name == "CaptainBoom" or target.model.Name == "Fungarth"
                                     -- Smart raycast - returns actual hit position and part
                                     local hitPos, hitPart = getSmartShotPosition(target.head, target.model)
                                     
@@ -323,6 +334,17 @@ CombatTab:CreateToggle({
                                             lastShot = tick()
                                             shotCount = shotCount + 1
                                             shotFired = true
+                                            
+                                            -- Notify when boss is targeted (for debugging)
+                                            if isBoss and math.random(1, 20) == 1 then -- Only 5% chance to avoid spam
+                                                Rayfield:Notify({
+                                                    Title = "🎯 BOSS TARGETED",
+                                                    Content = "Shooting " .. target.model.Name .. "!",
+                                                    Duration = 2,
+                                                    Image = 4483362458
+                                                })
+                                            end
+                                            
                                             break -- Only shoot ONE target per cycle
                                         end
                                     end
