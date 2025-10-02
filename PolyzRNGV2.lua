@@ -3,23 +3,31 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
-local Remotes = ReplicatedStorage:WaitForChild("Remotes")
 
 -- Load Rayfield UI Library
 local Rayfield = loadstring(game:HttpGet('https://limerbro.github.io/Roblox-Limer/rayfield.lua'))()
 
+-- Wait for Remotes safely
+local Remotes
+task.spawn(function()
+    Remotes = ReplicatedStorage:WaitForChild("Remotes", 10)
+    if not Remotes then
+        warn("[POLY-Z V2] Remotes folder not found - some features may not work")
+    end
+end)
+
 -- UI Window Configuration
 local Window = Rayfield:CreateWindow({
-    Name = "✨ LimerHub ✨ | POLY-Z",
+    Name = "✨ LimerHub V2 ✨ | POLY-Z",
     Icon = 71338090068856,
-    LoadingTitle = "Loading...",
-    LoadingSubtitle = "Author: LimerBoy",
+    LoadingTitle = "Loading V2...",
+    LoadingSubtitle = "Enhanced Features",
     Theme = "BlackWhite",
     ToggleUIKeybind = Enum.KeyCode.K,
     ConfigurationSaving = {
         Enabled = true,
         FolderName = "ZombieHub",
-        FileName = "Config"
+        FileName = "ConfigV2"
     }
 })
 
@@ -250,7 +258,7 @@ CombatTab:CreateToggle({
                         end
                         
                         local enemies = workspace:FindFirstChild("Enemies")
-                        local shootRemote = Remotes:FindFirstChild("ShootEnemy")
+                        local shootRemote = Remotes and Remotes:FindFirstChild("ShootEnemy")
                         
                         if enemies and shootRemote then
                             local weapon = getEquippedWeaponName()
@@ -341,7 +349,7 @@ CombatTab:CreateToggle({
         if state then
             task.spawn(function()
                 while autoSkip do
-                    local skip = Remotes:FindFirstChild("CastClientSkipVote")
+                    local skip = Remotes and Remotes:FindFirstChild("CastClientSkipVote")
                     if skip then
                         pcall(function() skip:FireServer() end)
                     end
