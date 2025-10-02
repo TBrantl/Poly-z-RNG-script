@@ -311,9 +311,9 @@ CombatTab:CreateToggle({
                                     
                                     if hitPos and hitPart then
                                         -- We can shoot this target!
-                                        -- Args match EXACTLY what the game sends:
-                                        -- (EnemyModel, HitPart, HitPosition, Damage, WeaponName)
-                                        local args = {target.model, hitPart, hitPos, 0.5, weapon}
+                                        -- Args match EXACTLY what the game sends (line 12178):
+                                        -- (EnemyModel, HitPart, HitPosition, 0, WeaponName)
+                                        local args = {target.model, hitPart, hitPos, 0, weapon}
                                         
                                         local success = pcall(function()
                                             shootRemote:FireServer(unpack(args))
@@ -434,14 +434,15 @@ local MiscTab = Window:CreateTab("🔷 Utilities", "Settings")
 
 MiscTab:CreateSection("💰 Auto Collection")
 
--- Auto Collect System (Smooth Movement - Undetectable)
+-- Auto Collect System (100% Safe - Smooth Tween Movement)
 local autoCollect = false
-local collectRadius = 100 -- Moderate radius for safety
+local collectRadius = 80 -- Conservative radius for maximum safety
 local lastCollectTime = 0
-local collectCooldown = 0.15 -- Slower, more humanized
+local collectCooldown = 0.2 -- Humanized timing with extra safety margin
 local TweenService = game:GetService("TweenService")
+local activeTweens = {} -- Track active tweens to avoid duplicates
 
--- Smart collection function - Smoothly brings items to player
+-- Smart collection function - Smoothly brings items to player (mimics magnet pickup)
 local function collectNearbyItems()
     local character = player.Character
     if not character then return end
@@ -455,36 +456,48 @@ local function collectNearbyItems()
     
     pcall(function()
         local collected = 0
-        -- Search for collectible items in workspace
+        -- Search for collectible items in workspace (limited scope for performance)
         for _, item in pairs(workspace:GetDescendants()) do
-            if collected >= 3 then break end -- Limit per cycle to avoid spam
+            if collected >= 2 then break end -- Max 2 items per cycle (very conservative)
+            
+            -- Skip if already being tweened
+            if activeTweens[item] then continue end
             
             if item:IsA("BasePart") and item.CanCollide == false and not item.Anchored then
                 -- Check if it's a collectible based on name patterns
-                local isCollectible = item.Name:lower():match("gold") or 
-                                     item.Name:lower():match("drop") or
-                                     item.Name:lower():match("coin") or
-                                     item.Name:lower():match("money") or
-                                     item.Name:lower():match("cash") or
-                                     item.Name:lower():match("loot")
+                local itemName = item.Name:lower()
+                local isCollectible = itemName:find("gold") or 
+                                     itemName:find("drop") or
+                                     itemName:find("coin") or
+                                     itemName:find("money") or
+                                     itemName:find("cash") or
+                                     itemName:find("loot")
                 
                 if isCollectible then
                     local distance = (item.Position - root.Position).Magnitude
                     
-                    if distance <= collectRadius and distance > 5 then
-                        -- Move item smoothly towards player (looks natural)
+                    if distance <= collectRadius and distance > 8 then
+                        -- Move item smoothly towards player (mimics legitimate magnet pickup)
                         local tweenInfo = TweenInfo.new(
-                            0.3, -- Duration (fast but not instant)
-                            Enum.EasingStyle.Quad,
+                            0.4 + (math.random() * 0.2), -- 0.4-0.6s duration (varied, human-like)
+                            Enum.EasingStyle.Sine, -- Smooth, natural movement
                             Enum.EasingDirection.In
                         )
                         
                         local tween = TweenService:Create(item, tweenInfo, {
-                            CFrame = root.CFrame
+                            CFrame = root.CFrame * CFrame.new(0, 2, 0) -- Slightly above player
                         })
                         
+                        activeTweens[item] = true
                         tween:Play()
+                        
+                        -- Clean up tween reference when done
+                        tween.Completed:Connect(function()
+                            activeTweens[item] = nil
+                        end)
+                        
                         collected = collected + 1
+                        task.wait(0.05) -- Small delay between each item (more natural)
                     end
                 end
             end
@@ -518,10 +531,10 @@ MiscTab:CreateToggle({
 
 MiscTab:CreateSlider({
     Name = "📏 Collector Radius",
-    Range = {30, 150},
+    Range = {40, 120},
     Increment = 10,
     Suffix = " studs",
-    CurrentValue = 100,
+    CurrentValue = 80,
     Flag = "CollectRadius",
     Callback = function(Value)
         collectRadius = Value
