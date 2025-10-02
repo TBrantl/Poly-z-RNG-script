@@ -386,6 +386,131 @@ CombatTab:CreateSlider({
 -- Misc Tab
 local MiscTab = Window:CreateTab("✨ Utilities", "Sparkles")
 
+MiscTab:CreateSection("💰 Auto Collection")
+
+-- Auto Collect System (Gold/Drops)
+local autoCollect = false
+local collectRadius = 50
+local lastCollectTime = 0
+local collectCooldown = 0.1
+
+-- Smart collection function
+local function collectNearbyItems()
+    local character = player.Character
+    if not character then return end
+    
+    local root = character:FindFirstChild("HumanoidRootPart")
+    if not root then return end
+    
+    local currentTime = tick()
+    if currentTime - lastCollectTime < collectCooldown then return end
+    
+    pcall(function()
+        -- Method 1: Check for ProximityPrompts (common in modern games)
+        for _, descendant in pairs(workspace:GetDescendants()) do
+            if descendant:IsA("ProximityPrompt") then
+                local parent = descendant.Parent
+                if parent and parent:IsA("BasePart") then
+                    local distance = (parent.Position - root.Position).Magnitude
+                    
+                    -- Check if it's a collectible (gold, drops, etc.)
+                    local isCollectible = parent.Name:match("Gold") or 
+                                         parent.Name:match("Drop") or
+                                         parent.Name:match("Coin") or
+                                         parent.Name:match("Money") or
+                                         parent.Name:match("Cash") or
+                                         descendant.ObjectText:match("Collect") or
+                                         descendant.ObjectText:match("Pick")
+                    
+                    if isCollectible and distance <= collectRadius then
+                        -- Trigger the prompt
+                        fireproximityprompt(descendant)
+                        lastCollectTime = currentTime
+                        task.wait(0.05)
+                    end
+                end
+            end
+        end
+        
+        -- Method 2: Check for ClickDetectors (older games)
+        for _, descendant in pairs(workspace:GetDescendants()) do
+            if descendant:IsA("ClickDetector") then
+                local parent = descendant.Parent
+                if parent and parent:IsA("BasePart") then
+                    local distance = (parent.Position - root.Position).Magnitude
+                    
+                    local isCollectible = parent.Name:match("Gold") or 
+                                         parent.Name:match("Drop") or
+                                         parent.Name:match("Coin") or
+                                         parent.Name:match("Money")
+                    
+                    if isCollectible and distance <= collectRadius then
+                        fireclickdetector(descendant)
+                        lastCollectTime = currentTime
+                        task.wait(0.05)
+                    end
+                end
+            end
+        end
+        
+        -- Method 3: Touch-based collection (teleport briefly)
+        local dropsFolder = workspace:FindFirstChild("Drops") or workspace:FindFirstChild("DroppedItems")
+        if dropsFolder then
+            for _, item in pairs(dropsFolder:GetChildren()) do
+                if item:IsA("BasePart") or item:IsA("Model") then
+                    local itemPos = item:IsA("Model") and item:GetPivot().Position or item.Position
+                    local distance = (itemPos - root.Position).Magnitude
+                    
+                    if distance <= collectRadius and distance > 3 then
+                        -- Brief teleport to touch item
+                        local originalCFrame = root.CFrame
+                        root.CFrame = CFrame.new(itemPos + Vector3.new(0, 2, 0))
+                        task.wait(0.05)
+                        root.CFrame = originalCFrame
+                        lastCollectTime = currentTime
+                    end
+                end
+            end
+        end
+    end)
+end
+
+MiscTab:CreateToggle({
+    Name = "💰 Auto Collect Items",
+    CurrentValue = false,
+    Flag = "AutoCollect",
+    Callback = function(state)
+        autoCollect = state
+        if state then
+            Rayfield:Notify({
+                Title = "Auto Collect",
+                Content = "Now collecting nearby items!",
+                Duration = 3,
+                Image = 4483362458
+            })
+            
+            task.spawn(function()
+                while autoCollect do
+                    collectNearbyItems()
+                    task.wait(collectCooldown + math.random() * 0.05) -- Humanized timing
+                end
+            end)
+        end
+    end
+})
+
+MiscTab:CreateSlider({
+    Name = "📏 Collection Radius",
+    Range = {10, 100},
+    Increment = 5,
+    Suffix = " studs",
+    CurrentValue = 50,
+    Flag = "CollectRadius",
+    Callback = function(Value)
+        collectRadius = Value
+    end
+})
+
 MiscTab:CreateSection("🔧 Tools")
 
 MiscTab:CreateButton({
