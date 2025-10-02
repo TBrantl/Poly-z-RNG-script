@@ -3,37 +3,102 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
-local Remotes = ReplicatedStorage:WaitForChild("Remotes")
 
--- Load Rayfield UI Library
-local Rayfield = loadstring(game:HttpGet('https://limerbro.github.io/Roblox-Limer/rayfield.lua'))()
+-- Wait for Remotes with error handling
+local Remotes
+local success, error = pcall(function()
+    Remotes = ReplicatedStorage:WaitForChild("Remotes", 10) -- 10 second timeout
+end)
 
--- UI Window Configuration
-local Window = Rayfield:CreateWindow({
-    Name = "✨ LimerHub ✨ | POLY-Z",
-    Icon = 71338090068856,
-    LoadingTitle = "Loading...",
-    LoadingSubtitle = "Author: LimerBoy",
-    Theme = "BlackWhite",
-    ToggleUIKeybind = Enum.KeyCode.K,
-    ConfigurationSaving = {
-        Enabled = true,
-        FolderName = "ZombieHub",
-        FileName = "Config"
+if not success or not Remotes then
+    warn("Failed to find Remotes folder, script may not work properly")
+    -- Create a dummy remotes table to prevent errors
+    Remotes = {
+        FindFirstChild = function() return nil end,
+        ShootEnemy = { FireServer = function() end }
     }
-})
+end
+
+-- Load Rayfield UI Library with error handling
+local Rayfield, Window
+local success, error = pcall(function()
+    -- Try multiple Rayfield sources for better compatibility
+    local rayfieldSources = {
+        'https://limerbro.github.io/Roblox-Limer/rayfield.lua',
+        'https://sirius.menu/rayfield',
+        'https://raw.githubusercontent.com/shlexware/Rayfield/main/source'
+    }
+    
+    for i, source in ipairs(rayfieldSources) do
+        local success, result = pcall(function()
+            return loadstring(game:HttpGet(source))()
+        end)
+        
+        if success and result then
+            Rayfield = result
+            break
+        end
+    end
+    
+    if not Rayfield then
+        error("Failed to load Rayfield from any source")
+    end
+    
+    -- UI Window Configuration
+    Window = Rayfield:CreateWindow({
+        Name = "✨ LimerHub ✨ | POLY-Z",
+        Icon = 71338090068856,
+        LoadingTitle = "Loading...",
+        LoadingSubtitle = "Author: LimerBoy",
+        Theme = "BlackWhite",
+        ToggleUIKeybind = Enum.KeyCode.K,
+        ConfigurationSaving = {
+            Enabled = true,
+            FolderName = "ZombieHub",
+            FileName = "Config"
+        }
+    })
+end)
+
+if not success then
+    warn("Failed to load Rayfield UI:", error)
+    -- Create a fallback notification system
+    game.StarterGui:SetCore("SendNotification", {
+        Title = "Script Error",
+        Text = "Failed to load Rayfield UI. Please check your internet connection and try again.",
+        Duration = 5
+    })
+    return
+end
+
+-- Success notification
+pcall(function()
+    Rayfield:Notify({
+        Title = "Script Loaded",
+        Content = "Poly-z RNG Script loaded successfully! Press K to toggle GUI.",
+        Duration = 5,
+        Image = 4483362458
+    })
+end)
 
 -- Utility Functions
 local function getEquippedWeaponName()
-    local model = workspace:FindFirstChild("Players"):FindFirstChild(player.Name)
-    if model then
+    local success, result = pcall(function()
+        local playersFolder = workspace:FindFirstChild("Players")
+        if not playersFolder then return "M1911" end
+        
+        local model = playersFolder:FindFirstChild(player.Name)
+        if not model then return "M1911" end
+        
         for _, child in ipairs(model:GetChildren()) do
             if child:IsA("Model") then
                 return child.Name
             end
         end
-    end
-    return "M1911"
+        return "M1911"
+    end)
+    
+    return success and result or "M1911"
 end
 
 -- Combat Tab
@@ -52,6 +117,7 @@ end)
 
 -- Auto Headshots
 local autoKill = false
+local autoSkip = false
 local shootDelay = 0.1
 
 -- Text input for shot delay
@@ -138,7 +204,13 @@ CombatTab:CreateSlider({
     CurrentValue = 16,
     Flag = "WalkSpeed",
     Callback = function(Value)
-        game.Players.LocalPlayer.Character:WaitForChild("Humanoid").WalkSpeed = Value
+        local character = game.Players.LocalPlayer.Character
+        if character then
+            local humanoid = character:FindFirstChild("Humanoid")
+            if humanoid then
+                humanoid.WalkSpeed = Value
+            end
+        end
     end
 })
 
@@ -171,7 +243,15 @@ MiscTab:CreateButton({
     Name = "🎯 Infinite Magazines",
     Callback = function()
         local vars = player:FindFirstChild("Variables")
-        if not vars then return end
+        if not vars then 
+            Rayfield:Notify({
+                Title = "Error",
+                Content = "Variables not found!",
+                Duration = 3,
+                Image = 4483362458
+            })
+            return 
+        end
 
         local ammoAttributes = {  
             "Primary_Mag",  
@@ -198,7 +278,15 @@ MiscTab:CreateButton({
     Name = "🌟 Activate All Perks",
     Callback = function()
         local vars = player:FindFirstChild("Variables")
-        if not vars then return end
+        if not vars then 
+            Rayfield:Notify({
+                Title = "Error",
+                Content = "Variables not found!",
+                Duration = 3,
+                Image = 4483362458
+            })
+            return 
+        end
 
         local perks = {  
             "Bandoiler_Perk",  
@@ -229,7 +317,15 @@ MiscTab:CreateButton({
     Name = "🔫 Enhance Weapons",
     Callback = function()
         local vars = player:FindFirstChild("Variables")
-        if not vars then return end
+        if not vars then 
+            Rayfield:Notify({
+                Title = "Error",
+                Content = "Variables not found!",
+                Duration = 3,
+                Image = 4483362458
+            })
+            return 
+        end
 
         local enchants = {  
             "Primary_Enhanced",  
@@ -255,7 +351,15 @@ MiscTab:CreateButton({
     Name = "💫 Celestial Weapons",
     Callback = function()
         local gunData = player:FindFirstChild("GunData")
-        if not gunData then return end
+        if not gunData then 
+            Rayfield:Notify({
+                Title = "Error",
+                Content = "GunData not found!",
+                Duration = 3,
+                Image = 4483362458
+            })
+            return 
+        end
 
         for _, value in ipairs(gunData:GetChildren()) do  
             if value:IsA("StringValue") then  
