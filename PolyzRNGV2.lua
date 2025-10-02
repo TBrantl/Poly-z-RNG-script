@@ -82,8 +82,8 @@ local function shouldAllowShot()
         shotCount = 0
     end
     
-    -- Limit to 50 shots per 5 seconds (very human-like)
-    if shotCount >= 50 then
+    -- Limit to 75 shots per 5 seconds (longer bursts allowed)
+    if shotCount >= 75 then
         return false
     end
     
@@ -261,7 +261,7 @@ CombatTab:CreateToggle({
                 while autoKill do
                     pcall(function()
                         if not shouldAllowShot() then
-                            task.wait(1) -- Cooldown if rate limited
+                            task.wait(0.2) -- Reduced cooldown (was 1s, now 0.2s)
                             return
                         end
                         
