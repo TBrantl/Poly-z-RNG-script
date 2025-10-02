@@ -434,13 +434,13 @@ local MiscTab = Window:CreateTab("🔷 Utilities", "Settings")
 
 MiscTab:CreateSection("💰 Auto Collection")
 
--- Auto Collect System (Enhanced - Large Radius)
+-- Auto Collect System (Teleport Items to Player)
 local autoCollect = false
-local collectRadius = 150 -- Increased for better coverage
+local collectRadius = 200 -- Large radius
 local lastCollectTime = 0
-local collectCooldown = 0.05 -- Faster collection
+local collectCooldown = 0.1 -- Collection rate
 
--- Smart collection function
+-- Smart collection function - Brings items to player
 local function collectNearbyItems()
     local character = player.Character
     if not character then return end
@@ -450,98 +450,48 @@ local function collectNearbyItems()
     
     local currentTime = tick()
     if currentTime - lastCollectTime < collectCooldown then return end
+    lastCollectTime = currentTime
     
     pcall(function()
-        -- Method 1: Check for ProximityPrompts (common in modern games)
-        for _, descendant in pairs(workspace:GetDescendants()) do
-            if descendant:IsA("ProximityPrompt") then
-                local parent = descendant.Parent
-                if parent and parent:IsA("BasePart") then
-                    local distance = (parent.Position - root.Position).Magnitude
+        -- Search for collectible items in workspace
+        for _, item in pairs(workspace:GetDescendants()) do
+            if item:IsA("BasePart") and item.CanCollide == false then
+                -- Check if it's a collectible based on name patterns
+                local isCollectible = item.Name:lower():match("gold") or 
+                                     item.Name:lower():match("drop") or
+                                     item.Name:lower():match("coin") or
+                                     item.Name:lower():match("money") or
+                                     item.Name:lower():match("cash") or
+                                     item.Name:lower():match("loot") or
+                                     item.Name:lower():match("pickup") or
+                                     item.Name:lower():match("collect")
+                
+                if isCollectible then
+                    local distance = (item.Position - root.Position).Magnitude
                     
-                    -- Check if it's a collectible (gold, drops, etc.)
-                    local isCollectible = parent.Name:match("Gold") or 
-                                         parent.Name:match("Drop") or
-                                         parent.Name:match("Coin") or
-                                         parent.Name:match("Money") or
-                                         parent.Name:match("Cash") or
-                                         descendant.ObjectText:match("Collect") or
-                                         descendant.ObjectText:match("Pick")
-                    
-                    if isCollectible and distance <= collectRadius then
-                        -- Trigger the prompt
-                        fireproximityprompt(descendant)
-                        lastCollectTime = currentTime
-                        task.wait(0.05)
+                    if distance <= collectRadius and distance > 2 then
+                        -- Teleport item to player (safer than teleporting player)
+                        if item:IsA("BasePart") and not item.Anchored then
+                            item.CFrame = root.CFrame
+                        end
                     end
                 end
             end
-        end
-        
-        -- Method 2: Check for ClickDetectors (older games)
-        for _, descendant in pairs(workspace:GetDescendants()) do
-            if descendant:IsA("ClickDetector") then
-                local parent = descendant.Parent
-                if parent and parent:IsA("BasePart") then
-                    local distance = (parent.Position - root.Position).Magnitude
+            
+            -- Also check Models that might be collectibles
+            if item:IsA("Model") then
+                local isCollectible = item.Name:lower():match("gold") or 
+                                     item.Name:lower():match("drop") or
+                                     item.Name:lower():match("coin") or
+                                     item.Name:lower():match("loot")
+                
+                if isCollectible and item.PrimaryPart then
+                    local distance = (item.PrimaryPart.Position - root.Position).Magnitude
                     
-                    local isCollectible = parent.Name:match("Gold") or 
-                                         parent.Name:match("gold") or
-                                         parent.Name:match("Drop") or
-                                         parent.Name:match("drop") or
-                                         parent.Name:match("Coin") or
-                                         parent.Name:match("coin") or
-                                         parent.Name:match("Money") or
-                                         parent.Name:match("money") or
-                                         parent.Name:match("Cash") or
-                                         parent.Name:match("cash") or
-                                         parent.Name:match("Loot") or
-                                         parent.Name:match("loot")
-                    
-                    if isCollectible and distance <= collectRadius then
-                        fireclickdetector(descendant)
-                        lastCollectTime = currentTime
-                        task.wait(0.05)
-                    end
-                end
-            end
-        end
-        
-        -- Method 3: Touch-based collection (multiple folder search)
-        local searchFolders = {
-            workspace:FindFirstChild("Drops"),
-            workspace:FindFirstChild("DroppedItems"),
-            workspace:FindFirstChild("Collectables"),
-            workspace:FindFirstChild("Collectibles"),
-            workspace:FindFirstChild("Loot"),
-            workspace:FindFirstChild("Items"),
-            workspace:FindFirstChild("Gold")
-        }
-        
-        for _, folder in ipairs(searchFolders) do
-            if folder then
-                for _, item in pairs(folder:GetChildren()) do
-                    if item:IsA("BasePart") or item:IsA("Model") then
-                        local itemPos = item:IsA("Model") and item:GetPivot().Position or item.Position
-                        local distance = (itemPos - root.Position).Magnitude
-                        
-                        -- Check if item name suggests it's collectible
-                        local nameCheck = item.Name:match("Gold") or item.Name:match("gold") or
-                                         item.Name:match("Drop") or item.Name:match("drop") or
-                                         item.Name:match("Coin") or item.Name:match("coin") or
-                                         item.Name:match("Money") or item.Name:match("money") or
-                                         item.Name:match("Cash") or item.Name:match("cash") or
-                                         item.Name:match("Loot") or item.Name:match("loot")
-                        
-                        if (nameCheck or folder.Name:match("Drop") or folder.Name:match("Gold")) and 
-                           distance <= collectRadius and distance > 2 then
-                            -- Brief teleport to touch item
-                            local originalCFrame = root.CFrame
-                            root.CFrame = CFrame.new(itemPos + Vector3.new(0, 1, 0))
-                            task.wait(0.03)
-                            root.CFrame = originalCFrame
-                            lastCollectTime = currentTime
-                            task.wait(0.02)
+                    if distance <= collectRadius and distance > 2 then
+                        -- Teleport model to player
+                        if not item.PrimaryPart.Anchored then
+                            item:SetPrimaryPartCFrame(root.CFrame)
                         end
                     end
                 end
@@ -576,10 +526,10 @@ MiscTab:CreateToggle({
 
 MiscTab:CreateSlider({
     Name = "📏 Collector Radius",
-    Range = {50, 200},
+    Range = {50, 300},
     Increment = 10,
     Suffix = " studs",
-    CurrentValue = 150,
+    CurrentValue = 200,
     Flag = "CollectRadius",
     Callback = function(Value)
         collectRadius = Value
@@ -636,41 +586,28 @@ MiscTab:CreateButton({
 MiscTab:CreateSection("⚡ Power Enhancements")
 
 MiscTab:CreateButton({
-    Name = "⚡ Unlock All Perks",
+    Name = "⚡ Unlock All Perks (Buy)",
     Callback = function()
-        local vars = player:FindFirstChild("Variables")
-        if not vars then 
-            Rayfield:Notify({
-                Title = "❌ Error",
-                Content = "Wait for game to load...",
-                Duration = 3,
-                Image = 4483362458
-            })
-            return 
-        end
-
-        local perks = {  
-            "Bandoiler_Perk",      -- +30% max ammo
-            "DoubleUp_Perk",       -- 2x points per kill
-            "Haste_Perk",          -- +20% movement speed
-            "Tank_Perk",           -- +100 HP
-            "GasMask_Perk",        -- Immunity to gas
-            "DeadShot_Perk",       -- +33% damage
-            "DoubleMag_Perk",      -- 2x magazine size
-            "WickedGrenade_Perk"   -- Better grenades
-        }  
-
         local activated = 0
-        for _, perk in ipairs(perks) do  
-            pcall(function()
-                vars:SetAttribute(perk, true)
-                activated = activated + 1
-            end)
-        end
+        
+        -- Find all perk machines in workspace
+        pcall(function()
+            for _, descendant in pairs(workspace:GetDescendants()) do
+                if descendant:IsA("ProximityPrompt") then
+                    local objectText = descendant.ObjectText
+                    if objectText:match("Perk") or objectText:match("perk") then
+                        -- Fire the prompt to buy the perk
+                        fireproximityprompt(descendant, 0)
+                        activated = activated + 1
+                        task.wait(0.1) -- Small delay between purchases
+                    end
+                end
+            end
+        end)
         
         Rayfield:Notify({
             Title = "⚡ Freezy HUB",
-            Content = activated .. "/8 perks unlocked!",
+            Content = activated .. " perks purchased!",
             Duration = 3,
             Image = 4483362458
         })
