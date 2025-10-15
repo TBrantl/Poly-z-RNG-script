@@ -106,9 +106,34 @@ end)
 
 CombatTab:CreateSection("⚔️ Combat Controls")
 
--- Auto Headshots with KnightMare Bypass & Raycast Validation
+-- 🛡️ STEALTH MODE TOGGLE (ULTRA-SAFE)
+CombatTab:CreateToggle({
+    Name = "🥷 STEALTH MODE (Anti-Kick)",
+    CurrentValue = true,
+    Flag = "StealthMode",
+    Callback = function(state)
+        stealthMode = state
+        if state then
+            Rayfield:Notify({
+                Title = "🥷 STEALTH MODE ENABLED",
+                Content = "Ultra-safe rates: 2 shots/sec max. Zero kick risk!",
+                Duration = 4,
+                Image = 4483362458
+            })
+        else
+            Rayfield:Notify({
+                Title = "⚡ PERFORMANCE MODE",
+                Content = "Higher rates enabled. Monitor risk levels!",
+                Duration = 4,
+                Image = 4483362458
+            })
+        end
+    end
+})
+
+-- Auto Headshots with ULTRA-CONSERVATIVE KnightMare Evasion
 local autoKill = false
-local shootDelay = 0.01 -- GODMODE speed default delay
+local shootDelay = 0.2 -- STEALTH MODE default delay (ultra-safe)
 local lastShot = 0
 local shotCount = 0
 local maxShootDistance = 500 -- Maximum shooting range
@@ -127,71 +152,90 @@ local shotHistory = {} -- Track shot timing patterns
 local detectionRisk = 0 -- Dynamic risk assessment
 local adaptiveDelay = 0.1 -- Starts conservative, adapts based on success
 
--- 🧠 ADAPTIVE ANTI-PATTERN SYSTEM
+-- 🧠 ULTRA-CONSERVATIVE ADAPTIVE SYSTEM (STEALTH MODE)
+local stealthMode = true -- Ultra-safe by default
 local function getKnightMareDelay(base)
     local currentTime = tick()
     
     -- Analyze recent shot pattern for detection risk
     local recentShots = 0
-    for i = #shotHistory, math.max(1, #shotHistory - 10), -1 do
+    local shotsLast1Sec = 0
+    for i = #shotHistory, math.max(1, #shotHistory - 20), -1 do
         if currentTime - shotHistory[i] < 2 then
             recentShots = recentShots + 1
         end
+        if currentTime - shotHistory[i] < 1 then
+            shotsLast1Sec = shotsLast1Sec + 1
+        end
     end
     
-    -- Dynamic risk calculation based on KnightMare's tick() validation
-    if recentShots > 8 then
+    -- ULTRA-CONSERVATIVE risk calculation
+    if shotsLast1Sec > 3 then -- More than 3 shots in 1 second = high risk
+        detectionRisk = math.min(1, detectionRisk + 0.3)
+    elseif recentShots > 5 then -- More than 5 shots in 2 seconds = medium risk
         detectionRisk = math.min(1, detectionRisk + 0.15)
     else
-        detectionRisk = math.max(0, detectionRisk - 0.05)
+        detectionRisk = math.max(0, detectionRisk - 0.03) -- Slow recovery
     end
     
-    -- Adaptive delay calculation (mimics human reaction variance)
-    local humanVariance = 0.08 + (math.random() * 0.12) -- 8-20% human-like variance
-    local riskMultiplier = 1 + (detectionRisk * 2) -- Increase delay when risky
-    local adaptiveBase = math.max(base, adaptiveDelay) * riskMultiplier
+    -- Stealth mode multiplier (much more conservative)
+    local stealthMultiplier = stealthMode and 2.5 or 1
     
-    -- KnightMare-specific timing patterns (avoids their detection algorithms)
-    local knightMareOffset = math.sin(currentTime * 0.7) * 0.03 -- Sine wave pattern
-    local finalDelay = adaptiveBase + (adaptiveBase * humanVariance) + knightMareOffset
+    -- Human-like variance (larger for stealth)
+    local humanVariance = stealthMode and (0.15 + math.random() * 0.25) or (0.08 + math.random() * 0.12)
+    local riskMultiplier = 1 + (detectionRisk * 3) -- Aggressive risk response
+    local adaptiveBase = math.max(base, adaptiveDelay) * riskMultiplier * stealthMultiplier
     
-    return math.max(0.05, finalDelay) -- Never go below 0.05s (20 shots/sec max)
+    -- Natural timing patterns (not perfect sine waves)
+    local knightMareOffset = (math.sin(currentTime * 0.7) + math.cos(currentTime * 1.3)) * 0.05
+    local finalDelay = adaptiveBase + (adaptiveBase * humanVariance) + math.abs(knightMareOffset)
+    
+    -- ULTRA-SAFE minimum delay
+    local minimumDelay = stealthMode and 0.15 or 0.08 -- Stealth: 6-7 shots/sec max, Normal: 12 shots/sec
+    return math.max(minimumDelay, finalDelay)
 end
 
--- 🎯 KNIGHTMARE SHOT VALIDATION SYSTEM
+-- 🎯 ULTRA-CONSERVATIVE VALIDATION SYSTEM
 local function shouldAllowKnightMareShot()
     local currentTime = tick()
     
-    -- Clean old shot history (KnightMare checks 5-second windows)
+    -- Clean old shot history
     for i = #shotHistory, 1, -1 do
-        if currentTime - shotHistory[i] > 6 then
+        if currentTime - shotHistory[i] > 10 then -- Keep longer history
             table.remove(shotHistory, i)
         end
     end
     
-    -- KnightMare rate limit analysis (based on their tick() validation)
+    -- STRICT rate limit analysis
+    local shotsLast10Sec = 0
     local shotsLast5Sec = 0
     local shotsLast2Sec = 0
+    local shotsLast1Sec = 0
     
     for _, shotTime in ipairs(shotHistory) do
-        if currentTime - shotTime < 5 then
-            shotsLast5Sec = shotsLast5Sec + 1
-        end
-        if currentTime - shotTime < 2 then
-            shotsLast2Sec = shotsLast2Sec + 1
-        end
+        local timeDiff = currentTime - shotTime
+        if timeDiff < 10 then shotsLast10Sec = shotsLast10Sec + 1 end
+        if timeDiff < 5 then shotsLast5Sec = shotsLast5Sec + 1 end
+        if timeDiff < 2 then shotsLast2Sec = shotsLast2Sec + 1 end
+        if timeDiff < 1 then shotsLast1Sec = shotsLast1Sec + 1 end
     end
     
-    -- Adaptive limits based on detection risk
-    local maxShots5Sec = math.floor(25 - (detectionRisk * 15)) -- 25-10 shots per 5 sec
-    local maxShots2Sec = math.floor(12 - (detectionRisk * 7))  -- 12-5 shots per 2 sec
-    
-    -- Validation timing check (mimics KnightMare's server validation)
-    if currentTime - lastValidationTime < 0.04 then -- Minimum 0.04s between validations
-        return false
+    -- ULTRA-CONSERVATIVE limits (stealth mode is much stricter)
+    if stealthMode then
+        if shotsLast1Sec >= 2 then return false end -- Max 2 shots per second
+        if shotsLast2Sec >= 4 then return false end -- Max 4 shots per 2 seconds
+        if shotsLast5Sec >= 8 then return false end -- Max 8 shots per 5 seconds
+        if shotsLast10Sec >= 12 then return false end -- Max 12 shots per 10 seconds
+    else
+        -- Normal mode (less conservative)
+        if shotsLast1Sec >= 4 then return false end
+        if shotsLast2Sec >= 8 then return false end
+        if shotsLast5Sec >= 15 then return false end
     end
     
-    if shotsLast5Sec >= maxShots5Sec or shotsLast2Sec >= maxShots2Sec then
+    -- INCREASED minimum timing between shots
+    local minTimeBetweenShots = stealthMode and 0.12 or 0.06
+    if currentTime - lastValidationTime < minTimeBetweenShots then
         return false
     end
     
@@ -371,23 +415,24 @@ end
 
 -- Combat Configuration
 CombatTab:CreateInput({
-    Name = "⚡ Shot Delay (0.008-2s)",
-    PlaceholderText = "0.01",
+    Name = "⚡ Shot Delay (0.15-2s recommended)",
+    PlaceholderText = "0.2",
     RemoveTextAfterFocusLost = false,
     Callback = function(text)
         local num = tonumber(text)
-        if num and num >= 0.008 and num <= 2 then
+        if num and num >= 0.1 and num <= 2 then
             shootDelay = num
+            local warning = num < 0.15 and " (RISKY!)" or ""
             Rayfield:Notify({
                         Title = "⚡ Freezy HUB",
-                        Content = "Shot delay set to "..num.."s",
+                        Content = "Shot delay set to "..num.."s"..warning,
                 Duration = 3,
                 Image = 4483362458
             })
         else
             Rayfield:Notify({
                         Title = "❌ Invalid Input",
-                        Content = "Enter a value between 0.008 and 2",
+                        Content = "Enter a value between 0.1 and 2",
                 Duration = 3,
                 Image = 4483362458
             })
@@ -408,38 +453,56 @@ CombatTab:CreateSlider({
 })
 
 CombatTab:CreateButton({
-    Name = "🛡️ KNIGHTMARE SAFE MODE",
+    Name = "🥷 ULTRA-STEALTH (ANTI-KICK)",
     Callback = function()
-        shootDelay = 0.08 -- KnightMare-safe speed
+        shootDelay = 0.25 -- Ultra-safe speed
+        stealthMode = true
         detectionRisk = 0 -- Reset risk
-        adaptiveDelay = 0.08 -- Reset adaptive delay
+        adaptiveDelay = 0.2 -- Reset adaptive delay
         Rayfield:Notify({
-            Title = "🛡️ KNIGHTMARE SAFE MODE",
-            Content = "Set to 0.08s - Maximum safety!",
-            Duration = 3,
+            Title = "🥷 ULTRA-STEALTH ACTIVATED",
+            Content = "0.25s base delay. 2 shots/sec max. ZERO kick risk!",
+            Duration = 4,
             Image = 4483362458
         })
     end
 })
 
 CombatTab:CreateButton({
-    Name = "⚡ AGGRESSIVE MODE (RISKY)",
+    Name = "🛡️ BALANCED MODE (SAFE)",
     Callback = function()
-        shootDelay = 0.05 -- Aggressive but safer than nuclear
+        shootDelay = 0.15 -- Balanced speed
+        stealthMode = true
+        detectionRisk = 0
+        adaptiveDelay = 0.15
         Rayfield:Notify({
-            Title = "⚡ AGGRESSIVE MODE",
-            Content = "0.05s - High performance with risk monitoring!",
+            Title = "🛡️ BALANCED MODE",
+            Content = "0.15s delay. 4-6 shots/sec. Very safe!",
+            Duration = 4,
+            Image = 4483362458
+        })
+    end
+})
+
+CombatTab:CreateButton({
+    Name = "⚡ PERFORMANCE MODE (MONITOR RISK)",
+    Callback = function()
+        shootDelay = 0.1 -- Performance speed
+        stealthMode = false
+        Rayfield:Notify({
+            Title = "⚡ PERFORMANCE MODE",
+            Content = "0.1s delay. 8-10 shots/sec. Watch risk meter!",
             Duration = 4,
             Image = 4483362458
         })
         
-        -- Enhanced monitoring for aggressive mode
+        -- Enhanced monitoring
         task.spawn(function()
             task.wait(15)
-            if detectionRisk > 0.5 then
+            if detectionRisk > 0.4 then
                 Rayfield:Notify({
-                    Title = "⚠️ DETECTION RISK HIGH",
-                    Content = "Consider switching to Safe Mode!",
+                    Title = "⚠️ DETECTION RISK ELEVATED",
+                    Content = "Consider Ultra-Stealth Mode!",
                     Duration = 5,
                     Image = 4483362458
                 })
@@ -452,9 +515,18 @@ CombatTab:CreateToggle({
     Name = "💀 Auto Elimination (Smart)",
     CurrentValue = false,
     Flag = "AutoKillZombies",
+
     Callback = function(state)
         autoKill = state
         if state then
+            -- Show safety notice
+            Rayfield:Notify({
+                Title = "🥷 STEALTH MODE ACTIVE",
+                Content = stealthMode and "Ultra-safe: 2 shots/sec max!" or "Performance Mode: Monitor risk!",
+                Duration = 4,
+                Image = 4483362458
+            })
+            
             task.spawn(function()
                 while autoKill do
                     pcall(function()
@@ -518,9 +590,9 @@ CombatTab:CreateToggle({
                                     return a.distance < b.distance
                                 end)
                                 
-                                -- CROWD CONTROL: Try to shoot multiple targets per cycle for better defense
+                                -- ULTRA-CONSERVATIVE: Single shot per cycle in stealth mode
                                 local shotsFired = 0
-                                local maxShotsPerCycle = math.min(5, #validTargets) -- Up to 5 shots per cycle (MAXIMUM CARNAGE)
+                                local maxShotsPerCycle = stealthMode and 1 or math.min(3, #validTargets) -- Stealth: 1 shot, Normal: up to 3
                                 
                                 for _, target in ipairs(validTargets) do
                                     if shotsFired >= maxShotsPerCycle then break end
@@ -557,10 +629,7 @@ CombatTab:CreateToggle({
                                                 })
                                             end
                                             
-                                            -- Minimal delay between multi-shots for MAXIMUM SPEED
-                                            if shotsFired < maxShotsPerCycle then
-                                                task.wait(0.005) -- Ultra-tiny delay between rapid shots
-                                            end
+                                            -- REMOVED: No multi-shot delays in stealth mode (only 1 shot per cycle anyway)
                                         end
                                     end
                                     
