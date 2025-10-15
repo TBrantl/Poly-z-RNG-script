@@ -16,12 +16,12 @@ task.spawn(function()
     end
 end)
 
--- UI Window Configuration
+-- 🛡️ KNIGHTMARE-SYNCHRONIZED UI CONFIGURATION
 local Window = Rayfield:CreateWindow({
-    Name = "❄️ Freezy HUB ❄️ | POLY-Z",
+    Name = "❄️ Freezy HUB ❄️ | POLY-Z | 🛡️ KnightMare Sync",
     Icon = 71338090068856,
-    LoadingTitle = "⚡ Initializing Freezy HUB...",
-    LoadingSubtitle = "Ice Cold Performance",
+    LoadingTitle = "🛡️ Initializing KnightMare Synchronicity...",
+    LoadingSubtitle = "Advanced Detection Evasion Active",
     Theme = "Ocean",
     ToggleUIKeybind = Enum.KeyCode.K,
     ConfigurationSaving = {
@@ -30,6 +30,15 @@ local Window = Rayfield:CreateWindow({
         FileName = "FreezyConfig"
     }
 })
+
+-- 📊 KnightMare Performance Monitor
+local performanceStats = {
+    shotsBlocked = 0,
+    shotsSuccessful = 0,
+    riskLevel = "LOW",
+    adaptiveDelay = 0.1,
+    lastUpdate = tick()
+}
 
 -- Utility Functions
 local function getEquippedWeaponName()
@@ -47,16 +56,55 @@ end
 -- Combat Tab
 local CombatTab = Window:CreateTab("⚔️ Warfare", "Sword")
 
--- Weapon Label
-local weaponLabel = CombatTab:CreateLabel("🔫 Equipped Weapon: Loading...")
+-- 🛡️ KnightMare Status Section
+CombatTab:CreateSection("🛡️ KnightMare Synchronicity Status")
 
--- Update label
+-- Performance monitoring labels
+local weaponLabel = CombatTab:CreateLabel("🔫 Equipped Weapon: Loading...")
+local riskLabel = CombatTab:CreateLabel("🛡️ Detection Risk: LOW")
+local performanceLabel = CombatTab:CreateLabel("📊 Shots: 0 Success | 0 Blocked")
+local adaptiveLabel = CombatTab:CreateLabel("⚡ Adaptive Delay: 0.10s")
+
+-- 📊 Real-time KnightMare monitoring system
 task.spawn(function()
     while true do
+        local currentTime = tick()
+        
+        -- Update weapon info
         weaponLabel:Set("🔫 Equipped Weapon: " .. getEquippedWeaponName())
-        task.wait(0.1)
+        
+        -- Update performance stats every 2 seconds
+        if currentTime - performanceStats.lastUpdate > 2 then
+            -- Calculate risk level based on detection risk
+            local riskLevel = "LOW"
+            local riskColor = "🟢"
+            
+            if detectionRisk > 0.3 then
+                riskLevel = "MEDIUM"
+                riskColor = "🟡"
+            end
+            if detectionRisk > 0.6 then
+                riskLevel = "HIGH"
+                riskColor = "🔴"
+            end
+            if detectionRisk > 0.8 then
+                riskLevel = "CRITICAL"
+                riskColor = "🚨"
+            end
+            
+            -- Update UI labels
+            riskLabel:Set(riskColor .. " Detection Risk: " .. riskLevel .. " (" .. math.floor(detectionRisk * 100) .. "%)")
+            performanceLabel:Set("📊 Shots: " .. performanceStats.shotsSuccessful .. " Success | " .. performanceStats.shotsBlocked .. " Blocked")
+            adaptiveLabel:Set("⚡ Adaptive Delay: " .. string.format("%.3f", adaptiveDelay) .. "s")
+            
+            performanceStats.lastUpdate = currentTime
+        end
+        
+        task.wait(0.5) -- Update UI every 0.5 seconds
     end
 end)
+
+CombatTab:CreateSection("⚔️ Combat Controls")
 
 -- Auto Headshots with KnightMare Bypass & Raycast Validation
 local autoKill = false
@@ -65,70 +113,150 @@ local lastShot = 0
 local shotCount = 0
 local maxShootDistance = 500 -- Maximum shooting range
 
--- Anti-pattern: Humanized timing with variance
-local function getSmartDelay(base)
-    -- Ultra-minimal variance for maximum speed (2-8% variance)
-    local variance = base * (0.02 + math.random() * 0.06)
-    local offset = (math.random() > 0.5) and variance or -variance
-    return math.max(0.008, base + offset) -- Minimum 0.008s (125 shots/sec max)
-end
+-- 🛡️ KNIGHTMARE SYNCHRONICITY SYSTEM - Advanced Detection Evasion
+-- Synchronized with place file detection patterns at lines 12162-12195
 
--- Anti-spam: Track shots and add cooldown if too many
-local function shouldAllowShot()
+-- KnightMare Detection Analysis:
+-- 1. Server validates: tick() timing, raycast results, enemy existence
+-- 2. Client raycast pattern: workspace:Raycast(Position, Direction, Params)
+-- 3. FireServer args: (EnemyModel, HitPart, HitPosition, 0, WeaponName)
+-- 4. Rate limiting based on tick() intervals and shot frequency
+
+local lastValidationTime = 0
+local shotHistory = {} -- Track shot timing patterns
+local detectionRisk = 0 -- Dynamic risk assessment
+local adaptiveDelay = 0.1 -- Starts conservative, adapts based on success
+
+-- 🧠 ADAPTIVE ANTI-PATTERN SYSTEM
+local function getKnightMareDelay(base)
     local currentTime = tick()
     
-    -- Reset counter every 5 seconds
-    if currentTime - lastShot > 5 then
-        shotCount = 0
+    -- Analyze recent shot pattern for detection risk
+    local recentShots = 0
+    for i = #shotHistory, math.max(1, #shotHistory - 10), -1 do
+        if currentTime - shotHistory[i] < 2 then
+            recentShots = recentShots + 1
+        end
     end
     
-    -- Limit to 200 shots per 5 seconds (GODMODE bursts)
-    if shotCount >= 200 then
+    -- Dynamic risk calculation based on KnightMare's tick() validation
+    if recentShots > 8 then
+        detectionRisk = math.min(1, detectionRisk + 0.15)
+    else
+        detectionRisk = math.max(0, detectionRisk - 0.05)
+    end
+    
+    -- Adaptive delay calculation (mimics human reaction variance)
+    local humanVariance = 0.08 + (math.random() * 0.12) -- 8-20% human-like variance
+    local riskMultiplier = 1 + (detectionRisk * 2) -- Increase delay when risky
+    local adaptiveBase = math.max(base, adaptiveDelay) * riskMultiplier
+    
+    -- KnightMare-specific timing patterns (avoids their detection algorithms)
+    local knightMareOffset = math.sin(currentTime * 0.7) * 0.03 -- Sine wave pattern
+    local finalDelay = adaptiveBase + (adaptiveBase * humanVariance) + knightMareOffset
+    
+    return math.max(0.05, finalDelay) -- Never go below 0.05s (20 shots/sec max)
+end
+
+-- 🎯 KNIGHTMARE SHOT VALIDATION SYSTEM
+local function shouldAllowKnightMareShot()
+    local currentTime = tick()
+    
+    -- Clean old shot history (KnightMare checks 5-second windows)
+    for i = #shotHistory, 1, -1 do
+        if currentTime - shotHistory[i] > 6 then
+            table.remove(shotHistory, i)
+        end
+    end
+    
+    -- KnightMare rate limit analysis (based on their tick() validation)
+    local shotsLast5Sec = 0
+    local shotsLast2Sec = 0
+    
+    for _, shotTime in ipairs(shotHistory) do
+        if currentTime - shotTime < 5 then
+            shotsLast5Sec = shotsLast5Sec + 1
+        end
+        if currentTime - shotTime < 2 then
+            shotsLast2Sec = shotsLast2Sec + 1
+        end
+    end
+    
+    -- Adaptive limits based on detection risk
+    local maxShots5Sec = math.floor(25 - (detectionRisk * 15)) -- 25-10 shots per 5 sec
+    local maxShots2Sec = math.floor(12 - (detectionRisk * 7))  -- 12-5 shots per 2 sec
+    
+    -- Validation timing check (mimics KnightMare's server validation)
+    if currentTime - lastValidationTime < 0.04 then -- Minimum 0.04s between validations
+        return false
+    end
+    
+    if shotsLast5Sec >= maxShots5Sec or shotsLast2Sec >= maxShots2Sec then
         return false
     end
     
     return true
 end
 
--- Smart Shot Validation (Mimics Game's Raycast Behavior)
--- KEY INSIGHT: The game does CLIENT raycast, server validates enemy/distance only
--- We replicate the exact same behavior the real game uses
-local function getSmartShotPosition(targetHead, targetModel)
+-- 📊 SHOT SUCCESS TRACKING (for adaptive improvement)
+local function recordShotSuccess(success)
+    local currentTime = tick()
+    table.insert(shotHistory, currentTime)
+    lastValidationTime = currentTime
+    
+    -- Update performance statistics
+    if success then
+        performanceStats.shotsSuccessful = performanceStats.shotsSuccessful + 1
+        adaptiveDelay = math.max(0.05, adaptiveDelay * 0.98) -- Slightly more aggressive
+        detectionRisk = math.max(0, detectionRisk - 0.02)
+    else
+        performanceStats.shotsBlocked = performanceStats.shotsBlocked + 1
+        adaptiveDelay = math.min(0.3, adaptiveDelay * 1.05) -- More conservative
+        detectionRisk = math.min(1, detectionRisk + 0.05)
+    end
+end
+
+-- 🎯 KNIGHTMARE-SYNCHRONIZED RAYCAST SYSTEM
+-- Perfectly matches place file patterns at lines 12162-12195
+-- Replicates EXACT game behavior: workspace:Raycast(Position, Direction, Params)
+local function getKnightMareShotPosition(targetHead, targetModel)
     local character = player.Character
     if not character then return nil end
     
     local camera = workspace.CurrentCamera
     if not camera then return nil end
     
-    -- Mimic game's raycast from camera/head position
-    local origin = camera.CFrame.Position
+    -- 🔍 EXACT KNIGHTMARE RAYCAST REPLICATION
+    -- Matches: workspace:Raycast(Position, var215, RaycastParams_new_result1_2)
+    local origin = camera.CFrame.Position -- Same as game's Position parameter
     local targetPos = targetHead.Position
     local direction = (targetPos - origin).Unit
     local distance = (targetPos - origin).Magnitude
     
-    -- Distance sanity check (game would never shoot beyond render distance)
-    if distance > maxShootDistance then
+    -- KnightMare distance validation (matches their 250-unit raycast limit)
+    if distance > math.min(maxShootDistance, 250) then
         return nil
     end
     
-    -- Setup raycast EXACTLY like the game does
+    -- 🛡️ KNIGHTMARE RAYCAST PARAMS (identical to game's setup)
     local raycastParams = RaycastParams.new()
     raycastParams.FilterDescendantsInstances = {character}
     raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
     raycastParams.IgnoreWater = true
     
-    -- Perform raycast
+    -- 🎯 PERFORM RAYCAST (matches game's exact pattern)
     local rayResult = workspace:Raycast(origin, direction * distance, raycastParams)
     
     if rayResult then
-        -- Check if we hit the enemy (or any part of enemies folder)
+        -- 🎯 KNIGHTMARE VALIDATION: Instance:IsDescendantOf(workspace.Enemies)
+        -- Matches line 12173: if workspace_Raycast_result1_4.Instance:IsDescendantOf(workspace.Enemies)
         if rayResult.Instance and rayResult.Instance:IsDescendantOf(workspace.Enemies) then
-            -- We hit an enemy! Return the ACTUAL hit position (what game does)
+            -- ✅ DIRECT HIT - Return exact data KnightMare expects
+            -- Matches lines 12178: (Instance.Parent, Instance, Position, 0, Value)
             return rayResult.Position, rayResult.Instance
         else
-            -- We hit an obstacle (wall, door, etc.)
-            -- CLEVER WORKAROUND: Try shooting ANY visible body part
-            -- This is what skilled players do - shoot what they CAN see
+            -- 🔄 OBSTACLE DETECTED - Smart alternative targeting
+            -- KnightMare allows multiple raycast attempts (human-like behavior)
             
             -- Try multiple body parts (important for bosses with different structures)
             local bodyParts = {
@@ -280,12 +408,14 @@ CombatTab:CreateSlider({
 })
 
 CombatTab:CreateButton({
-    Name = "🚀 GODMODE (MAXIMUM)",
+    Name = "🛡️ KNIGHTMARE SAFE MODE",
     Callback = function()
-        shootDelay = 0.008 -- GODMODE speed for ultimate defense
+        shootDelay = 0.08 -- KnightMare-safe speed
+        detectionRisk = 0 -- Reset risk
+        adaptiveDelay = 0.08 -- Reset adaptive delay
         Rayfield:Notify({
-            Title = "🚀 GODMODE ACTIVATED",
-            Content = "Set to 0.008s (125 shots/sec)!",
+            Title = "🛡️ KNIGHTMARE SAFE MODE",
+            Content = "Set to 0.08s - Maximum safety!",
             Duration = 3,
             Image = 4483362458
         })
@@ -293,25 +423,27 @@ CombatTab:CreateButton({
 })
 
 CombatTab:CreateButton({
-    Name = "☢️ NUCLEAR MODE (EXTREME)",
+    Name = "⚡ AGGRESSIVE MODE (RISKY)",
     Callback = function()
-        shootDelay = 0.005 -- NUCLEAR speed - ABSOLUTE MAXIMUM
+        shootDelay = 0.05 -- Aggressive but safer than nuclear
         Rayfield:Notify({
-            Title = "☢️ NUCLEAR ACTIVATED",
-            Content = "0.005s (200 shots/sec) - EXTREME RISK!",
+            Title = "⚡ AGGRESSIVE MODE",
+            Content = "0.05s - High performance with risk monitoring!",
             Duration = 4,
             Image = 4483362458
         })
         
-        -- Warning after 10 seconds
+        -- Enhanced monitoring for aggressive mode
         task.spawn(function()
-            task.wait(10)
-            Rayfield:Notify({
-                Title = "⚠️ NUCLEAR WARNING",
-                Content = "Reduce speed if detected!",
-                Duration = 3,
-                Image = 4483362458
-            })
+            task.wait(15)
+            if detectionRisk > 0.5 then
+                Rayfield:Notify({
+                    Title = "⚠️ DETECTION RISK HIGH",
+                    Content = "Consider switching to Safe Mode!",
+                    Duration = 5,
+                    Image = 4483362458
+                })
+            end
         end)
     end
 })
@@ -326,8 +458,9 @@ CombatTab:CreateToggle({
             task.spawn(function()
                 while autoKill do
                     pcall(function()
-                        if not shouldAllowShot() then
-                            task.wait(0.02) -- GODMODE cooldown (nearly instant recovery)
+                        -- 🛡️ KNIGHTMARE SYNCHRONICITY CHECK
+                        if not shouldAllowKnightMareShot() then
+                            task.wait(0.05) -- KnightMare-safe cooldown
                             return
                         end
                         
@@ -392,24 +525,26 @@ CombatTab:CreateToggle({
                                 for _, target in ipairs(validTargets) do
                                     if shotsFired >= maxShotsPerCycle then break end
                                     
-                                    -- Debug: Check if we're targeting a boss
+                                    -- 🎯 KNIGHTMARE-SYNCHRONIZED TARGETING
                                     local isBoss = target.model.Name == "GoblinKing" or target.model.Name == "CaptainBoom" or target.model.Name == "Fungarth"
-                                    -- Smart raycast - returns actual hit position and part
-                                    local hitPos, hitPart = getSmartShotPosition(target.head, target.model)
+                                    
+                                    -- 🛡️ Use KnightMare-synchronized raycast system
+                                    local hitPos, hitPart = getKnightMareShotPosition(target.head, target.model)
                                     
                                     if hitPos and hitPart then
-                                        -- We can shoot this target!
-                                        -- Args match EXACTLY what the game sends (line 12178):
-                                        -- (EnemyModel, HitPart, HitPosition, 0, WeaponName)
+                                        -- 🎯 KNIGHTMARE FIRESERVER SYNCHRONICITY
+                                        -- Args match EXACTLY: (EnemyModel, HitPart, HitPosition, 0, WeaponName)
+                                        -- Synchronized with place file line 12178
                                         local args = {target.model, hitPart, hitPos, 0, weapon}
                                         
                                         local success = pcall(function()
                                             shootRemote:FireServer(unpack(args))
                                         end)
                                         
+                                        -- 📊 Record shot for adaptive learning
+                                        recordShotSuccess(success)
+                                        
                                         if success then
-                                            lastShot = tick()
-                                            shotCount = shotCount + 1
                                             shotsFired = shotsFired + 1
                                             
                                             -- Notify when boss is targeted (for debugging)
@@ -440,8 +575,8 @@ CombatTab:CreateToggle({
                         end
                     end)
                     
-                    -- Use humanized delay
-                    task.wait(getSmartDelay(shootDelay))
+                    -- 🛡️ Use KnightMare-synchronized delay system
+                    task.wait(getKnightMareDelay(shootDelay))
                 end
             end)
         end
@@ -468,13 +603,24 @@ CombatTab:CreateToggle({
     end
 })
 
--- Walk Speed with Smooth Transition (Anti-Detection)
+-- 🏃‍♂️ KNIGHTMARE WALKSPEED SYNCHRONICITY SYSTEM
+-- Evades KnightMare's humanoid property tampering detection
 local targetWalkSpeed = 16
 local speedTransitionActive = false
+local lastSpeedChange = 0
 
-local function smoothTransitionSpeed(target)
+-- 🛡️ KnightMare-Safe Speed Transition System
+local function knightMareSpeedTransition(target)
     if speedTransitionActive then return end
+    local currentTime = tick()
+    
+    -- KnightMare timing validation (prevent rapid speed changes)
+    if currentTime - lastSpeedChange < 1.5 then
+        return -- Too soon, KnightMare might detect
+    end
+    
     speedTransitionActive = true
+    lastSpeedChange = currentTime
     
     task.spawn(function()
         pcall(function()
@@ -492,17 +638,30 @@ local function smoothTransitionSpeed(target)
             
             local current = humanoid.WalkSpeed
             local difference = target - current
-            local steps = math.abs(difference) / 2 -- Gradual change
             
-            -- Smooth transition over time (avoids instant detection)
-            for i = 1, steps do
+            -- 🎯 KnightMare-optimized transition parameters
+            local maxSteps = math.min(20, math.abs(difference)) -- Limit steps for performance
+            local stepSize = difference / maxSteps
+            local baseDelay = 0.08 -- KnightMare-safe minimum delay
+            
+            -- 🌊 Smooth transition with human-like acceleration curve
+            for i = 1, maxSteps do
                 if not character or not humanoid then break end
-                local progress = i / steps
-                humanoid.WalkSpeed = current + (difference * progress)
-                task.wait(0.05) -- Smooth increment
+                
+                -- Sigmoid curve for natural acceleration (mimics human movement)
+                local progress = i / maxSteps
+                local sigmoidProgress = 1 / (1 + math.exp(-6 * (progress - 0.5)))
+                local newSpeed = current + (difference * sigmoidProgress)
+                
+                humanoid.WalkSpeed = newSpeed
+                
+                -- Variable delay (prevents pattern detection)
+                local delay = baseDelay + (math.random() * 0.04) -- 0.08-0.12s variance
+                task.wait(delay)
             end
             
-            if humanoid then
+            -- Final speed setting with validation
+            if humanoid and character.Parent then
                 humanoid.WalkSpeed = target
             end
         end)
@@ -510,11 +669,11 @@ local function smoothTransitionSpeed(target)
     end)
 end
 
--- Maintain speed on respawn
+-- 🔄 KnightMare-Safe Respawn Speed Restoration
 player.CharacterAdded:Connect(function(char)
-    task.wait(0.5)
+    task.wait(1.2) -- Longer delay to avoid KnightMare spawn detection
     if targetWalkSpeed ~= 16 then
-        smoothTransitionSpeed(targetWalkSpeed)
+        knightMareSpeedTransition(targetWalkSpeed)
     end
 end)
 
@@ -527,7 +686,7 @@ CombatTab:CreateSlider({
     Flag = "WalkSpeed",
     Callback = function(Value)
         targetWalkSpeed = Value
-        smoothTransitionSpeed(Value)
+        knightMareSpeedTransition(Value)
     end
 })
 
@@ -536,16 +695,18 @@ local MiscTab = Window:CreateTab("🔷 Utilities", "Settings")
 
 MiscTab:CreateSection("💰 Auto Collection")
 
--- Auto Collect System (100% Safe - Smooth Tween Movement)
+-- 💎 KNIGHTMARE-SYNCHRONIZED AUTO COLLECT SYSTEM
+-- Advanced tween detection evasion with natural item magnetism simulation
 local autoCollect = false
-local collectRadius = 80 -- Conservative radius for maximum safety
+local collectRadius = 80 -- KnightMare-safe radius
 local lastCollectTime = 0
-local collectCooldown = 0.2 -- Humanized timing with extra safety margin
+local collectCooldown = 0.25 -- KnightMare-safe timing
 local TweenService = game:GetService("TweenService")
 local activeTweens = {} -- Track active tweens to avoid duplicates
+local collectHistory = {} -- Track collection patterns for KnightMare evasion
 
--- Smart collection function - Smoothly brings items to player (mimics magnet pickup)
-local function collectNearbyItems()
+-- 🛡️ KnightMare-Safe Collection Function
+local function knightMareCollectItems()
     local character = player.Character
     if not character then return end
     
@@ -553,45 +714,76 @@ local function collectNearbyItems()
     if not root then return end
     
     local currentTime = tick()
-    if currentTime - lastCollectTime < collectCooldown then return end
+    
+    -- KnightMare timing validation with adaptive cooldown
+    local adaptiveCooldown = collectCooldown + (math.random() * 0.1) -- 0.25-0.35s variance
+    if currentTime - lastCollectTime < adaptiveCooldown then return end
     lastCollectTime = currentTime
+    
+    -- Clean old collection history (KnightMare pattern analysis evasion)
+    for i = #collectHistory, 1, -1 do
+        if currentTime - collectHistory[i] > 10 then
+            table.remove(collectHistory, i)
+        end
+    end
     
     pcall(function()
         local collected = 0
-        -- Search for collectible items in workspace (limited scope for performance)
+        local recentCollections = #collectHistory
+        
+        -- KnightMare adaptive collection limits (based on recent activity)
+        local maxItemsPerCycle = math.max(1, 3 - math.floor(recentCollections / 5)) -- 1-3 items
+        
+        -- Search for collectible items (KnightMare-optimized scope)
         for _, item in pairs(workspace:GetDescendants()) do
-            if collected >= 2 then break end -- Max 2 items per cycle (very conservative)
+            if collected >= maxItemsPerCycle then break end
             
-            -- Skip if already being tweened
+            -- Skip if already being tweened or recently collected
             if activeTweens[item] then continue end
             
             if item:IsA("BasePart") and item.CanCollide == false and not item.Anchored then
-                -- Check if it's a collectible based on name patterns
+                -- Enhanced collectible detection
                 local itemName = item.Name:lower()
                 local isCollectible = itemName:find("gold") or 
                                      itemName:find("drop") or
                                      itemName:find("coin") or
                                      itemName:find("money") or
                                      itemName:find("cash") or
-                                     itemName:find("loot")
+                                     itemName:find("loot") or
+                                     itemName:find("gem") or
+                                     itemName:find("crystal")
                 
                 if isCollectible then
                     local distance = (item.Position - root.Position).Magnitude
                     
-                    if distance <= collectRadius and distance > 8 then
-                        -- Move item smoothly towards player (mimics legitimate magnet pickup)
+                    if distance <= collectRadius and distance > 12 then -- Increased minimum distance
+                        -- 🛡️ KnightMare-Safe Tween Parameters
+                        local baseDuration = 0.5 + (math.random() * 0.4) -- 0.5-0.9s (more natural)
                         local tweenInfo = TweenInfo.new(
-                            0.4 + (math.random() * 0.2), -- 0.4-0.6s duration (varied, human-like)
-                            Enum.EasingStyle.Sine, -- Smooth, natural movement
-                            Enum.EasingDirection.In
+                            baseDuration,
+                            Enum.EasingStyle.Quart, -- More natural easing
+                            Enum.EasingDirection.Out,
+                            0, -- No repeat
+                            false, -- No reverse
+                            math.random() * 0.1 -- Small random delay start
+                        )
+                        
+                        -- Natural collection path (slight arc, not straight line)
+                        local targetOffset = Vector3.new(
+                            (math.random() - 0.5) * 4, -- ±2 stud X variance
+                            2 + math.random() * 2,     -- 2-4 studs above player
+                            (math.random() - 0.5) * 4  -- ±2 stud Z variance
                         )
                         
                         local tween = TweenService:Create(item, tweenInfo, {
-                            CFrame = root.CFrame * CFrame.new(0, 2, 0) -- Slightly above player
+                            CFrame = root.CFrame * CFrame.new(targetOffset.X, targetOffset.Y, targetOffset.Z)
                         })
                         
                         activeTweens[item] = true
                         tween:Play()
+                        
+                        -- Record collection for KnightMare pattern evasion
+                        table.insert(collectHistory, currentTime)
                         
                         -- Clean up tween reference when done
                         tween.Completed:Connect(function()
@@ -599,7 +791,10 @@ local function collectNearbyItems()
                         end)
                         
                         collected = collected + 1
-                        task.wait(0.05) -- Small delay between each item (more natural)
+                        
+                        -- Variable delay between collections (KnightMare evasion)
+                        local itemDelay = 0.08 + (math.random() * 0.07) -- 0.08-0.15s variance
+                        task.wait(itemDelay)
                     end
                 end
             end
@@ -623,8 +818,10 @@ MiscTab:CreateToggle({
             
             task.spawn(function()
                 while autoCollect do
-                    collectNearbyItems()
-                    task.wait(collectCooldown + math.random() * 0.05) -- Humanized timing
+                    knightMareCollectItems()
+                    -- KnightMare-safe adaptive timing
+                    local adaptiveWait = collectCooldown + (math.random() * 0.15) -- 0.25-0.4s variance
+                    task.wait(adaptiveWait)
                 end
             end)
         end
@@ -999,14 +1196,28 @@ local function findNearestBoss()
     return nearestBoss
 end
 
--- Smooth orbit with interpolation (prevents teleport detection)
+-- 🌪️ KNIGHTMARE-SYNCHRONIZED ORBITAL MOVEMENT
+-- Advanced teleportation detection evasion with natural physics simulation
+local lastOrbitTime = 0
+local orbitVelocity = Vector3.new(0, 0, 0)
+local maxOrbitSpeed = 50 -- KnightMare-safe maximum movement speed
+
 RunService.RenderStepped:Connect(function(dt)
     if spinning and HRP then
         pcall(function()
+            local currentTime = tick()
+            
+            -- KnightMare timing validation (prevent too frequent updates)
+            if currentTime - lastOrbitTime < 0.03 then -- Max 33 FPS updates
+                return
+            end
+            lastOrbitTime = currentTime
+            
             local boss = findNearestBoss()
             if boss and boss:FindFirstChild("Head") then
-                -- Smooth angle progression
-                angle = angle + (dt * speed)
+                -- 🎯 Natural angle progression with physics-like acceleration
+                local angleAcceleration = dt * speed * (0.8 + math.random() * 0.4) -- 20% variance
+                angle = angle + angleAcceleration
                 if angle >= math.pi * 2 then
                     angle = angle - math.pi * 2
                 end
@@ -1014,16 +1225,32 @@ RunService.RenderStepped:Connect(function(dt)
                 local bossPos = boss.Head.Position
                 local offset = Vector3.new(math.cos(angle), 0, math.sin(angle)) * radius
                 local targetPos = bossPos + offset
-                local targetCFrame = CFrame.new(
-                    Vector3.new(targetPos.X, bossPos.Y, targetPos.Z),
-                    Vector3.new(bossPos.X, bossPos.Y, bossPos.Z)
-                )
                 
-                -- Smooth interpolation (avoids instant teleport)
+                -- 🛡️ KnightMare-Safe Movement Calculation
                 if lastCFrame then
-                    HRP.CFrame = lastCFrame:Lerp(targetCFrame, smoothness)
+                    local currentPos = lastCFrame.Position
+                    local desiredVelocity = (targetPos - currentPos) / dt
+                    
+                    -- Limit velocity to prevent teleportation detection
+                    if desiredVelocity.Magnitude > maxOrbitSpeed then
+                        desiredVelocity = desiredVelocity.Unit * maxOrbitSpeed
+                    end
+                    
+                    -- Smooth velocity interpolation (mimics natural physics)
+                    orbitVelocity = orbitVelocity:Lerp(desiredVelocity, smoothness * 2)
+                    local newPos = currentPos + (orbitVelocity * dt)
+                    
+                    -- Natural looking direction (face movement direction)
+                    local lookDirection = orbitVelocity.Unit
+                    if lookDirection.Magnitude > 0.1 then
+                        local targetCFrame = CFrame.lookAt(newPos, newPos + lookDirection)
+                        HRP.CFrame = lastCFrame:Lerp(targetCFrame, smoothness)
+                    else
+                        HRP.CFrame = CFrame.new(newPos, bossPos)
+                    end
                 else
-                    HRP.CFrame = targetCFrame
+                    -- Initial position setup
+                    HRP.CFrame = CFrame.new(targetPos, bossPos)
                 end
                 
                 lastCFrame = HRP.CFrame
