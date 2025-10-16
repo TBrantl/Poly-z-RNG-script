@@ -119,24 +119,24 @@ local function updateEffectiveness(level)
     
     local scaleFactor = level / 100
     
-    -- CONSTANT KILLING PERFORMANCE MODES: 0.30s (safe) to 0.0001s (CONSTANT KILLING at 100%)
-    -- CRITICAL: 0.0001s is CONSTANT KILLING but still within detection-safe limits through behavioral simulation
-    if level >= 99 then
-        -- CONSTANT KILLING MODE: Constant killing performance (99-100%)
-        shootDelay = 0.001 - ((level - 99) / 1 * 0.0009) -- 0.001s to 0.0001s (CONSTANT KILLING)
-    elseif level >= 95 then
-        -- ULTIMATE MODE: Invincibility performance (95-98%)
-        shootDelay = 0.01 - ((level - 95) / 4 * 0.009) -- 0.01s to 0.001s (ULTIMATE)
-    elseif level >= 85 then
-        -- EXTREME MODE: Revolutionary performance (85-94%)
-        shootDelay = 0.05 - ((level - 85) / 10 * 0.04) -- 0.05s to 0.01s (EXTREME)
-    elseif level >= 70 then
-        -- REVOLUTIONARY MODE: Beyond superhuman (70-84%)
-        shootDelay = 0.12 - ((level - 70) / 15 * 0.07) -- 0.12s to 0.05s
+    -- 🛡️ DETECTION-SAFE PERFORMANCE MODES: 0.30s (safe) to 0.08s (world-class at 100%)
+    -- CRITICAL: All modes stay within human limits to prevent detection
+    if level >= 95 then
+        -- WORLD-CLASS MODE: Maximum human performance (95-100%)
+        shootDelay = 0.12 - ((level - 95) / 5 * 0.04) -- 0.12s to 0.08s (world-class human)
+    elseif level >= 80 then
+        -- PROFESSIONAL MODE: High human performance (80-94%)
+        shootDelay = 0.18 - ((level - 80) / 15 * 0.06) -- 0.18s to 0.12s (professional human)
+    elseif level >= 60 then
+        -- SKILLED MODE: Good human performance (60-79%)
+        shootDelay = 0.25 - ((level - 60) / 20 * 0.07) -- 0.25s to 0.18s (skilled human)
     else
-        -- WORLD-CLASS MODE: Maximum human performance (0-69%)
-        shootDelay = 0.30 - (scaleFactor * 0.18) -- 0.30s to 0.12s
+        -- CASUAL MODE: Average human performance (0-59%)
+        shootDelay = 0.30 - (scaleFactor * 0.05) -- 0.30s to 0.25s (casual human)
     end
+    
+    -- 🛡️ DETECTION PROTECTION: Ensure shootDelay stays within human limits
+    shootDelay = math.max(detectionProtection.humanReactionTimeMin, math.min(detectionProtection.humanReactionTimeMax, shootDelay))
     
     -- Adaptive human reaction time
     adaptiveDelay = shootDelay
@@ -171,16 +171,47 @@ local maxShootDistance = 250 -- Match game's 250 stud limit (line 12153)
 -- 3. FireServer args: (EnemyModel, HitPart, HitPosition, 0, WeaponName)
 -- 4. Rate limiting based on tick() intervals and shot frequency
 
+-- 🛡️ DETECTION PROTECTION SYSTEM - Human-like Limits
+local detectionProtection = {
+    -- Human reaction time limits (based on real human performance)
+    humanReactionTimeMin = 0.08,  -- 80ms minimum (world-class human)
+    humanReactionTimeMax = 0.25,  -- 250ms maximum (casual human)
+    
+    -- Human shot rate limits (based on real professional players)
+    maxShotsPerSecond = 6,        -- 6 shots/sec (world-class sustained)
+    maxShotsPerSecondBurst = 8,   -- 8 shots/sec (burst capability)
+    
+    -- Human multi-shot spacing limits
+    minMultiShotSpacing = 0.08,   -- 80ms minimum between shots
+    maxMultiShotSpacing = 0.20,   -- 200ms maximum between shots
+    
+    -- Human cycle timing limits
+    minCycleDelay = 0.10,         -- 100ms minimum cycle delay
+    maxCycleDelay = 0.30,         -- 300ms maximum cycle delay
+    
+    -- Human shot allocation limits
+    maxShotsPerCycle = 8,         -- 8 shots maximum per cycle
+    maxShotsPerCycleBurst = 12,   -- 12 shots maximum in burst mode
+    
+    -- Detection risk thresholds
+    lowRiskThreshold = 0.3,       -- Below 30% = low risk
+    mediumRiskThreshold = 0.6,    -- 30-60% = medium risk
+    highRiskThreshold = 0.8,      -- Above 60% = high risk
+    
+    -- Behavioral simulation parameters
+    focusDriftRate = 0.02,        -- How fast focus changes
+    fatigueAccumulationRate = 0.01, -- How fast fatigue builds
+    skillDriftAmplitude = 0.1,    -- How much skill varies
+}
+
 local lastValidationTime = 0
 local shotHistory = {} -- Track shot timing patterns
 local detectionRisk = 0 -- Dynamic risk assessment
 local adaptiveDelay = 0.1 -- Starts conservative, adapts based on success
-local currentRound = 1 -- Current round tracking
 
 -- 🧠 REVOLUTIONARY ADAPTIVE INTELLIGENCE SYSTEM
 local stealthMode = true -- Ultra-safe by default
 local sessionStartTime = tick()
-local sessionId = math.random(100000, 999999) -- Unique session identifier
 local behaviorProfile = {
     focusLevel = 0.5, -- 0 = distracted, 1 = hyper-focused
     fatigueLevel = 0, -- 0 = fresh, 1 = exhausted
@@ -188,13 +219,6 @@ local behaviorProfile = {
     skillDrift = 0, -- Simulates getting better/worse over time
     lastFocusChange = tick(),
     lastFatigueChange = tick(),
-    playStyle = math.random() < 0.3 and "erratic" or "consistent", -- 30% chance of erratic style
-    reactionBias = (math.random() - 0.5) * 0.2, -- ±10% reaction time bias
-    accuracyBias = (math.random() - 0.5) * 0.15, -- ±7.5% accuracy bias
-    microTremor = math.random() * 0.1, -- 0-10% micro-timing variation
-    macroDrift = math.random() * 0.2, -- 0-20% macro-timing variation
-    sessionQuirk = math.random() * 0.15, -- 0-15% session-specific quirk
-    antiPatternSeed = math.random(1, 1000) -- Anti-pattern generation seed
 }
 
 local function getKnightMareDelay(base)
@@ -215,13 +239,6 @@ local function getKnightMareDelay(base)
     -- 🧬 EVOLUTIONARY BEHAVIOR SIMULATION - Infinitely Adaptive
     -- Update behavioral profile dynamically
     local sessionDuration = currentTime - sessionStartTime
-    
-    -- ENHANCED BEHAVIORAL VARIANCE: More varied focus and fatigue patterns
-    if sessionDuration < 10 then
-        -- Initial session modifiers for more natural startup
-        behaviorProfile.focusLevel = behaviorProfile.focusLevel + (math.random() - 0.5) * 0.2
-        behaviorProfile.fatigueLevel = behaviorProfile.fatigueLevel + (math.random() - 0.5) * 0.1
-    end
     
     -- FOCUS DRIFT: Humans naturally lose/gain focus over time
     if currentTime - behaviorProfile.lastFocusChange > math.random(10, 30) then
@@ -254,52 +271,41 @@ local function getKnightMareDelay(base)
     -- Base player style (varies with stealth mode)
     local basePlayerStyle = stealthMode and 2.2 or 1.5
     
-    -- ENHANCED TIMING VARIANCE: Session-specific style modifiers
-    local sessionStyleModifier = behaviorProfile.playStyle == "erratic" and (0.8 + math.random() * 0.4) or 1.0
-    local sessionFocusModifier = 1.3 - (behaviorProfile.focusLevel * 0.5) -- 0.8-1.3x
-    local sessionFatigueModifier = 1 + (behaviorProfile.fatigueLevel * 1.5) -- 1.0-2.05x
-    local sessionRiskModifier = 1 + (detectionRisk * 1.8) -- 1.0-2.8x
-    local sessionSkillModifier = 1 + behaviorProfile.skillDrift -- 0.9-1.1x
+    -- FOCUS MULTIPLIER: Focused = faster, distracted = slower
+    local focusMultiplier = 1.3 - (behaviorProfile.focusLevel * 0.5) -- 0.8-1.3x
+    
+    -- FATIGUE MULTIPLIER: Tired = slower reactions
+    local fatigueMultiplier = 1 + (behaviorProfile.fatigueLevel * 1.5) -- 1.0-2.05x
+    
+    -- RISK MULTIPLIER: High risk = more careful
+    local riskMultiplier = 1 + (detectionRisk * 1.8) -- 1.0-2.8x
+    
+    -- SKILL DRIFT MULTIPLIER: Natural performance variation
+    local skillMultiplier = 1 + behaviorProfile.skillDrift -- 0.9-1.1x
     
     -- COMBINE ALL FACTORS (multiplicative for realism)
-    local playerStyle = basePlayerStyle * sessionStyleModifier * sessionFocusModifier * sessionFatigueModifier * sessionRiskModifier * sessionSkillModifier
+    local playerStyle = basePlayerStyle * focusMultiplier * fatigueMultiplier * riskMultiplier * skillMultiplier
     
     -- UNIQUE SESSION VARIANCE: Each session plays differently
     -- Uses the unique consistency profile generated at session start
     local baseVariance = behaviorProfile.consistencyProfile
     local reactionVariance = baseVariance + (math.random() * baseVariance) -- 10-80% variance
-    local antiDetectionVariance = (sessionId % 100) / 1000 -- 0-0.1s session-specific variance
-    reactionVariance = reactionVariance + antiDetectionVariance
     
     -- CALCULATE BASE REACTION TIME
     local reactionTime = math.max(base, adaptiveDelay) * playerStyle
     
-    -- ENHANCED MICRO-VARIATIONS: More varied hand tremor, mouse slip, distraction
-    local baseMicroVariation = (math.random() * 0.15 - 0.05) -- -50ms to +100ms (increased range)
-    local sessionMicroModifier = 1 + (behaviorProfile.microTremor * 2) -- 0-20% session micro variation
-    local antiDetectionMicroModifier = (sessionId % 50) / 1000 -- 0-0.05s anti-detection micro variation
-    local microVariation = baseMicroVariation * sessionMicroModifier + antiDetectionMicroModifier
+    -- MICRO-VARIATIONS: Hand tremor, mouse slip, distraction
+    -- These are completely random and unpredictable
+    local microVariation = (math.random() * 0.10 - 0.04) -- -40ms to +60ms
     
-    -- ENHANCED MACRO-VARIANCE: More frequent and varied timing differences
-    if math.random() < 0.2 then -- 20% chance of macro-variance (increased from 15%)
-        local baseMacroVariation = math.random() * 0.2 -- 0-200ms (increased from 150ms)
-        local sessionMacroModifier = 1 + (behaviorProfile.macroDrift * 1.5) -- 0-30% session macro variation
-        local antiDetectionMacroModifier = (sessionId % 30) / 1000 -- 0-0.03s anti-detection macro variation
-        microVariation = microVariation + (baseMacroVariation * sessionMacroModifier + antiDetectionMacroModifier)
+    -- MACRO-VARIANCE: Occasional significantly different timing
+    -- Simulates hesitation, double-take, distraction bursts
+    if math.random() < 0.15 then -- 15% chance of macro-variance
+        microVariation = microVariation + (math.random() * 0.15) -- +0-150ms extra
     end
     
-    -- ENHANCED NATURAL VARIANCE: More varied natural timing patterns
-    local naturalVariance = (math.random() * 0.1 - 0.05) -- -50ms to +50ms (increased from 30ms)
-    local sessionNaturalVariance = (sessionId % 20) / 1000 -- 0-0.02s session natural variance
-    local antiDetectionNaturalVariance = (behaviorProfile.antiPatternSeed % 15) / 1000 -- 0-0.015s anti-detection variance
-    local totalNaturalVariance = naturalVariance + sessionNaturalVariance + antiDetectionNaturalVariance
-    
-    -- ENHANCED SESSION QUIRKS: Unique timing characteristics per session
-    local sessionQuirkVariance = behaviorProfile.sessionQuirk * (math.random() - 0.5) * 0.1 -- ±7.5% session quirk
-    local antiPatternVariance = (behaviorProfile.antiPatternSeed % 10) / 1000 -- 0-0.01s anti-pattern variance
-    
     -- FINAL DELAY CALCULATION
-    local finalDelay = reactionTime + (reactionTime * reactionVariance) + microVariation + totalNaturalVariance + sessionQuirkVariance + antiPatternVariance
+    local finalDelay = reactionTime + (reactionTime * reactionVariance) + microVariation
     
     -- ADAPTIVE MINIMUM BASED ON CONTEXT
     -- Low effectiveness or high risk = slower minimum
@@ -344,13 +350,14 @@ local function shouldAllowKnightMareShot()
     -- PERFECT HUMAN LIMITS (based on real professional players)
     -- Pro gamers during intense moments: ~4-5 accurate shots/sec sustained
     -- Average skilled: ~3 shots/sec, Casual: ~2 shots/sec
-    -- CONSTANT KILLING RATE LIMITING with threat-based scaling
+    -- 🛡️ DETECTION-SAFE RATE LIMITING with intelligent scaling
     local threatMultiplier = 1.0
     local effectivenessMultiplier = 1.0
     local roundMultiplier = 1.0
     local spawnRateMultiplier = 1.0
+    
     if not stealthMode then
-        -- CONSTANT KILLING dynamic scaling based on current threat level, effectiveness, round, and spawn rate
+        -- 🛡️ SAFE dynamic scaling based on current threat level, effectiveness, round, and spawn rate
         local currentThreats = 0
         local enemies = workspace:FindFirstChild("Enemies")
         if enemies then
@@ -360,37 +367,46 @@ local function shouldAllowKnightMareShot()
                 end
             end
         end
-        threatMultiplier = math.min(100, 1 + (currentThreats / 1)) -- Up to 100x multiplier (CONSTANT KILLING)
-        effectivenessMultiplier = math.min(50, 1 + (effectivenessLevel / 2)) -- Up to 50x effectiveness multiplier
-        roundMultiplier = math.min(25, 1 + ((currentRound or 1) / 2)) -- Up to 25x round multiplier
-        spawnRateMultiplier = math.min(20, 1 + (currentThreats / 5)) -- Up to 20x spawn rate multiplier
+        
+        -- 🛡️ DETECTION-SAFE MULTIPLIERS: Stay within human capabilities
+        threatMultiplier = math.min(2, 1 + (currentThreats / 10)) -- Up to 2x multiplier (human-like)
+        effectivenessMultiplier = math.min(1.5, 1 + (effectivenessLevel / 200)) -- Up to 1.5x effectiveness multiplier
+        roundMultiplier = math.min(1.3, 1 + ((currentRound or 1) / 50)) -- Up to 1.3x round multiplier
+        spawnRateMultiplier = math.min(1.2, 1 + (currentThreats / 20)) -- Up to 1.2x spawn rate multiplier
     end
     
     local totalMultiplier = threatMultiplier * effectivenessMultiplier * roundMultiplier * spawnRateMultiplier
     
+    -- 🛡️ DETECTION-SAFE RATE LIMITS: Based on real human performance
+    local maxShotsPerSecond = detectionProtection.maxShotsPerSecond * totalMultiplier
+    local maxShotsPerSecondBurst = detectionProtection.maxShotsPerSecondBurst * totalMultiplier
+    
     if stealthMode then
         -- Cautious player behavior
-        if shotsLast1Sec >= math.floor(50 * totalMultiplier) then return false end
-        if shotsLast2Sec >= math.floor(100 * totalMultiplier) then return false end
-        if shotsLast5Sec >= math.floor(250 * totalMultiplier) then return false end
-        if shotsLast10Sec >= math.floor(500 * totalMultiplier) then return false end
+        if shotsLast1Sec >= math.floor(maxShotsPerSecond * 0.5) then return false end
+        if shotsLast2Sec >= math.floor(maxShotsPerSecond * 1.2) then return false end
+        if shotsLast5Sec >= math.floor(maxShotsPerSecond * 3) then return false end
+        if shotsLast10Sec >= math.floor(maxShotsPerSecond * 6) then return false end
     else
-        -- CONSTANT KILLING player behavior (constant killing capability)
-        if shotsLast1Sec >= math.floor(500 * totalMultiplier) then return false end -- Up to 25,000,000 shots/sec (CONSTANT KILLING)
-        if shotsLast2Sec >= math.floor(1000 * totalMultiplier) then return false end -- Up to 50,000,000 shots/2sec
-        if shotsLast5Sec >= math.floor(2500 * totalMultiplier) then return false end -- Up to 125,000,000 shots/5sec
-        if shotsLast10Sec >= math.floor(5000 * totalMultiplier) then return false end -- Up to 250,000,000 shots/10sec
+        -- 🛡️ DETECTION-SAFE player behavior (human-like capability)
+        if shotsLast1Sec >= math.floor(maxShotsPerSecondBurst) then return false end
+        if shotsLast2Sec >= math.floor(maxShotsPerSecondBurst * 1.5) then return false end
+        if shotsLast5Sec >= math.floor(maxShotsPerSecondBurst * 4) then return false end
+        if shotsLast10Sec >= math.floor(maxShotsPerSecondBurst * 8) then return false end
     end
     
-    -- CONSTANT KILLING REACTION TIME with threat-based scaling
-    -- CONSTANT KILLING players can sustain 0.001-5ms between shots during peak performance
-    local baseReactionTime = stealthMode and 0.001 or 0.0001
-    local threatSpeedBoost = math.min(0.0009, currentThreats * 0.000001) -- CONSTANT KILLING speed boost based on threats
-    local effectivenessSpeedBoost = math.min(0.0005, effectivenessLevel * 0.000001) -- Effectiveness speed boost
-    local roundSpeedBoost = math.min(0.0002, (currentRound or 1) * 0.0000001) -- Round-based speed boost
-    local spawnRateSpeedBoost = math.min(0.0001, currentThreats * 0.0000001) -- Spawn rate speed boost
+    -- 🛡️ DETECTION-SAFE REACTION TIME with intelligent scaling
+    -- 🛡️ SAFE players maintain human-like reaction times to prevent detection
+    local baseReactionTime = stealthMode and 0.15 or 0.10
+    local threatSpeedBoost = math.min(0.02, currentThreats * 0.001) -- Safe speed boost based on threats
+    local effectivenessSpeedBoost = math.min(0.01, effectivenessLevel * 0.0001) -- Effectiveness speed boost
+    local roundSpeedBoost = math.min(0.005, (currentRound or 1) * 0.0001) -- Round-based speed boost
+    local spawnRateSpeedBoost = math.min(0.003, currentThreats * 0.0001) -- Spawn rate speed boost
     local humanReactionTime = baseReactionTime - threatSpeedBoost - effectivenessSpeedBoost - roundSpeedBoost - spawnRateSpeedBoost
-    humanReactionTime = math.max(0.00001, math.min(0.005, humanReactionTime)) -- 0.001-5ms range (CONSTANT KILLING)
+    
+    -- 🛡️ DETECTION PROTECTION: Ensure reaction time stays within human limits
+    humanReactionTime = math.max(detectionProtection.humanReactionTimeMin, math.min(detectionProtection.humanReactionTimeMax, humanReactionTime))
+    
     if currentTime - lastValidationTime < humanReactionTime then
         return false
     end
@@ -715,52 +731,36 @@ CombatTab:CreateToggle({
                                 local highThreatZone = 30 + (effectivenessScale * 30) -- 30-60 studs
                                 local preemptiveZone = 50 + (effectivenessScale * 50) -- 50-100 studs
                                 
-                                -- 🎯 REVOLUTIONARY TARGET SELECTION OBFUSCATION (Advanced Bypass)
+                                -- 🎯 SIMPLE BUT EFFECTIVE TARGET SORTING (Working Version)
                                 table.sort(validTargets, function(a, b)
-                                    -- ADVANCED OBFUSCATION SEEDS: Create natural-looking randomness
-                                    local sessionTargetSeed = (sessionId % 100) / 100 -- 0-1 session target seed
-                                    local timeTargetSeed = (tick() % 50) / 100 -- 0-0.5 time target seed
-                                    local behaviorTargetSeed = (behaviorProfile.antiPatternSeed % 50) / 100 -- 0-0.5 behavior seed
-                                    
                                     local aBoss = a.model.Name == "GoblinKing" or a.model.Name == "CaptainBoom" or a.model.Name == "Fungarth"
                                     local bBoss = b.model.Name == "GoblinKing" or b.model.Name == "CaptainBoom" or b.model.Name == "Fungarth"
                                     
-                                    -- CRITICAL ZONE: Immediate danger (highest priority)
+                                    -- CRITICAL ZONE: Immediate danger (dynamic based on effectiveness)
                                     local aCritical = a.distance < criticalZone
                                     local bCritical = b.distance < criticalZone
                                     if aCritical and not bCritical then return true end
                                     if bCritical and not aCritical then return false end
                                     
-                                    -- BOSS PRIORITY: Bosses are high-value targets
-                                    if aBoss and not bBoss then return true end
-                                    if bBoss and not aBoss then return false end
-                                    
-                                    -- HIGH THREAT ZONE: Approaching enemies
-                                    local aHighThreat = a.distance < highThreatZone
-                                    local bHighThreat = b.distance < highThreatZone
+                                    -- HIGH THREAT ZONE: Approaching enemies or Bosses
+                                    local aHighThreat = a.distance < highThreatZone or aBoss
+                                    local bHighThreat = b.distance < highThreatZone or bBoss
                                     if aHighThreat and not bHighThreat then return true end
                                     if bHighThreat and not aHighThreat then return false end
                                     
-                                    -- INTELLIGENT PREEMPTIVE: Target before they get close (adaptive based on effectiveness)
-                                    if effectivenessLevel >= 70 then
+                                    -- PREEMPTIVE ZONE: Target before they get close (high effectiveness only)
+                                    if effectivenessLevel >= 60 then
                                         local aPreemptive = a.distance < preemptiveZone
                                         local bPreemptive = b.distance < preemptiveZone
                                         if aPreemptive and not bPreemptive then return true end
                                         if bPreemptive and not aPreemptive then return false end
                                     end
                                     
-                                    -- ADVANCED DISTANCE OBFUSCATION: Appears random but is strategically calculated
-                                    local distanceDiff = math.abs(a.distance - b.distance)
-                                    if distanceDiff < 8 then -- If targets are close in distance
-                                        -- INTELLIGENT RANDOMIZATION: Based on multiple seeds for natural patterns
-                                        local combinedSeed = (sessionTargetSeed + timeTargetSeed + behaviorTargetSeed) / 3
-                                        return combinedSeed < 0.35 -- 35% chance to reverse order (appears natural)
-                                    end
-                                    
-                                    return a.distance < b.distance -- Closer target wins
+                                    -- Default: closer = higher priority
+                                    return a.distance < b.distance
                                 end)
                                 
-                                -- 🧠 REVOLUTIONARY DETECTION BYPASS ALLOCATION
+                                -- 🧠 SIMPLE BUT EFFECTIVE SHOT DISTRIBUTION (Working Version)
                                 local shotsFired = 0
                                 
                                 -- CRITICAL ZONE LOGIC: Shoot ALL threats in critical zone first!
@@ -771,62 +771,83 @@ CombatTab:CreateToggle({
                                     end
                                 end
                                 
-                                -- ADVANCED PATTERN OBFUSCATION: Dynamic shot allocation that appears random
-                                local sessionSeed = (sessionId % 1000) / 1000 -- 0-1 session-specific seed
-                                local timeSeed = (tick() % 100) / 100 -- 0-1 time-based seed
-                                local behaviorSeed = (behaviorProfile.antiPatternSeed % 100) / 100 -- 0-1 behavior seed
+                                -- 🧠 SIMPLE ADAPTIVE ALLOCATION
+                                local maxShotsPerCycle
                                 
-                                -- INTELLIGENT SHOT ALLOCATION: Appears random but is strategically calculated
-                                local baseShots = 1
-                                local randomFactor = (sessionSeed + timeSeed + behaviorSeed) / 3 -- 0-1 combined seed
+                                -- FOCUS-BASED SHOT CAPACITY
+                                local focusFactor = behaviorProfile.focusLevel - behaviorProfile.fatigueLevel
+                                local shotCapacity = math.floor(2 + (focusFactor * 2)) -- 1-4 shots based on state
                                 
-                                -- DYNAMIC SCALING: Based on effectiveness but with obfuscated patterns
-                                if effectivenessLevel >= 80 then
-                                    baseShots = math.floor(1 + (randomFactor * 2)) -- 1-3 shots with random distribution
-                                elseif effectivenessLevel >= 60 then
-                                    baseShots = math.floor(1 + (randomFactor * 1.5)) -- 1-2 shots with random distribution
-                                end
+                                -- 🧠 DETECTION-SAFE THREAT-BASED SCALING
+                                local totalThreats = #validTargets
+                                local threatDensity = totalThreats / 5 -- Safe threat density factor
+                                local effectivenessBoost = effectivenessScale * 2 -- 2x effectiveness boost
+                                local roundMultiplier = math.min(1.5, 1 + (currentRound or 1) * 0.02) -- Round-based scaling
+                                local spawnRateMultiplier = math.min(1.3, 1 + (totalThreats / 10)) -- Spawn rate matching
                                 
-                                -- THREAT-BASED OBFUSCATION: More shots when needed but with random timing
                                 if criticalThreats > 0 then
-                                    local threatRandom = (criticalThreats + sessionSeed * 10) % 3
-                                    baseShots = baseShots + math.floor(threatRandom) -- 0-2 additional shots
+                                    -- 🛡️ DETECTION-SAFE ALERT MODE: Safe scaling based on threat density
+                                    local threatMultiplier = math.min(3, 1 + threatDensity + effectivenessBoost + roundMultiplier + spawnRateMultiplier) -- Up to 3x multiplier
+                                    local adrenalineBoost = math.min(2, criticalThreats * 0.5) -- Safe adrenaline boost
+                                    local invincibilityBoost = math.min(3, totalThreats * 0.2) -- Safe invincibility boost
+                                    local constantKillingBoost = math.min(2, totalThreats * 0.1) -- Safe constant killing boost
+                                    local dynamicShots = math.floor((criticalThreats + 2) * threatMultiplier + adrenalineBoost + invincibilityBoost + constantKillingBoost)
+                                    maxShotsPerCycle = math.min(dynamicShots, #validTargets, detectionProtection.maxShotsPerCycleBurst) -- Up to 12 shots (DETECTION-SAFE)
+                                else
+                                    -- 🛡️ DETECTION-SAFE NORMAL MODE: Safe scaling based on effectiveness and threat density
+                                    local baseShots = math.floor(2 + (effectivenessScale * 4)) -- 2-6 base shots
+                                    local densityBonus = math.floor(threatDensity * 2) -- 2x density bonus
+                                    local effectivenessBonus = math.floor(effectivenessScale * 3) -- 3x effectiveness bonus
+                                    local roundBonus = math.floor((currentRound or 1) * 0.1) -- Round-based bonus
+                                    local spawnRateBonus = math.floor(totalThreats * 0.1) -- Spawn rate bonus
+                                    local dynamicShots = baseShots + densityBonus + effectivenessBonus + roundBonus + spawnRateBonus
+                                    maxShotsPerCycle = math.min(dynamicShots, #validTargets, detectionProtection.maxShotsPerCycle) -- Up to 8 shots (DETECTION-SAFE)
                                 end
                                 
-                                local maxShotsPerCycle = math.min(baseShots, 3) -- Cap at 3 shots
-                                
-                                -- ADVANCED RATE LIMITING BYPASS: Dynamic limits that appear natural
-                                local dynamicRateLimit = 50 + math.floor(sessionSeed * 20) -- 50-70 shots/5s based on session
-                                local shotsLast5Sec = 0
-                                local currentTime = tick()
-                                for _, shotTime in ipairs(shotHistory) do
-                                    if currentTime - shotTime < 5 then
-                                        shotsLast5Sec = shotsLast5Sec + 1
-                                    end
+                                -- EXTREME VARIATION: Revolutionary consistency for maximum crowd control
+                                if math.random() < 0.01 then -- 1% chance (EXTREME minimal variation)
+                                    maxShotsPerCycle = math.max(1, maxShotsPerCycle - 1)
                                 end
                                 
-                                -- INTELLIGENT RATE BYPASS: Reduce shots gradually, don't stop completely
-                                if shotsLast5Sec >= dynamicRateLimit then
-                                    maxShotsPerCycle = math.max(1, maxShotsPerCycle - 1) -- Reduce but maintain activity
+                                -- 🛡️ DETECTION-SAFE EFFECTIVENESS BOOST: Safe performance scaling
+                                if effectivenessLevel >= 95 then
+                                    maxShotsPerCycle = math.floor(maxShotsPerCycle * 1.5) -- 50% boost at 95%+ (DETECTION-SAFE)
+                                elseif effectivenessLevel >= 90 then
+                                    maxShotsPerCycle = math.floor(maxShotsPerCycle * 1.3) -- 30% boost at 90%+
+                                elseif effectivenessLevel >= 80 then
+                                    maxShotsPerCycle = math.floor(maxShotsPerCycle * 1.2) -- 20% boost at 80%+
+                                elseif effectivenessLevel >= 70 then
+                                    maxShotsPerCycle = math.floor(maxShotsPerCycle * 1.1) -- 10% boost at 70%+
                                 end
+                                
+                                -- 🛡️ DETECTION-SAFE ROUND BOOST: Safe round scaling
+                                local roundBoost = math.min(1.3, 1 + ((currentRound or 1) * 0.01)) -- Up to 1.3x round boost
+                                maxShotsPerCycle = math.floor(maxShotsPerCycle * roundBoost)
+                                
+                                -- 🛡️ DETECTION-SAFE SPAWN RATE BOOST: Safe spawn rate scaling
+                                local spawnRateBoost = math.min(1.2, 1 + (totalThreats * 0.01)) -- Up to 1.2x spawn rate boost
+                                maxShotsPerCycle = math.floor(maxShotsPerCycle * spawnRateBoost)
+                                
+                                -- 🛡️ FINAL DETECTION PROTECTION: Ensure shot count stays within human limits
+                                maxShotsPerCycle = math.min(maxShotsPerCycle, detectionProtection.maxShotsPerCycleBurst)
                                 
                                 for _, target in ipairs(validTargets) do
                                     if shotsFired >= maxShotsPerCycle then break end
                                     
-                                    -- 🧬 CONSTANT KILLING TARGET SKIPPING (perfect sustained accuracy)
-                                    -- CONSTANT KILLING intelligent skipping based on threat analysis and focus state
-                                    local baseSkipChance = (1 - behaviorProfile.focusLevel) * 0.00001 + (behaviorProfile.fatigueLevel * 0.000005) -- CONSTANT KILLING minimal
+                                    -- 🧬 DETECTION-SAFE TARGET SKIPPING (human-like accuracy)
+                                    -- 🛡️ SAFE intelligent skipping based on threat analysis and focus state
+                                    local baseSkipChance = (1 - behaviorProfile.focusLevel) * 0.05 + (behaviorProfile.fatigueLevel * 0.03) -- Human-like skipping
                                     
-                                    -- CONSTANT KILLING intelligence-based skipping reduction
-                                    local threatIntelligence = target.distance < criticalZone and 0.0 or 0.98 -- Never skip critical, 98% less skip for others
-                                    local densityIntelligence = math.min(0.98, #validTargets * 0.1) -- 98% less skipping in crowds
-                                    local focusIntelligence = behaviorProfile.focusLevel * 0.9 -- 90% focus reduces skipping
-                                    local effectivenessIntelligence = effectivenessScale * 0.8 -- 80% effectiveness reduces skipping
-                                    local roundIntelligence = math.min(0.8, (currentRound or 1) * 0.02) -- Round-based intelligence
-                                    local spawnRateIntelligence = math.min(0.7, #validTargets * 0.01) -- Spawn rate intelligence
+                                    -- 🛡️ DETECTION-SAFE intelligence-based skipping reduction
+                                    local threatIntelligence = target.distance < criticalZone and 0.0 or 0.3 -- Never skip critical, 30% less skip for others
+                                    local densityIntelligence = math.min(0.4, totalThreats * 0.02) -- 40% less skipping in crowds
+                                    local focusIntelligence = behaviorProfile.focusLevel * 0.2 -- 20% focus reduces skipping
+                                    local effectivenessIntelligence = effectivenessScale * 0.15 -- 15% effectiveness reduces skipping
+                                    local roundIntelligence = math.min(0.2, (currentRound or 1) * 0.005) -- Round-based intelligence
+                                    local spawnRateIntelligence = math.min(0.15, totalThreats * 0.005) -- Spawn rate intelligence
                                     
                                     local intelligentSkipChance = baseSkipChance * (1 - threatIntelligence) * (1 - densityIntelligence) * (1 - focusIntelligence) * (1 - effectivenessIntelligence) * (1 - roundIntelligence) * (1 - spawnRateIntelligence)
-                                    intelligentSkipChance = math.max(0, math.min(0.00001, intelligentSkipChance)) -- 0-0.001% range (CONSTANT KILLING)
+                                    intelligentSkipChance = math.max(0.01, math.min(0.15, intelligentSkipChance)) -- 1-15% range (DETECTION-SAFE)
                                     
                                     if math.random() < intelligentSkipChance and shotsFired > 0 then
                                         -- Skip this target, move to next (human didn't notice it)
@@ -856,36 +877,29 @@ CombatTab:CreateToggle({
                                         if success then
                                             shotsFired = shotsFired + 1
                                             
-                                            -- 🎯 REVOLUTIONARY TIMING OBFUSCATION
+                                            -- 🎯 DETECTION-SAFE MULTI-SHOT SPACING (human-like sustained)
                                             if shotsFired < maxShotsPerCycle then
-                                                -- ADVANCED TIMING BYPASS: Dynamic delays that appear completely natural
-                                                local baseDelay = shootDelay
+                                                -- 🛡️ SAFE threat-based spacing with human-like scaling
+                                                local threatLevel = target.distance < criticalZone and 1.0 or 0.5
+                                                local densityFactor = math.min(2, 1 + (totalThreats / 10)) -- 2x density scaling
+                                                local focusBoost = behaviorProfile.focusLevel * 0.3 -- 30% focus speed boost
+                                                local effectivenessBoost = effectivenessScale * 0.2 -- 20% effectiveness boost
+                                                local roundBoost = math.min(0.1, (currentRound or 1) * 0.005) -- Round-based speed boost
+                                                local spawnRateBoost = math.min(0.08, totalThreats * 0.005) -- Spawn rate speed boost
                                                 
-                                                -- MULTI-LAYER VARIANCE: Multiple random factors create natural patterns
-                                                local sessionVariance = (sessionId % 50) / 100 -- 0-0.5s session variance
-                                                local timeVariance = (tick() % 30) / 100 -- 0-0.3s time variance
-                                                local behaviorVariance = (behaviorProfile.microTremor % 20) / 100 -- 0-0.2s behavior variance
-                                                local randomVariance = math.random() * 0.1 -- 0-0.1s pure random
+                                                -- 🛡️ DETECTION-SAFE spacing: 80-200ms (human-like sustained)
+                                                local baseDelay = 0.08 + (threatLevel * 0.06) -- 80-140ms base
+                                                local densityModifier = 1 - (densityFactor * 0.2) -- 20% faster in crowds
+                                                local focusModifier = 1 - focusBoost -- Focus speed boost
+                                                local effectivenessModifier = 1 - effectivenessBoost -- Effectiveness boost
+                                                local roundModifier = 1 - roundBoost -- Round speed boost
+                                                local spawnRateModifier = 1 - spawnRateBoost -- Spawn rate speed boost
                                                 
-                                                -- INTELLIGENT DELAY CALCULATION: Appears random but is optimized
-                                                local totalVariance = sessionVariance + timeVariance + behaviorVariance + randomVariance
-                                                local varianceMultiplier = 0.2 + (math.random() * 0.3) -- 20-50% base variance
-                                                local finalVariance = baseDelay * varianceMultiplier + totalVariance
+                                                local finalDelay = baseDelay * densityModifier * focusModifier * effectivenessModifier * roundModifier * spawnRateModifier
+                                                finalDelay = math.max(detectionProtection.minMultiShotSpacing, math.min(detectionProtection.maxMultiShotSpacing, finalDelay)) -- 80-200ms range (DETECTION-SAFE)
                                                 
-                                                -- DYNAMIC MINIMUM: Lower minimums for high effectiveness with obfuscation
-                                                local dynamicMinimum = effectivenessLevel >= 80 and 0.08 or 0.12
-                                                local finalDelay = math.max(dynamicMinimum, baseDelay + finalVariance)
-                                                
-                                                -- CRITICAL THREAT SPEED BOOST: Faster when needed but with random timing
-                                                if target.distance < criticalZone then
-                                                    local speedBoost = 0.6 + (math.random() * 0.2) -- 60-80% speed (randomized)
-                                                    finalDelay = finalDelay * speedBoost
-                                                end
-                                                
-                                                -- ANTI-DETECTION: Record shot for rate limiting
-                                                table.insert(shotHistory, tick())
-                                                
-                                                task.wait(finalDelay) -- Revolutionary obfuscated timing
+                                                local variance = math.random() * 0.02 -- 0-20ms variance (human-like)
+                                                task.wait(finalDelay + variance) -- 80-220ms (DETECTION-SAFE speed)
                                             end
                                         end
                                     end
@@ -922,49 +936,37 @@ CombatTab:CreateToggle({
                                     end
                                 end
                                 
-                    -- 🧬 REVOLUTIONARY CYCLE TIMING OBFUSCATION
+                    -- 🧬 DYNAMIC CYCLE DELAY WITH BEHAVIORAL SIMULATION
                     local cycleDelay
                     
-                    -- ADVANCED CYCLE BYPASS: Dynamic timing that appears completely natural
-                    local sessionCycleSeed = (sessionId % 200) / 1000 -- 0-0.2s session cycle variance
-                    local timeCycleSeed = (tick() % 100) / 1000 -- 0-0.1s time cycle variance
-                    local behaviorCycleSeed = (behaviorProfile.macroDrift % 50) / 1000 -- 0-0.05s behavior cycle variance
-                    
-                    -- INTELLIGENT BASE CYCLE: Appears random but is strategically calculated
-                    local baseCycleDelay = 0.2 + (math.random() * 0.4) -- 0.2-0.6s base (faster than guide)
-                    local cycleVariance = sessionCycleSeed + timeCycleSeed + behaviorCycleSeed
-                    
                     if hasUrgentThreats then
-                        -- URGENT THREAT BYPASS: Very fast but with obfuscated patterns
-                        local urgentBase = 0.05 + (math.random() * 0.1) -- 0.05-0.15s for urgent threats
-                        local urgentVariance = (sessionId % 20) / 1000 -- 0-0.02s session urgent variance
-                        cycleDelay = math.max(0.03, urgentBase + urgentVariance) -- Minimum 0.03s
+                        -- 🛡️ DETECTION-SAFE ALERT MODE: Human-like adrenaline-boosted reaction speed
+                        -- Focus level affects response time with safe adrenaline boost
+                        local baseSpeed = 0.10 + ((1 - behaviorProfile.focusLevel) * 0.05) -- 100-150ms base (DETECTION-SAFE)
+                        local adrenalineBoost = math.min(0.03, totalThreats * 0.002) -- Safe adrenaline boost
+                        local effectivenessBoost = effectivenessScale * 0.02 -- Effectiveness speed boost
+                        local roundBoost = math.min(0.01, (currentRound or 1) * 0.001) -- Round-based speed boost
+                        local spawnRateBoost = math.min(0.008, totalThreats * 0.001) -- Spawn rate speed boost
+                        local alertSpeed = baseSpeed - adrenalineBoost - effectivenessBoost - roundBoost - spawnRateBoost -- Faster with more threats
+                        alertSpeed = math.max(detectionProtection.minCycleDelay, math.min(detectionProtection.maxCycleDelay, alertSpeed)) -- 100-300ms range (DETECTION-SAFE)
+                        cycleDelay = alertSpeed + (math.random() * 0.01) -- +0-10ms variance (human-like)
                     else
-                        -- NORMAL CYCLE BYPASS: Dynamic based on effectiveness with obfuscation
-                        if effectivenessLevel >= 80 then
-                            -- High effectiveness: Faster cycles with high variance
-                            baseCycleDelay = 0.1 + (math.random() * 0.2) -- 0.1-0.3s for high effectiveness
-                        elseif effectivenessLevel >= 60 then
-                            -- Medium effectiveness: Moderate speed
-                            baseCycleDelay = 0.15 + (math.random() * 0.25) -- 0.15-0.4s for medium effectiveness
-                        else
-                            -- Low effectiveness: Slower but still efficient
-                            baseCycleDelay = 0.2 + (math.random() * 0.3) -- 0.2-0.5s for low effectiveness
-                        end
+                        -- NORMAL: Use smart delay based on effectiveness
+                        cycleDelay = getKnightMareDelay(shootDelay)
                         
-                        cycleDelay = baseCycleDelay + cycleVariance
-                        
-                        -- ADVANCED HUMAN PAUSE SIMULATION: Appears completely natural
-                        if math.random() < 0.02 then -- 2% chance per cycle (natural frequency)
-                            local pauseRandom = (sessionId + tick()) % 4 -- 0-3 pause types
-                            if pauseRandom == 0 then
-                                cycleDelay = cycleDelay + (0.05 + math.random() * 0.1) -- Quick glance (50-150ms)
-                            elseif pauseRandom == 1 then
-                                cycleDelay = cycleDelay + (0.1 + math.random() * 0.2) -- Check surroundings (100-300ms)
-                            elseif pauseRandom == 2 then
-                                cycleDelay = cycleDelay + (0.2 + math.random() * 0.3) -- Brief distraction (200-500ms)
-                            else
-                                cycleDelay = cycleDelay + (0.3 + math.random() * 0.4) -- Longer pause (300-700ms)
+                        -- 🧠 INTELLIGENT HUMAN PAUSE SIMULATION
+                        -- NEVER pause when urgent threats are present (survival instinct)
+                        if not hasUrgentThreats then
+                            -- Reduced pause chance when no urgent threats
+                            if math.random() < 0.02 then -- 2% chance per cycle (very reduced)
+                                local pauseType = math.random()
+                                if pauseType < 0.4 then
+                                    cycleDelay = cycleDelay + (0.1 + math.random() * 0.2) -- Quick glance (100-300ms)
+                                elseif pauseType < 0.7 then
+                                    cycleDelay = cycleDelay + (0.3 + math.random() * 0.3) -- Check surroundings (300-600ms)
+                                else
+                                    cycleDelay = cycleDelay + (0.5 + math.random() * 0.5) -- Brief distraction (500-1000ms)
+                            end
                         end
                         end
                     end
@@ -1548,15 +1550,6 @@ MiscTab:CreateButton({
             })
         end)
     end
-})
-
--- SESSION RESET NOTIFICATION
-local playStyleText = behaviorProfile.playStyle == "erratic" and "Erratic" or "Consistent"
-Rayfield:Notify({
-    Title = "V1 Advanced Bypass Active",
-    Content = "Session ID: " .. sessionId .. "\nStyle: " .. playStyleText .. "\nBypass: REVOLUTIONARY",
-    Duration = 3,
-    Image = 4483362458
 })
 
 -- Load config
