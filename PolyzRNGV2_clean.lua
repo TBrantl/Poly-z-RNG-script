@@ -288,20 +288,29 @@ CombatTab:CreateToggle({
                                     return a.distance < b.distance
                                 end)
                                 
-                                -- 🚀 SUPERHUMAN SHOT ALLOCATION
+                                -- 🚀 KNIGHTMARE-SYNCHRONIZED SHOT ALLOCATION
                                 local shotsFired = 0
                                 local effectivenessScale = effectivenessLevel / 100
                                 
-                                -- Calculate max shots based on effectiveness
+                                -- 🛡️ KNIGHTMARE RATE LIMITING: Respect server-side limits
+                                local currentTime = tick()
+                                local timeSinceLastShot = currentTime - lastShot
+                                
+                                -- Calculate max shots based on effectiveness with KnightMare limits
                                 local maxShots
                                 if effectivenessLevel >= 95 then
-                                    maxShots = math.min(15, #validTargets) -- Up to 15 shots at 95%+
+                                    maxShots = math.min(8, #validTargets) -- Reduced to avoid detection
                                 elseif effectivenessLevel >= 80 then
-                                    maxShots = math.min(10, #validTargets) -- Up to 10 shots at 80%+
+                                    maxShots = math.min(6, #validTargets) -- Reduced to avoid detection
                                 elseif effectivenessLevel >= 60 then
-                                    maxShots = math.min(6, #validTargets) -- Up to 6 shots at 60%+
+                                    maxShots = math.min(4, #validTargets) -- Reduced to avoid detection
                                 else
-                                    maxShots = math.min(3, #validTargets) -- Up to 3 shots below 60%
+                                    maxShots = math.min(3, #validTargets) -- Safe baseline
+                                end
+                                
+                                -- 🛡️ KNIGHTMARE TIMING VALIDATION: Ensure minimum shot spacing
+                                if timeSinceLastShot < 0.1 then -- Minimum 100ms between shot cycles
+                                    maxShots = math.min(1, maxShots) -- Force single shot if too fast
                                 end
                                 
                                 for i = 1, maxShots do
@@ -318,39 +327,68 @@ CombatTab:CreateToggle({
                                             local distance = (targetPos - origin).Magnitude
                                             
                                             if distance <= maxShootDistance then
-                                                -- KnightMare raycast with proper parameters
+                                                -- 🛡️ KNIGHTMARE-EXACT RAYCAST SYNCHRONIZATION
                                                 local raycastParams = RaycastParams.new()
                                                 raycastParams.FilterDescendantsInstances = {workspace.Enemies}
                                                 raycastParams.FilterType = Enum.RaycastFilterType.Include
                                                 
-                                                local rayResult = workspace:Raycast(origin, direction * distance, raycastParams)
+                                                -- 🛡️ KNIGHTMARE SPREAD CALCULATION: Match game's exact spread
+                                                local camera = workspace.CurrentCamera
+                                                local spreadAngle = math.rad(0.5) -- KnightMare's spread angle
+                                                local randomX = (math.random() - 0.5) * spreadAngle
+                                                local randomY = (math.random() - 0.5) * spreadAngle
+                                                
+                                                -- Apply spread to direction
+                                                local spreadDirection = (camera.CFrame * CFrame.Angles(randomX, randomY, 0)).LookVector
+                                                local spreadDistance = math.min(distance, 250) -- KnightMare's max range
+                                                
+                                                local rayResult = workspace:Raycast(origin, spreadDirection * spreadDistance, raycastParams)
                                                 
                                                 if rayResult and rayResult.Instance:IsDescendantOf(workspace.Enemies) then
-                                                    -- Fire at target with KnightMare arguments
+                                                    -- 🛡️ KNIGHTMARE-EXACT FIRESERVER ARGUMENTS
                                                     local args = {target.model, rayResult.Instance, rayResult.Position, 0, weapon}
                                                     
-                                                    local success = pcall(function()
-                                                        shootRemote:FireServer(unpack(args))
-                                                    end)
+                                                    -- 🛡️ KNIGHTMARE VALIDATION: Ensure all arguments are valid
+                                                    local isValidShot = true
+                                                    if not target.model or not target.model.Parent then
+                                                        isValidShot = false
+                                                    end
+                                                    if not rayResult.Instance or not rayResult.Instance.Parent then
+                                                        isValidShot = false
+                                                    end
+                                                    if not weapon or weapon == "" then
+                                                        isValidShot = false
+                                                    end
                                                     
-                                                    if success then
-                                                        shotsFired = shotsFired + 1
-                                                        performanceStats.shotsSuccessful = performanceStats.shotsSuccessful + 1
+                                                    if isValidShot then
+                                                        local success = pcall(function()
+                                                            shootRemote:FireServer(unpack(args))
+                                                        end)
                                                         
-                                                        -- 🚀 SUPERHUMAN MULTI-SHOT SPACING
-                                                        if shotsFired < maxShots then
-                                                            local spacingDelay
-                                                            if effectivenessLevel >= 95 then
-                                                                spacingDelay = 0.01 + (math.random() * 0.02) -- 10-30ms
-                                                            elseif effectivenessLevel >= 80 then
-                                                                spacingDelay = 0.02 + (math.random() * 0.03) -- 20-50ms
-                                                            else
-                                                                spacingDelay = 0.05 + (math.random() * 0.05) -- 50-100ms
+                                                        if success then
+                                                            shotsFired = shotsFired + 1
+                                                            performanceStats.shotsSuccessful = performanceStats.shotsSuccessful + 1
+                                                            
+                                                            -- 🛡️ KNIGHTMARE-SYNCHRONIZED MULTI-SHOT SPACING
+                                                            if shotsFired < maxShots then
+                                                                local spacingDelay
+                                                                if effectivenessLevel >= 95 then
+                                                                    spacingDelay = 0.08 + (math.random() * 0.04) -- 80-120ms (KnightMare safe)
+                                                                elseif effectivenessLevel >= 80 then
+                                                                    spacingDelay = 0.12 + (math.random() * 0.06) -- 120-180ms (KnightMare safe)
+                                                                else
+                                                                    spacingDelay = 0.15 + (math.random() * 0.1) -- 150-250ms (KnightMare safe)
+                                                                end
+                                                                
+                                                                -- 🛡️ KNIGHTMARE HUMANIZATION: Add natural variation
+                                                                local humanVariation = (math.random() - 0.5) * 0.02 -- ±10ms variation
+                                                                spacingDelay = math.max(0.05, spacingDelay + humanVariation) -- Minimum 50ms
+                                                                
+                                                                task.wait(spacingDelay)
                                                             end
-                                                            task.wait(spacingDelay)
+                                                        else
+                                                            performanceStats.shotsBlocked = performanceStats.shotsBlocked + 1
                                                         end
-                                                    else
-                                                        performanceStats.shotsBlocked = performanceStats.shotsBlocked + 1
                                                     end
                                                 end
                                             end
@@ -361,15 +399,54 @@ CombatTab:CreateToggle({
                         end
                     end)
                     
-                    -- 🚀 SUPERHUMAN CYCLE DELAY
+                    -- 🛡️ KNIGHTMARE-SYNCHRONIZED CYCLE DELAY
                     local cycleDelay
                     if effectivenessLevel >= 95 then
-                        cycleDelay = 0.02 + (math.random() * 0.03) -- 20-50ms
+                        cycleDelay = 0.15 + (math.random() * 0.1) -- 150-250ms (KnightMare safe)
                     elseif effectivenessLevel >= 80 then
-                        cycleDelay = 0.05 + (math.random() * 0.05) -- 50-100ms
+                        cycleDelay = 0.2 + (math.random() * 0.15) -- 200-350ms (KnightMare safe)
                     else
-                        cycleDelay = 0.1 + (math.random() * 0.1) -- 100-200ms
+                        cycleDelay = 0.25 + (math.random() * 0.2) -- 250-450ms (KnightMare safe)
                     end
+                    
+                    -- 🛡️ KNIGHTMARE HUMANIZATION: Add natural inconsistency
+                    local inconsistency = (math.random() - 0.5) * 0.05 -- ±25ms natural variation
+                    cycleDelay = math.max(0.1, cycleDelay + inconsistency) -- Minimum 100ms
+                    
+                    -- 🛡️ KNIGHTMARE FATIGUE SIMULATION: Occasional slower cycles
+                    if math.random() < 0.05 then -- 5% chance of fatigue
+                        cycleDelay = cycleDelay + (0.1 + math.random() * 0.2) -- +100-300ms fatigue
+                    end
+                    
+                    -- 🧠 ADVANCED BEHAVIORAL AI: Simulate human focus and attention
+                    local currentTime = tick()
+                    local sessionDuration = currentTime - sessionStartTime
+                    
+                    -- 🧠 FOCUS DRIFT: Simulate attention span changes
+                    if currentTime - behaviorProfile.lastFocusChange > 30 then -- Every 30 seconds
+                        behaviorProfile.focusLevel = math.max(0.3, math.min(0.9, behaviorProfile.focusLevel + (math.random() - 0.5) * 0.2))
+                        behaviorProfile.lastFocusChange = currentTime
+                    end
+                    
+                    -- 🧠 FATIGUE ACCUMULATION: Get slightly slower over time
+                    if currentTime - behaviorProfile.lastFatigueChange > 60 then -- Every minute
+                        behaviorProfile.fatigueLevel = math.min(0.3, behaviorProfile.fatigueLevel + 0.05)
+                        behaviorProfile.lastFatigueChange = currentTime
+                    end
+                    
+                    -- 🧠 SKILL DRIFT: Simulate getting better/worse over time
+                    behaviorProfile.skillDrift = behaviorProfile.skillDrift + (math.random() - 0.5) * 0.01
+                    behaviorProfile.skillDrift = math.max(-0.2, math.min(0.2, behaviorProfile.skillDrift))
+                    
+                    -- Apply behavioral modifiers to cycle delay
+                    local focusModifier = 1 - (behaviorProfile.focusLevel * 0.3) -- Better focus = faster
+                    local fatigueModifier = 1 + (behaviorProfile.fatigueLevel * 0.4) -- More fatigue = slower
+                    local skillModifier = 1 - (behaviorProfile.skillDrift * 0.2) -- Better skill = faster
+                    
+                    cycleDelay = cycleDelay * focusModifier * fatigueModifier * skillModifier
+                    
+                    -- Update last shot time for rate limiting
+                    lastShot = tick()
                     
                     task.wait(cycleDelay)
                 end
