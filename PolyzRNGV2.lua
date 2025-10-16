@@ -119,14 +119,18 @@ local function updateEffectiveness(level)
     
     local scaleFactor = level / 100
     
-    -- Adaptive shot delay: 0.30s (safe) to 0.15s (aggressive)
-    shootDelay = 0.30 - (scaleFactor * 0.15)
+    -- Adaptive shot delay: 0.30s (safe) to 0.12s (ultra-aggressive at 100%)
+    shootDelay = 0.30 - (scaleFactor * 0.18)
     
     -- Adaptive human reaction time
     adaptiveDelay = shootDelay
     
     -- Auto-enable stealth mode for lower effectiveness
     stealthMode = level < 70 -- Below 70% = stealth, above = performance
+    
+    -- DYNAMIC RANGE SCALING: Higher effectiveness = longer range engagement
+    -- 0% = 150 studs, 50% = 200 studs, 100% = 250 studs (game max)
+    maxShootDistance = math.floor(150 + (scaleFactor * 100))
     
     -- Reset risk when changing effectiveness
     detectionRisk = 0
@@ -502,18 +506,18 @@ CombatTab:CreateToggle({
                                     if isValidTarget(zombie, head, humanoid) then
                                         local distance = root and (head.Position - root.Position).Magnitude or 999999
                                         
-                                        -- Debug: Log boss detection
-                                        local isBoss = zombie.Name == "GoblinKing" or zombie.Name == "CaptainBoom" or zombie.Name == "Fungarth"
-                                        if isBoss and math.random(1, 20) == 1 then -- 5% chance to avoid spam
-                                            print("BOSS DETECTED: " .. zombie.Name .. " at distance " .. math.floor(distance))
-                                        end
+                                        -- 🧠 INTELLIGENT EARLY WARNING FILTER
+                                        -- Only include targets within effective range (scales with effectiveness)
+                                        local effectiveRange = maxShootDistance
                                         
-                                        table.insert(validTargets, {
-                                            model = zombie,
-                                            head = head,
-                                            humanoid = humanoid,
-                                            distance = distance
-                                        })
+                                        if distance <= effectiveRange then
+                                            table.insert(validTargets, {
+                                                model = zombie,
+                                                head = head,
+                                                humanoid = humanoid,
+                                                distance = distance
+                                            })
+                                        end
                                     end
                                 end
                             end
@@ -555,11 +559,28 @@ CombatTab:CreateToggle({
                                     return a.distance < b.distance
                                 end)
                                 
-                                -- DYNAMIC SHOTS PER CYCLE: Scales with effectiveness
+                                -- 🧠 ULTRA-INTELLIGENT SHOT DISTRIBUTION
                                 local shotsFired = 0
-                                -- 0% = 1 shot, 50% = 2 shots, 100% = 3 shots
-                                local baseShotsPerCycle = math.floor(1 + (effectivenessScale * 2))
-                                local maxShotsPerCycle = math.min(baseShotsPerCycle, #validTargets)
+                                
+                                -- CRITICAL ZONE LOGIC: Shoot ALL threats in critical zone first!
+                                local criticalThreats = 0
+                                for _, t in ipairs(validTargets) do
+                                    if t.distance < criticalZone then
+                                        criticalThreats = criticalThreats + 1
+                                    end
+                                end
+                                
+                                -- INTELLIGENT ALLOCATION:
+                                -- If zombies in critical zone, shoot ALL of them immediately
+                                -- Otherwise, scale with effectiveness
+                                local maxShotsPerCycle
+                                if criticalThreats > 0 then
+                                    -- EMERGENCY MODE: Shoot ALL critical threats
+                                    maxShotsPerCycle = math.min(criticalThreats + 2, #validTargets)
+                                else
+                                    -- NORMAL MODE: Scale with effectiveness (1-5 shots)
+                                    maxShotsPerCycle = math.min(math.floor(1 + (effectivenessScale * 4)), #validTargets)
+                                end
                                 
                                 for _, target in ipairs(validTargets) do
                                     if shotsFired >= maxShotsPerCycle then break end
@@ -586,24 +607,18 @@ CombatTab:CreateToggle({
                                         if success then
                                             shotsFired = shotsFired + 1
                                             
-                                            -- Notify when boss is targeted (for debugging)
-                                            if isBoss and math.random(1, 30) == 1 then -- Reduced spam chance
-                                                Rayfield:Notify({
-                                                    Title = "🎯 BOSS TARGETED",
-                                                    Content = "Shooting " .. target.model.Name .. "!",
-                                                    Duration = 2,
-                                                    Image = 4483362458
-                                                })
+                                            -- 🚨 EMERGENCY RAPID-FIRE: Tiny delay for critical threats
+                                            if target.distance < criticalZone and shotsFired < maxShotsPerCycle then
+                                                task.wait(0.001) -- 1ms between critical threat shots (ULTRA FAST)
+                                            elseif shotsFired < maxShotsPerCycle then
+                                                -- Normal delay between non-critical shots
+                                                task.wait(0.01 + (math.random() * 0.02)) -- 10-30ms
                                             end
-                                            
-                                            -- REMOVED: No multi-shot delays in stealth mode (only 1 shot per cycle anyway)
                                         end
                                     end
                                     
-                                    -- If this target blocked, try next one (max 12 attempts for GODMODE)
-                                    if #validTargets > 12 and _ >= 12 then
-                                        break
-                                    end
+                                    -- 🧠 INTELLIGENT TARGET SKIP: Don't waste time on blocked targets
+                                    -- At high effectiveness, try more targets to find clear shots
                                 end
                                 
                                 -- If no shot fired, all targets blocked (legitimate game behavior)
@@ -611,8 +626,41 @@ CombatTab:CreateToggle({
                         end
                     end)
                     
-                    -- 🛡️ Use KnightMare-synchronized delay system
-                    task.wait(getKnightMareDelay(shootDelay))
+                    -- 🧠 ULTRA-INTELLIGENT ADAPTIVE DELAY
+                    -- Check if there are critical threats nearby
+                    local hasUrgentThreats = false
+                    local enemies = workspace:FindFirstChild("Enemies")
+                    if enemies then
+                        local character = player.Character
+                        local root = character and character:FindFirstChild("HumanoidRootPart")
+                        if root then
+                            for _, zombie in pairs(enemies:GetChildren()) do
+                                if zombie:IsA("Model") and zombie:FindFirstChild("Head") then
+                                    local distance = (zombie.Head.Position - root.Position).Magnitude
+                                    local effectivenessScale = effectivenessLevel / 100
+                                    local urgentZone = 15 + (effectivenessScale * 15)
+                                    if distance < urgentZone then
+                                        hasUrgentThreats = true
+                                        break
+                                    end
+                                end
+                            end
+                        end
+                    end
+                    
+                    -- DYNAMIC CYCLE DELAY:
+                    -- Urgent threats = minimal delay (rapid response)
+                    -- No threats = normal delay (human timing)
+                    local cycleDelay
+                    if hasUrgentThreats then
+                        -- EMERGENCY: Very short delay when zombies are close
+                        cycleDelay = 0.05 + (math.random() * 0.03) -- 50-80ms
+                    else
+                        -- NORMAL: Use smart delay based on effectiveness
+                        cycleDelay = getKnightMareDelay(shootDelay)
+                    end
+                    
+                    task.wait(cycleDelay)
                 end
             end)
         end
@@ -1138,3 +1186,4 @@ MiscTab:CreateButton({
 
 -- Load config
 Rayfield:LoadConfiguration()
+
