@@ -129,8 +129,8 @@ local function updateEffectiveness(level)
     -- Auto-enable stealth mode for lower effectiveness
     stealthMode = level < 70 -- Below 70% = stealth, above = performance
     
-    -- ENHANCED RANGE SCALING: Higher effectiveness = longer range engagement
-    -- 0% = 150 studs, 50% = 225 studs, 100% = 250 studs (game max)
+    -- DYNAMIC RANGE SCALING: Higher effectiveness = longer range engagement
+    -- 0% = 150 studs, 50% = 200 studs, 100% = 250 studs (game max)
     maxShootDistance = math.floor(150 + (scaleFactor * 100))
     
     -- Reset risk when changing effectiveness
