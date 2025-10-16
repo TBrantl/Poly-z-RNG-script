@@ -84,6 +84,7 @@ end
 
 -- 🎯 PERFECT DEFENSE SYSTEM - Zero Detection | Maximum Efficiency
 local autoKill = false
+local autoSkip = false
 local shootDelay = 0.25 -- HUMAN REACTION TIME default (perfectly natural)
 local lastShot = 0
 local shotCount = 0
@@ -293,16 +294,16 @@ CombatTab:CreateToggle({
                                 else
                                     -- Sort by distance and threat level
                                     table.sort(validTargets, function(a, b)
-                                    local aBoss = a.model.Name == "GoblinKing" or a.model.Name == "CaptainBoom" or a.model.Name == "Fungarth"
-                                    local bBoss = b.model.Name == "GoblinKing" or b.model.Name == "CaptainBoom" or b.model.Name == "Fungarth"
-                                    
-                                    -- Bosses first
-                                    if aBoss and not bBoss then return true end
-                                    if bBoss and not aBoss then return false end
-                                    
-                                    -- Then by distance
-                                    return a.distance < b.distance
-                                end)
+                                        local aBoss = a.model.Name == "GoblinKing" or a.model.Name == "CaptainBoom" or a.model.Name == "Fungarth"
+                                        local bBoss = b.model.Name == "GoblinKing" or b.model.Name == "CaptainBoom" or b.model.Name == "Fungarth"
+                                        
+                                        -- Bosses first
+                                        if aBoss and not bBoss then return true end
+                                        if bBoss and not aBoss then return false end
+                                        
+                                        -- Then by distance
+                                        return a.distance < b.distance
+                                    end)
                                 
                                 -- 🚀 KNIGHTMARE-SYNCHRONIZED SHOT ALLOCATION
                                 local shotsFired = 0
