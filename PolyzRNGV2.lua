@@ -299,40 +299,26 @@ local function shouldAllowKnightMareShot()
         if timeDiff < 1 then shotsLast1Sec = shotsLast1Sec + 1 end
     end
     
-    -- PERFECT HUMAN LIMITS WITH PANIC OVERRIDE
+    -- PERFECT HUMAN LIMITS (based on real professional players)
     -- Pro gamers during intense moments: ~4-5 accurate shots/sec sustained
-    -- During panic/overwhelmed: Can briefly burst to 6-7 shots/sec (adrenaline)
     -- Average skilled: ~3 shots/sec, Casual: ~2 shots/sec
-    
-    -- Check recent shot pattern for panic detection
-    local isPanicking = shotsLast2Sec > 6 -- If shooting very fast recently
-    
     if stealthMode then
-        -- Cautious player behavior (but can panic)
-        if shotsLast1Sec >= 4 then return false end -- Max 4 shots per second (can burst when scared)
-        if shotsLast2Sec >= 6 then return false end -- Max 6 shots per 2 seconds
-        if shotsLast5Sec >= 14 then return false end -- Max 14 shots per 5 seconds
-        if shotsLast10Sec >= 24 then return false end -- Max 24 shots per 10 seconds
+        -- Cautious player behavior
+        if shotsLast1Sec >= 3 then return false end -- Max 3 shots per second
+        if shotsLast2Sec >= 5 then return false end -- Max 5 shots per 2 seconds
+        if shotsLast5Sec >= 12 then return false end -- Max 12 shots per 5 seconds
+        if shotsLast10Sec >= 20 then return false end -- Max 20 shots per 10 seconds
     else
-        -- Skilled player behavior (can handle more during panic)
-        if shotsLast1Sec >= 6 then return false end -- Max 6 shots per second (panic burst)
-        if shotsLast2Sec >= 10 then return false end -- Max 10 shots per 2 seconds
-        if shotsLast5Sec >= 20 then return false end -- Max 20 shots per 5 seconds
-        if shotsLast10Sec >= 35 then return false end -- Max 35 shots per 10 seconds
+        -- Skilled player behavior (still realistic)
+        if shotsLast1Sec >= 4 then return false end -- Max 4 shots per second (skilled limit)
+        if shotsLast2Sec >= 7 then return false end -- Max 7 shots per 2 seconds
+        if shotsLast5Sec >= 16 then return false end -- Max 16 shots per 5 seconds
+        if shotsLast10Sec >= 28 then return false end -- Max 28 shots per 10 seconds
     end
     
     -- Human minimum reaction time between accurate shots
     -- Professional players can sustain 180-200ms between shots during intense focus
-    -- During panic bursts: Can briefly go to 150ms (adrenaline)
-    local humanReactionTime
-    if isPanicking then
-        humanReactionTime = 0.15 -- Panic burst allows faster (150ms - brief adrenaline)
-    elseif stealthMode then
-        humanReactionTime = 0.20 -- Conservative baseline
-    else
-        humanReactionTime = 0.18 -- Professional baseline
-    end
-    
+    local humanReactionTime = stealthMode and 0.20 or 0.18
     if currentTime - lastValidationTime < humanReactionTime then
         return false
     end
@@ -580,12 +566,6 @@ CombatTab:CreateToggle({
                             local weapon = getEquippedWeaponName()
                             local validTargets = {}
                             
-                            -- DEBUG: Verify we have the remote
-                            if not shootRemote then
-                                warn("ShootEnemy remote not found!")
-                                return
-                            end
-                            
                             -- Collect ALL living enemies with distance info
                             local character = player.Character
                             local root = character and character:FindFirstChild("HumanoidRootPart")
@@ -617,23 +597,12 @@ CombatTab:CreateToggle({
                             
                             -- 🎯 DYNAMIC PERFECT DEFENSE: Scales with effectiveness level
                             if #validTargets > 0 then
-                                -- DEBUG: Verify we found targets
-                                print("[DEBUG] Found " .. #validTargets .. " valid targets")
-                                
                                 -- INTELLIGENT DEFENSE ZONES (scale with effectiveness)
                                 -- Higher effectiveness = more aggressive preemptive targeting
                                 local effectivenessScale = effectivenessLevel / 100
                                 local criticalZone = 15 + (effectivenessScale * 15) -- 15-30 studs
                                 local highThreatZone = 30 + (effectivenessScale * 30) -- 30-60 studs
                                 local preemptiveZone = 50 + (effectivenessScale * 50) -- 50-100 studs
-                                
-                                -- COUNT CRITICAL THREATS FIRST (needed for logic below)
-                                local criticalThreats = 0
-                                for _, t in ipairs(validTargets) do
-                                    if t.distance < criticalZone then
-                                        criticalThreats = criticalThreats + 1
-                                    end
-                                end
                                 
                                 table.sort(validTargets, function(a, b)
                                     local aBoss = a.model.Name == "GoblinKing" or a.model.Name == "CaptainBoom" or a.model.Name == "Fungarth"
@@ -663,40 +632,69 @@ CombatTab:CreateToggle({
                                     return a.distance < b.distance
                                 end)
                                 
-                                -- 🧠 ULTRA-INTELLIGENT THREAT-AWARE ALLOCATION
+                                -- 🧠 ULTRA-INTELLIGENT SHOT DISTRIBUTION
                                 local shotsFired = 0
-                                local maxShotsPerCycle
                                 
-                                -- ANALYZE OVERALL THREAT LEVEL (zombie density)
-                                local totalThreats = #validTargets
-                                local threatsInRange = 0
+                                -- CRITICAL ZONE LOGIC: Shoot ALL threats in critical zone first!
+                                local criticalThreats = 0
                                 for _, t in ipairs(validTargets) do
-                                    if t.distance < highThreatZone then
-                                        threatsInRange = threatsInRange + 1
+                                    if t.distance < criticalZone then
+                                        criticalThreats = criticalThreats + 1
                                     end
                                 end
                                 
-                                -- OVERWHELMING FORCE DETECTION: When swarm is coming, shoot MORE
-                                -- This is NATURAL - humans spray more when overwhelmed
-                                local threatDensity = threatsInRange / math.max(1, highThreatZone / 10) -- Threats per 10 studs
-                                local isOverwhelmed = threatDensity > 0.5 or totalThreats > 8
+                                -- 🧠 INTELLIGENT SWARM-ADAPTIVE ALLOCATION
+                                -- Varies based on player state, effectiveness, AND zombie density
+                                local maxShotsPerCycle
                                 
-                                -- FOCUS-BASED SHOT CAPACITY
-                                local focusFactor = behaviorProfile.focusLevel - (behaviorProfile.fatigueLevel * 0.5)
-                                local baseShotCapacity = math.floor(2 + (focusFactor * 3)) -- 1-5 shots based on state
+                                -- ANALYZE ZOMBIE DENSITY FOR SWARM DETECTION
+                                local totalZombies = #validTargets
+                                local zombiesInHighThreat = 0
+                                local zombiesInPreemptive = 0
+                                
+                                for _, t in ipairs(validTargets) do
+                                    if t.distance < highThreatZone then
+                                        zombiesInHighThreat = zombiesInHighThreat + 1
+                                    end
+                                    if t.distance < preemptiveZone then
+                                        zombiesInPreemptive = zombiesInPreemptive + 1
+                                    end
+                                end
+                                
+                                -- SWARM DETECTION: High zombie density = overwhelming situation
+                                local isSwarm = totalZombies > 8 -- Heavy wave
+                                local isOverwhelmed = zombiesInHighThreat > 4 or criticalThreats > 2 -- Too many close
+                                local isHeavyWave = zombiesInPreemptive > 12 -- Massive incoming wave
+                                
+                                -- FOCUS-BASED SHOT CAPACITY (enhanced for swarms)
+                                local focusFactor = behaviorProfile.focusLevel - behaviorProfile.fatigueLevel
+                                local baseShotCapacity = math.floor(2 + (focusFactor * 2)) -- 1-4 shots based on state
+                                
+                                -- ADRENALINE BOOST: Humans get hyper-focused during overwhelming situations
+                                if isOverwhelmed or isHeavyWave then
+                                    -- TEMPORARY FOCUS BOOST: Adrenaline kicks in
+                                    behaviorProfile.focusLevel = math.min(1, behaviorProfile.focusLevel + 0.15)
+                                    focusFactor = behaviorProfile.focusLevel - behaviorProfile.fatigueLevel
+                                    baseShotCapacity = math.floor(2 + (focusFactor * 2.5)) -- Up to 5 shots when panicking
+                                end
                                 
                                 if criticalThreats > 0 or isOverwhelmed then
                                     -- PANIC/OVERWHELMED MODE: Shoot MORE to survive
                                     -- Natural human response: spray at multiple threats rapidly
-                                    local panicMultiplier = isOverwhelmed and 1.5 or 1.2
+                                    local panicMultiplier = isOverwhelmed and 1.8 or 1.3
                                     local panicShots = math.floor(baseShotCapacity * panicMultiplier)
                                     
                                     -- CRITICAL: When multiple zombies in danger zone, shoot ALL of them
                                     if criticalThreats >= 2 then
-                                        maxShotsPerCycle = math.min(criticalThreats + 1, #validTargets, 6) -- Up to 6 when panicking
+                                        maxShotsPerCycle = math.min(criticalThreats + 2, #validTargets, 6) -- Up to 6 when panicking
                                     else
                                         maxShotsPerCycle = math.min(panicShots, #validTargets, 5)
                                     end
+                                elseif isSwarm or isHeavyWave then
+                                    -- SWARM MODE: Many zombies but not critical yet
+                                    -- Scale up shots to handle the wave
+                                    local swarmShots = math.floor(2 + (effectivenessScale * 3)) -- 2-5 shots for swarms
+                                    maxShotsPerCycle = math.min(swarmShots, baseShotCapacity, 4)
                                 else
                                     -- NORMAL MODE: Scale with effectiveness AND player state
                                     local baseShots = math.floor(1 + (effectivenessScale * 2))
@@ -705,12 +703,9 @@ CombatTab:CreateToggle({
                                 
                                 -- RANDOM VARIATION: Sometimes shoot fewer (distraction, hesitation)
                                 -- BUT: Don't reduce when overwhelmed (survival instinct)
-                                if not isOverwhelmed and math.random() < 0.15 then -- 15% chance when calm
+                                if not isOverwhelmed and not isHeavyWave and math.random() < 0.20 then -- 20% chance when calm
                                     maxShotsPerCycle = math.max(1, maxShotsPerCycle - 1)
                                 end
-                                
-                                -- DEBUG: Show shot allocation
-                                print("[DEBUG] Will shoot " .. maxShotsPerCycle .. " targets. Critical: " .. criticalThreats .. ", Overwhelmed: " .. tostring(isOverwhelmed))
                                 
                                 for _, target in ipairs(validTargets) do
                                     if shotsFired >= maxShotsPerCycle then break end
@@ -718,7 +713,7 @@ CombatTab:CreateToggle({
                                     -- 🧬 HUMAN IMPERFECTION: Occasionally skip a target (distraction, hesitation)
                                     -- BUT: When overwhelmed, humans are hyper-focused (no skips)
                                     local shouldSkip = false
-                                    if not isOverwhelmed and not (target.distance < criticalZone) then
+                                    if not isOverwhelmed and not isHeavyWave and not (target.distance < criticalZone) then
                                         local skipChance = (1 - behaviorProfile.focusLevel) * 0.12 + (behaviorProfile.fatigueLevel * 0.08)
                                         if math.random() < skipChance and shotsFired > 0 then
                                             shouldSkip = true
@@ -770,8 +765,8 @@ CombatTab:CreateToggle({
                                 end -- Close the for loop
                                 
                                 -- If no shot fired, all targets blocked (legitimate game behavior)
-                            end
-                        end
+                                        end
+                                    end
                     end)
                     
                     -- 🧠 ULTRA-INTELLIGENT ADAPTIVE DELAY
@@ -796,7 +791,7 @@ CombatTab:CreateToggle({
                                     end
                                 end
                                 
-                    -- 🧬 DYNAMIC CYCLE DELAY WITH THREAT-AWARE INTELLIGENCE
+                    -- 🧬 DYNAMIC CYCLE DELAY WITH SWARM-AWARE INTELLIGENCE
                     local cycleDelay
                     
                     -- CHECK THREAT DENSITY FOR ADAPTIVE RESPONSE
@@ -813,8 +808,8 @@ CombatTab:CreateToggle({
                                     local dist = (zom.Head.Position - root_check.Position).Magnitude
                                     if dist < highThreatZone then
                                         closeEnemyCount = closeEnemyCount + 1
-                            end
-                        end
+                                    end
+                                end
                             end
                         end
                     end
@@ -1329,75 +1324,38 @@ MiscTab:CreateButton({
             Image = 4483362458
         })
         
-        -- Complete GUI destruction
+        -- Wait a moment then destroy the GUI completely
         task.spawn(function()
-            task.wait(2)
+            task.wait(1.5)
             
-            -- AGGRESSIVE COMPLETE GUI CLEANUP
+            -- More aggressive GUI cleanup
             pcall(function()
-                -- Destroy Rayfield library
+                -- Try multiple destruction methods
                 if Rayfield then
-                    -- Destroy the main window
                     if Rayfield.Main then
                         Rayfield.Main:Destroy()
                     end
-                    
-                    -- Disable the UI
-                    if Rayfield.Enabled ~= nil then
+                    if Rayfield.Enabled then
                         Rayfield.Enabled = false
-                    end
-                    
-                    -- Call destroy method if exists
-                    if Rayfield.Destroy then
-                        Rayfield:Destroy()
                     end
                 end
                 
-                -- Find and destroy ALL GUI elements in PlayerGui
-                local playerGui = player:FindFirstChild("PlayerGui")
+                -- Find and destroy any remaining GUI elements
+                local playerGui = game.Players.LocalPlayer:FindFirstChild("PlayerGui")
                 if playerGui then
                     for _, gui in pairs(playerGui:GetChildren()) do
-                        -- Destroy anything related to Rayfield or Freezy
-                        if gui.Name:lower():find("rayfield") or 
-                           gui.Name:lower():find("freezy") or
-                           gui.Name:find("UI") or
-                           gui.ClassName == "ScreenGui" and gui:FindFirstChild("Main") then
-                            pcall(function()
+                        if gui.Name:find("Rayfield") or gui.Name:find("Freezy") then
                             gui:Destroy()
-                            end)
                         end
                     end
                 end
-                
-                -- Also check CoreGui (some libraries put stuff there)
-                local coreGui = game:GetService("CoreGui")
-                for _, gui in pairs(coreGui:GetChildren()) do
-                    if gui.Name:lower():find("rayfield") or gui.Name:lower():find("freezy") then
-                        pcall(function()
-                            gui:Destroy()
-                        end)
-                    end
-                end
             end)
             
-            -- Clean up all global variables
-            pcall(function()
+            -- Clean up global variables
             getgenv().FreezyHubLoaded = nil
-                getgenv().Rayfield = nil
-                _G.FreezyHub = nil
-                _G.Rayfield = nil
-            end)
             
-            -- Force garbage collection multiple times
-            for i = 1, 3 do
-                task.wait(0.1)
+            -- Force garbage collection
             game:GetService("RunService").Heartbeat:Wait()
-            end
-            
-            -- Final cleanup - destroy the script itself
-            pcall(function()
-                script:Destroy()
-            end)
         end)
     end
 })
