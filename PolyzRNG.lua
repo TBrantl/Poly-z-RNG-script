@@ -161,6 +161,7 @@ local shootDelay = 0.25 -- HUMAN REACTION TIME default (perfectly natural)
 local lastShot = 0
 local shotCount = 0
 local maxShootDistance = 250 -- Match game's 250 stud limit (line 12153)
+local currentRound = 1 -- Current round for scaling
 
 -- 🛡️ KNIGHTMARE SYNCHRONICITY SYSTEM - Advanced Detection Evasion
 -- Synchronized with place file detection patterns at lines 12162-12195
@@ -719,6 +720,7 @@ CombatTab:CreateToggle({
                                 
                                 -- 🧠 SIMPLE BUT EFFECTIVE SHOT DISTRIBUTION (Working Version)
                                 local shotsFired = 0
+                                local totalThreats = #validTargets
                                 
                                 -- CRITICAL ZONE LOGIC: Shoot ALL threats in critical zone first!
                                 local criticalThreats = 0
@@ -736,7 +738,6 @@ CombatTab:CreateToggle({
                                 local shotCapacity = math.floor(2 + (focusFactor * 2)) -- 1-4 shots based on state
                                 
                                 -- 🧠 CONSTANT KILLING THREAT-BASED SCALING
-                                local totalThreats = #validTargets
                                 local threatDensity = totalThreats / 1 -- CONSTANT threat density factor
                                 local effectivenessBoost = effectivenessScale * 10 -- 10x effectiveness boost
                                 local roundMultiplier = math.min(20, 1 + (currentRound or 1) * 1) -- Round-based scaling
