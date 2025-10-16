@@ -36,7 +36,6 @@ local performanceStats = {
     shotsBlocked = 0,
     shotsSuccessful = 0,
     riskLevel = "LOW",
-    adaptiveDelay = 0.1,
     lastUpdate = tick()
 }
 
