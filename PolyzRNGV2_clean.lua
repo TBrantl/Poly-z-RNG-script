@@ -268,21 +268,21 @@ CombatTab:CreateToggle({
                                 -- 🚀 ABSOLUTE CONSTANT KILLING SHOT ALLOCATION - NO LIMITS
                                 local shotsFired = 0
                                 local maxShots
+                                local simultaneousKills
+                                local overkillShots
                                 
                                 -- 🚨 CONSTANT KILLING MODE: NO END-OF-ROUND LIMITS, NO CONSERVATIVE MODE
                                 -- ELIMINATED ALL SHOT LIMITS - CONSTANT ELIMINATION
                                 
                                 if stealthMode then
                                     maxShots = math.min(50, #validTargets) -- Safe mode: 50 shots (50x more)
-                                    local simultaneousKills = math.min(50, #validTargets)
-                                    local overkillShots = 1
+                                    simultaneousKills = math.min(50, #validTargets)
+                                    overkillShots = 1
                                 else
                                     -- 🚀 MASSIVE MULTIPLICATION: Kill multiple zombies simultaneously
                                     local zombieCount = #validTargets
                                     
                                     -- ADAPTIVE MULTIPLICATION: More zombies = more aggressive
-                                    local simultaneousKills
-                                    local overkillShots
                                 
                                     -- 🧠 REVOLUTIONARY INTELLIGENT SCALING SYSTEM
                                     local currentRound = 1 -- Default round
