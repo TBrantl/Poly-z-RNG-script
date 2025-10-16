@@ -40,6 +40,17 @@ local performanceStats = {
     lastUpdate = tick()
 }
 
+-- 🎯 INTELLIGENT EFFECTIVENESS SYSTEM
+local effectivenessLevel = 50 -- Default to balanced (0-100%)
+
+-- 🎯 PERFECT DEFENSE SYSTEM - Zero Detection | Maximum Efficiency
+local autoKill = false
+local shootDelay = 0.25 -- HUMAN REACTION TIME default (perfectly natural)
+local lastShot = 0
+local shotCount = 0
+local maxShootDistance = 250 -- Match game's 250 stud limit (line 12153)
+local currentRound = 1 -- Current round for scaling
+
 -- Utility Functions
 local function getEquippedWeaponName()
     -- 🎯 EXACT KNIGHTMARE WEAPON RETRIEVAL
@@ -167,7 +178,6 @@ local detectionProtection = {
 }
 
 -- 🎯 INTELLIGENT EFFECTIVENESS SYSTEM
-local effectivenessLevel = 50 -- Default to balanced (0-100%)
 local function updateEffectiveness(level)
     effectivenessLevel = level
     
@@ -212,14 +222,6 @@ end
 
 -- Initialize with balanced default
 updateEffectiveness(50)
-
--- 🎯 PERFECT DEFENSE SYSTEM - Zero Detection | Maximum Efficiency
-local autoKill = false
-local shootDelay = 0.25 -- HUMAN REACTION TIME default (perfectly natural)
-local lastShot = 0
-local shotCount = 0
-local maxShootDistance = 250 -- Match game's 250 stud limit (line 12153)
-local currentRound = 1 -- Current round for scaling
 
 -- 🛡️ KNIGHTMARE SYNCHRONICITY SYSTEM - Advanced Detection Evasion
 -- Synchronized with place file detection patterns at lines 12162-12195
@@ -973,8 +975,8 @@ CombatTab:CreateToggle({
                                 end
                                 
                                 -- If no shot fired, all targets blocked (legitimate game behavior)
-                            end
-                        end
+                                        end
+                                    end
                     end)
                     
                     -- 🧠 ULTRA-INTELLIGENT ADAPTIVE DELAY
