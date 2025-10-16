@@ -1204,7 +1204,7 @@ MiscTab:CreateSection("❄️ Freezy HUB Settings")
 MiscTab:CreateButton({
     Name = "🔌 Unload Freezy HUB",
     Callback = function()
-        -- Disable all active features
+        -- 🛑 IMMEDIATE FEATURE DISABLE
         autoKill = false
         autoSkip = false
         autoOpenCamo = false
@@ -1212,67 +1212,124 @@ MiscTab:CreateButton({
         autoOpenPet = false
         autoOpenGun = false
         
-        -- Immediate feedback that features are disabled
+        -- 🛑 IMMEDIATE NOTIFICATION
         Rayfield:Notify({
-            Title = "🛑 Features Disabled",
-            Content = "Combat system stopped!",
+            Title = "🛑 SHUTTING DOWN",
+            Content = "All features disabled! Cleaning up...",
             Duration = 1,
             Image = 4483362458
         })
         
-        -- Reset player properties to normal
-        pcall(function()
-            local character = player.Character
-            if character then
-                local humanoid = character:FindFirstChild("Humanoid")
-                if humanoid then
-                    humanoid.WalkSpeed = 16 -- Default Roblox speed
-                end
-            end
-        end)
-        
-        -- No platforms to clean up (feature removed)
-        
-        -- Final notification and destroy GUI
-        Rayfield:Notify({
-            Title = "❄️ Freezy HUB",
-            Content = "Script safely unloaded! Stay frosty! 🧊",
-            Duration = 2,
-            Image = 4483362458
-        })
-        
-        -- Wait a moment then destroy the GUI completely
+        -- 🛑 AGGRESSIVE CLEANUP - IMMEDIATE
         task.spawn(function()
-            task.wait(1.5)
-            
-            -- More aggressive GUI cleanup
+            -- Reset player properties to normal
             pcall(function()
-                -- Try multiple destruction methods
-                if Rayfield then
-                    if Rayfield.Main then
-                        Rayfield.Main:Destroy()
-                    end
-                    if Rayfield.Enabled then
-                        Rayfield.Enabled = false
-                    end
-                end
-                
-                -- Find and destroy any remaining GUI elements
-                local playerGui = game.Players.LocalPlayer:FindFirstChild("PlayerGui")
-                if playerGui then
-                    for _, gui in pairs(playerGui:GetChildren()) do
-                        if gui.Name:find("Rayfield") or gui.Name:find("Freezy") then
-                            gui:Destroy()
-                        end
+                local character = player.Character
+                if character then
+                    local humanoid = character:FindFirstChild("Humanoid")
+                    if humanoid then
+                        humanoid.WalkSpeed = 16 -- Default Roblox speed
                     end
                 end
             end)
             
-            -- Clean up global variables
-            getgenv().FreezyHubLoaded = nil
+            -- 🗑️ DESTROY ALL GUI ELEMENTS IMMEDIATELY
+            pcall(function()
+                -- Destroy Rayfield library completely
+                if Rayfield then
+                    -- Disable first
+                    if Rayfield.Enabled ~= nil then
+                        Rayfield.Enabled = false
+                    end
+                    
+                    -- Destroy main window
+                    if Rayfield.Main then
+                        Rayfield.Main:Destroy()
+                    end
+                    
+                    -- Call destroy method if exists
+                    if Rayfield.Destroy then
+                        Rayfield:Destroy()
+                    end
+                    
+                    -- Clear Rayfield reference
+                    Rayfield = nil
+                end
+                
+                -- 🗑️ DESTROY ALL GUI IN PLAYERGUI
+                local playerGui = game.Players.LocalPlayer:FindFirstChild("PlayerGui")
+                if playerGui then
+                    for _, gui in pairs(playerGui:GetChildren()) do
+                        -- Destroy anything related to Rayfield, Freezy, or UI
+                        if gui.Name:lower():find("rayfield") or 
+                           gui.Name:lower():find("freezy") or
+                           gui.Name:find("UI") or
+                           gui.ClassName == "ScreenGui" and gui:FindFirstChild("Main") then
+                            pcall(function()
+                                gui:Destroy()
+                            end)
+                        end
+                    end
+                end
+                
+                -- 🗑️ DESTROY ALL GUI IN COREGUI
+                local coreGui = game:GetService("CoreGui")
+                for _, gui in pairs(coreGui:GetChildren()) do
+                    if gui.Name:lower():find("rayfield") or 
+                       gui.Name:lower():find("freezy") or
+                       gui.Name:find("UI") then
+                        pcall(function()
+                            gui:Destroy()
+                        end)
+                    end
+                end
+            end)
             
-            -- Force garbage collection
-            game:GetService("RunService").Heartbeat:Wait()
+            -- 🗑️ CLEAN UP ALL GLOBAL VARIABLES
+            pcall(function()
+                getgenv().FreezyHubLoaded = nil
+                getgenv().Rayfield = nil
+                _G.FreezyHub = nil
+                _G.Rayfield = nil
+                _G.autoKill = nil
+                _G.autoSkip = nil
+                _G.autoOpenCamo = nil
+                _G.autoOpenOutfit = nil
+                _G.autoOpenPet = nil
+                _G.autoOpenGun = nil
+            end)
+            
+            -- 🗑️ FORCE MULTIPLE GARBAGE COLLECTIONS
+            for i = 1, 5 do
+                task.wait(0.1)
+                game:GetService("RunService").Heartbeat:Wait()
+                collectgarbage("collect")
+            end
+            
+            -- 🗑️ FINAL DESTRUCTION - DESTROY SCRIPT ITSELF
+            pcall(function()
+                -- Try to destroy the script
+                if script and script.Parent then
+                    script:Destroy()
+                end
+            end)
+            
+            -- 🗑️ CLEAR ALL REFERENCES
+            pcall(function()
+                -- Clear all local variables
+                autoKill = nil
+                autoSkip = nil
+                autoOpenCamo = nil
+                autoOpenOutfit = nil
+                autoOpenPet = nil
+                autoOpenGun = nil
+                player = nil
+                Remotes = nil
+                Window = nil
+                CombatTab = nil
+                MiscTab = nil
+                OpenTab = nil
+            end)
         end)
     end
 })
