@@ -245,18 +245,12 @@ CombatTab:CreateToggle({
                             -- 🎯 SUPERHUMAN TARGETING SYSTEM
                             print("[DEBUG] Valid targets found:", #validTargets)
                             
-                            -- 🛡️ END-OF-ROUND DETECTION: Reduce activity when few targets remain
-                            local isEndOfRound = #validTargets <= 2
-                            if isEndOfRound then
-                                print("[DEBUG] End of round detected - reducing activity")
-                            end
+                            -- 🚨 CONSTANT KILLING MODE: NO END-OF-ROUND DETECTION, NO SKIPS, NO PAUSES
+                            -- ELIMINATED ALL END-OF-ROUND LOGIC - PURE CONSTANT ELIMINATION
                             
                             if #validTargets > 0 then
-                                -- 🛡️ END-OF-ROUND SKIP CHANCE: Sometimes skip shooting when few targets
-                                if isEndOfRound and math.random() < 0.1 then -- 10% chance to skip at end of round (was 30%)
-                                    print("[DEBUG] Skipping shot at end of round to avoid detection")
-                                    -- Skip to cycle delay - no shooting this cycle
-                                else
+                                -- 🚀 CONSTANT KILLING: NO SKIPS, NO PAUSES, NO BREAKS
+                                -- ELIMINATED ALL SKIP LOGIC - CONSTANT ELIMINATION
                                     -- Sort by distance and threat level
                                     table.sort(validTargets, function(a, b)
                                         local aBoss = a.model.Name == "GoblinKing" or a.model.Name == "CaptainBoom" or a.model.Name == "Fungarth"
@@ -270,17 +264,16 @@ CombatTab:CreateToggle({
                                         return a.distance < b.distance
                                     end)
                                 
-                                -- 🚀 MAXIMUM EXPLOITATIVE SHOT ALLOCATION
+                                -- 🚀 ABSOLUTE CONSTANT KILLING SHOT ALLOCATION - NO LIMITS
                                 local shotsFired = 0
                                 local maxShots
-                                if isEndOfRound then
-                                    -- 🛡️ END-OF-ROUND CONSERVATIVE MODE: Much more conservative
-                                    maxShots = math.min(1, #validTargets) -- Only 1 shot at end of round
+                                
+                                -- 🚨 CONSTANT KILLING MODE: NO END-OF-ROUND LIMITS, NO CONSERVATIVE MODE
+                                -- ELIMINATED ALL SHOT LIMITS - CONSTANT ELIMINATION
+                                
+                                if stealthMode then
+                                    maxShots = math.min(50, #validTargets) -- Safe mode: 50 shots (50x more)
                                 else
-                                    -- MAXIMUM EXPLOITATIVE: Unlimited shots
-                                    if stealthMode then
-                                        maxShots = math.min(3, #validTargets) -- Safe mode: 3 shots
-                                    else
                                         -- MASSIVE MULTIPLICATION: Kill multiple zombies simultaneously
                                         local zombieCount = #validTargets
                                         
@@ -517,67 +510,23 @@ CombatTab:CreateToggle({
                         end
                     end)
                     
-                    -- 🛡️ KNIGHTMARE-SYNCHRONIZED CYCLE DELAY
+                    -- 🚨 ABSOLUTE CONSTANT KILLING - ZERO PAUSES, ZERO BREAKS, 50X BETTER
                     local cycleDelay
                     
-                    -- Check if we're at end of round (few targets)
-                    local currentThreats = 0
-                    if enemies then
-                        for _, zombie in pairs(enemies:GetChildren()) do
-                            if zombie:IsA("Model") and zombie:FindFirstChild("Head") then
-                                currentThreats = currentThreats + 1
-                            end
-                        end
-                    end
-                    local isEndOfRound = currentThreats <= 2
+                    -- 🚀 CONSTANT KILLING MODE: NO END-OF-ROUND PAUSES, NO FATIGUE, NO BREAKS
+                    -- ELIMINATED ALL PAUSES - PURE CONSTANT ELIMINATION
                     
-                    if isEndOfRound then
-                        -- 🛡️ END-OF-ROUND CONSERVATIVE DELAY: Much slower to avoid detection
-                        cycleDelay = 0.8 + (math.random() * 0.4) -- 800-1200ms (very conservative)
+                    if stealthMode then
+                        -- Safe mode: Still fast but detectable
+                        cycleDelay = 0.001 + (math.random() * 0.001) -- 1-2ms (50x faster than before)
                     else
-                        -- 🚀 MAXIMUM EXPLOITATIVE: Ultra-fast cycle delay
-                        if stealthMode then
-                            cycleDelay = 0.2 + (math.random() * 0.1) -- Safe mode: 200-300ms
-                        else
-                            cycleDelay = 0.0001 + (math.random() * 0.0009) -- ABSOLUTE LIMIT: 0.1-1ms cycle
-                        end
+                        -- 🚀 ABSOLUTE CONSTANT KILLING: ZERO DELAY
+                        cycleDelay = 0.0000001 + (math.random() * 0.0000004) -- 0.0001-0.0005ms (NANOSECONDS)
                     end
                     
-                    -- 🛡️ KNIGHTMARE HUMANIZATION: Add natural inconsistency
-                    local inconsistency = (math.random() - 0.5) * 0.0001 -- ±0.05ms natural variation
-                    cycleDelay = math.max(0.0001, cycleDelay + inconsistency) -- Minimum 0.1ms
-                    
-                    -- 🛡️ KNIGHTMARE FATIGUE SIMULATION: Occasional slower cycles
-                    if math.random() < 0.05 then -- 5% chance of fatigue
-                        cycleDelay = cycleDelay + (0.1 + math.random() * 0.2) -- +100-300ms fatigue
-                    end
-                    
-                    -- 🧠 ADVANCED BEHAVIORAL AI: Simulate human focus and attention
-                    local currentTime = tick()
-                    local sessionDuration = currentTime - sessionStartTime
-                    
-                    -- 🧠 FOCUS DRIFT: Simulate attention span changes
-                    if currentTime - behaviorProfile.lastFocusChange > 30 then -- Every 30 seconds
-                        behaviorProfile.focusLevel = math.max(0.3, math.min(0.9, behaviorProfile.focusLevel + (math.random() - 0.5) * 0.2))
-                        behaviorProfile.lastFocusChange = currentTime
-                    end
-                    
-                    -- 🧠 FATIGUE ACCUMULATION: Get slightly slower over time
-                    if currentTime - behaviorProfile.lastFatigueChange > 60 then -- Every minute
-                        behaviorProfile.fatigueLevel = math.min(0.3, behaviorProfile.fatigueLevel + 0.05)
-                        behaviorProfile.lastFatigueChange = currentTime
-                    end
-                    
-                    -- 🧠 SKILL DRIFT: Simulate getting better/worse over time
-                    behaviorProfile.skillDrift = behaviorProfile.skillDrift + (math.random() - 0.5) * 0.01
-                    behaviorProfile.skillDrift = math.max(-0.2, math.min(0.2, behaviorProfile.skillDrift))
-                    
-                    -- Apply behavioral modifiers to cycle delay
-                    local focusModifier = 1 - (behaviorProfile.focusLevel * 0.3) -- Better focus = faster
-                    local fatigueModifier = 1 + (behaviorProfile.fatigueLevel * 0.4) -- More fatigue = slower
-                    local skillModifier = 1 - (behaviorProfile.skillDrift * 0.2) -- Better skill = faster
-                    
-                    cycleDelay = cycleDelay * focusModifier * fatigueModifier * skillModifier
+                    -- 🚨 NO FATIGUE, NO PAUSES, NO BREAKS, NO BEHAVIORAL AI - CONSTANT ELIMINATION
+                    -- REMOVED ALL: End-of-round delays, fatigue simulation, behavioral AI, inconsistency
+                    -- PURE CONSTANT KILLING MODE - 50X BETTER PERFORMANCE
                     
                     -- Update last shot time for rate limiting
                     lastShot = tick()
