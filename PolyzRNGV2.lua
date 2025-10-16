@@ -580,6 +580,12 @@ CombatTab:CreateToggle({
                             local weapon = getEquippedWeaponName()
                             local validTargets = {}
                             
+                            -- DEBUG: Verify we have the remote
+                            if not shootRemote then
+                                warn("ShootEnemy remote not found!")
+                                return
+                            end
+                            
                             -- Collect ALL living enemies with distance info
                             local character = player.Character
                             local root = character and character:FindFirstChild("HumanoidRootPart")
@@ -611,6 +617,9 @@ CombatTab:CreateToggle({
                             
                             -- 🎯 DYNAMIC PERFECT DEFENSE: Scales with effectiveness level
                             if #validTargets > 0 then
+                                -- DEBUG: Verify we found targets
+                                print("[DEBUG] Found " .. #validTargets .. " valid targets")
+                                
                                 -- INTELLIGENT DEFENSE ZONES (scale with effectiveness)
                                 -- Higher effectiveness = more aggressive preemptive targeting
                                 local effectivenessScale = effectivenessLevel / 100
@@ -700,63 +709,65 @@ CombatTab:CreateToggle({
                                     maxShotsPerCycle = math.max(1, maxShotsPerCycle - 1)
                                 end
                                 
+                                -- DEBUG: Show shot allocation
+                                print("[DEBUG] Will shoot " .. maxShotsPerCycle .. " targets. Critical: " .. criticalThreats .. ", Overwhelmed: " .. tostring(isOverwhelmed))
+                                
                                 for _, target in ipairs(validTargets) do
                                     if shotsFired >= maxShotsPerCycle then break end
                                     
                                     -- 🧬 HUMAN IMPERFECTION: Occasionally skip a target (distraction, hesitation)
                                     -- BUT: When overwhelmed, humans are hyper-focused (no skips)
+                                    local shouldSkip = false
                                     if not isOverwhelmed and not (target.distance < criticalZone) then
                                         local skipChance = (1 - behaviorProfile.focusLevel) * 0.12 + (behaviorProfile.fatigueLevel * 0.08)
                                         if math.random() < skipChance and shotsFired > 0 then
-                                            -- Skip this target, move to next (human didn't notice it)
-                                            continue
+                                            shouldSkip = true
                                         end
                                     end
                                     
-                                    -- 🎯 KNIGHTMARE-SYNCHRONIZED TARGETING
+                                    if not shouldSkip then
+                                        -- 🎯 KNIGHTMARE-SYNCHRONIZED TARGETING
                                     local isBoss = target.model.Name == "GoblinKing" or target.model.Name == "CaptainBoom" or target.model.Name == "Fungarth"
-                                    
-                                    -- 🛡️ Use KnightMare-synchronized raycast system
-                                    local hitPos, hitPart = getKnightMareShotPosition(target.head, target.model)
+                                        
+                                        -- 🛡️ Use KnightMare-synchronized raycast system
+                                        local hitPos, hitPart = getKnightMareShotPosition(target.head, target.model)
                                     
                                     if hitPos and hitPart then
-                                        -- 🎯 KNIGHTMARE FIRESERVER SYNCHRONICITY
-                                        -- Args match EXACTLY: (EnemyModel, HitPart, HitPosition, 0, WeaponName)
-                                        -- Synchronized with place file line 12178
+                                            -- 🎯 KNIGHTMARE FIRESERVER SYNCHRONICITY
+                                            -- Args match EXACTLY: (EnemyModel, HitPart, HitPosition, 0, WeaponName)
+                                            -- Synchronized with place file line 12178
                                         local args = {target.model, hitPart, hitPos, 0, weapon}
                                         
                                         local success = pcall(function()
                                             shootRemote:FireServer(unpack(args))
                                         end)
-                                        
-                                        -- 📊 Record shot for adaptive learning
-                                        recordShotSuccess(success)
+                                            
+                                            -- 📊 Record shot for adaptive learning
+                                            recordShotSuccess(success)
                                         
                                         if success then
                                             shotsFired = shotsFired + 1
                                             
-                                            -- 🎯 CONTEXT-AWARE MULTI-SHOT SPACING
-                                            if shotsFired < maxShotsPerCycle then
-                                                -- PANIC SPRAY: When overwhelmed, humans shoot faster
-                                                -- But still maintain minimum human limits (80ms)
-                                                local baseDelay
-                                                if isOverwhelmed then
-                                                    baseDelay = 0.08 -- Panic spray (80ms minimum)
-                                                elseif target.distance < criticalZone then
-                                                    baseDelay = 0.10 -- Critical threat (100ms)
-                                                else
-                                                    baseDelay = 0.12 -- Normal spacing (120ms)
-                                                end
-                                                
-                                                local variance = math.random() * 0.06 -- 0-60ms variance
-                                                task.wait(baseDelay + variance) -- 80-180ms range
+                                                -- 🎯 CONTEXT-AWARE MULTI-SHOT SPACING
+                                                if shotsFired < maxShotsPerCycle then
+                                                    -- PANIC SPRAY: When overwhelmed, humans shoot faster
+                                                    -- But still maintain minimum human limits (80ms)
+                                                    local baseDelay
+                                                    if isOverwhelmed then
+                                                        baseDelay = 0.08 -- Panic spray (80ms minimum)
+                                                    elseif target.distance < criticalZone then
+                                                        baseDelay = 0.10 -- Critical threat (100ms)
+                                                    else
+                                                        baseDelay = 0.12 -- Normal spacing (120ms)
+                                                    end
+                                                    
+                                                    local variance = math.random() * 0.06 -- 0-60ms variance
+                                                    task.wait(baseDelay + variance) -- 80-180ms range
                                             end
                                         end
                                     end
-                                    
-                                    -- 🧠 INTELLIGENT TARGET SKIP: Don't waste time on blocked targets
-                                    -- At high effectiveness, try more targets to find clear shots
-                                end
+                                    end -- Close the "if not shouldSkip" block
+                                end -- Close the for loop
                                 
                                 -- If no shot fired, all targets blocked (legitimate game behavior)
                             end
