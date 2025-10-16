@@ -920,14 +920,27 @@ CombatTab:CreateToggle({
                     -- 🧬 DYNAMIC CYCLE DELAY WITH BEHAVIORAL SIMULATION
                     local cycleDelay
                     
+                    -- Get current threat count for cycle delay calculations
+                    local currentThreats = 0
+                    if enemies then
+                        for _, zombie in pairs(enemies:GetChildren()) do
+                            if zombie:IsA("Model") and zombie:FindFirstChild("Head") then
+                                currentThreats = currentThreats + 1
+                            end
+                        end
+                    end
+                    
+                    -- Calculate effectiveness scale for cycle delay
+                    local effectivenessScale = effectivenessLevel / 100
+                    
                     if hasUrgentThreats then
                         -- 🚀 SUPERHUMAN ALERT MODE: AI-powered adrenaline-boosted reaction speed
                         -- Focus level affects response time with SUPERHUMAN adrenaline boost
                         local baseSpeed = 0.002 + ((1 - behaviorProfile.focusLevel) * 0.003) -- 2-5ms base (SUPERHUMAN)
-                        local adrenalineBoost = math.min(0.001, totalThreats * 0.0001) -- SUPERHUMAN adrenaline boost
+                        local adrenalineBoost = math.min(0.001, currentThreats * 0.0001) -- SUPERHUMAN adrenaline boost
                         local effectivenessBoost = effectivenessScale * 0.0008 -- Effectiveness speed boost
                         local roundBoost = math.min(0.0005, 1 * 0.00005) -- Round-based speed boost
-                        local spawnRateBoost = math.min(0.0003, totalThreats * 0.00003) -- Spawn rate speed boost
+                        local spawnRateBoost = math.min(0.0003, currentThreats * 0.00003) -- Spawn rate speed boost
                         local alertSpeed = baseSpeed - adrenalineBoost - effectivenessBoost - roundBoost - spawnRateBoost -- Faster with more threats
                         alertSpeed = math.max(0.001, math.min(0.005, alertSpeed)) -- 1-5ms range (SUPERHUMAN)
                         cycleDelay = alertSpeed + (math.random() * 0.0005) -- +0-0.5ms variance (natural)
