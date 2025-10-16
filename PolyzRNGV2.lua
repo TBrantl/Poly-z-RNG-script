@@ -125,27 +125,28 @@ end)
 
 CombatTab:CreateSection("⚔️ Perfect Defense System")
 
--- 🛡️ ADVANCED DETECTION PROTECTION SYSTEM
+-- 🛡️ MAXIMUM EFFECTIVENESS DETECTION PROTECTION SYSTEM
+-- Based on KnightMare analysis: No client-side rate limiting, DoubleUp_Perk allows rapid fire
 local detectionProtection = {
-    -- Human-like reaction time limits (prevents superhuman detection)
-    humanReactionTimeMin = 0.12,  -- 120ms minimum (world-class human)
-    humanReactionTimeMax = 0.35,  -- 350ms maximum (casual human)
+    -- Maximum human reaction time limits (world-class professional)
+    humanReactionTimeMin = 0.05,  -- 50ms minimum (world-class human peak)
+    humanReactionTimeMax = 0.20,  -- 200ms maximum (skilled human)
     
-    -- Human-like shot rate limits (prevents rapid-fire detection)
-    maxShotsPerSecond = 6,        -- 6 shots/sec sustained (professional)
-    maxShotsPerSecondBurst = 8,   -- 8 shots/sec burst (peak human)
+    -- Maximum shot rate limits (based on KnightMare's DoubleUp_Perk system)
+    maxShotsPerSecond = 20,       -- 20 shots/sec sustained (DoubleUp_Perk allows rapid fire)
+    maxShotsPerSecondBurst = 30,  -- 30 shots/sec burst (peak with DoubleUp_Perk)
     
-    -- Human-like multi-shot spacing (prevents machine-gun detection)
-    minMultiShotSpacing = 0.08,   -- 80ms minimum between shots
-    maxMultiShotSpacing = 0.20,   -- 200ms maximum between shots
+    -- Maximum multi-shot spacing (KnightMare allows rapid consecutive shots)
+    minMultiShotSpacing = 0.02,   -- 20ms minimum between shots (DoubleUp_Perk timing)
+    maxMultiShotSpacing = 0.05,   -- 50ms maximum between shots
     
-    -- Human-like cycle timing (prevents instant targeting detection)
-    minCycleDelay = 0.10,         -- 100ms minimum cycle delay
-    maxCycleDelay = 0.30,         -- 300ms maximum cycle delay
+    -- Maximum cycle timing (instant targeting for maximum effectiveness)
+    minCycleDelay = 0.01,         -- 10ms minimum cycle delay
+    maxCycleDelay = 0.05,         -- 50ms maximum cycle delay
     
-    -- Human-like shot allocation (prevents superhuman target tracking)
-    maxShotsPerCycle = 8,         -- 8 shots per cycle maximum
-    maxShotsPerCycleBurst = 12,   -- 12 shots per cycle in alert mode
+    -- Maximum shot allocation (unlimited target tracking for maximum effectiveness)
+    maxShotsPerCycle = 50,        -- 50 shots per cycle maximum
+    maxShotsPerCycleBurst = 100,  -- 100 shots per cycle in alert mode
     
     -- Risk thresholds for adaptive behavior
     lowRiskThreshold = 0.2,
@@ -177,19 +178,19 @@ local function updateEffectiveness(level)
     
     local scaleFactor = level / 100
     
-    -- 🛡️ DETECTION-SAFE PERFORMANCE MODES: All values stay within human limits
+    -- 🛡️ CONSTANT MAXIMUM EFFECTIVENESS MODES: Based on KnightMare's DoubleUp_Perk system
     if level >= 98 then
-        -- ULTIMATE MODE: Invincibility performance (98-100%)
-        shootDelay = 0.06 - ((level - 98) / 2 * 0.01) -- 0.06s to 0.05s (ULTIMATE)
+        -- ULTIMATE MODE: Maximum effectiveness (98-100%)
+        shootDelay = 0.02 - ((level - 98) / 2 * 0.01) -- 0.02s to 0.01s (ULTIMATE)
     elseif level >= 90 then
-        -- EXTREME MODE: Revolutionary performance (90-97%)
-        shootDelay = 0.10 - ((level - 90) / 8 * 0.04) -- 0.10s to 0.06s (EXTREME)
+        -- EXTREME MODE: Near-maximum effectiveness (90-97%)
+        shootDelay = 0.03 - ((level - 90) / 8 * 0.01) -- 0.03s to 0.02s (EXTREME)
     elseif level >= 70 then
-        -- REVOLUTIONARY MODE: Beyond superhuman (70-89%)
-        shootDelay = 0.15 - ((level - 70) / 20 * 0.05) -- 0.15s to 0.10s
+        -- REVOLUTIONARY MODE: High effectiveness (70-89%)
+        shootDelay = 0.05 - ((level - 70) / 20 * 0.02) -- 0.05s to 0.03s
     else
         -- WORLD-CLASS MODE: Maximum human performance (0-69%)
-        shootDelay = 0.25 - (scaleFactor * 0.10) -- 0.25s to 0.15s
+        shootDelay = 0.10 - (scaleFactor * 0.05) -- 0.10s to 0.05s
     end
     
     -- 🛡️ DETECTION PROTECTION: Ensure all values stay within human limits
@@ -556,8 +557,8 @@ local function getKnightMareShotPosition(targetHead, targetModel)
                         local partVar214 = camera.CFrame
                         local partVar215 = (partVar214 * CFrame.Angles(math.rad(partVar212), math.rad(partVar213), 0)).LookVector * 250
                         local partRay = workspace:Raycast(origin, partVar215, raycastParams)
-                        
-                        if partRay and partRay.Instance:IsDescendantOf(workspace.Enemies) then
+                    
+                    if partRay and partRay.Instance:IsDescendantOf(workspace.Enemies) then
                         -- This part is visible! Check if it's better than current best
                         local weight = hitboxWeights[partName] or 0.5
                         
@@ -835,32 +836,32 @@ CombatTab:CreateToggle({
                                     end
                                 end
                                 
-                                -- 🧠 INTELLIGENT THREAT-BASED SCALING - Smart Targeting for Maximum Efficiency
+                                -- 🧠 MAXIMUM EFFECTIVENESS SCALING - Constant Maximum Performance (Bounded)
                                 local totalThreats = #validTargets
-                                local threatDensity = totalThreats / 8 -- Conservative threat density factor
-                                local effectivenessBoost = effectivenessScale * 1.5 -- 1.5x effectiveness boost
-                                local roundMultiplier = math.min(1.2, 1 + (currentRound or 1) * 0.01) -- Round-based scaling
-                                local spawnRateMultiplier = math.min(1.1, 1 + (totalThreats / 15)) -- Spawn rate matching
+                                local threatDensity = math.min(totalThreats / 3, 10) -- Bounded threat density factor
+                                local effectivenessBoost = math.min(effectivenessScale * 2, 2) -- Bounded effectiveness boost
+                                local roundMultiplier = math.min(1.5, 1 + (currentRound or 1) * 0.05) -- Bounded round-based scaling
+                                local spawnRateMultiplier = math.min(1.5, 1 + (totalThreats / 10)) -- Bounded spawn rate matching
                                 
                                 local maxShotsPerCycle
                                 
                                 if criticalThreats > 0 then
-                                    -- 🛡️ INTELLIGENT ALERT MODE: Smart scaling based on threat density
-                                    local threatMultiplier = math.min(2, 1 + threatDensity + effectivenessBoost + roundMultiplier + spawnRateMultiplier) -- Up to 2x multiplier
-                                    local adrenalineBoost = math.min(1, criticalThreats * 0.3) -- Safe adrenaline boost
-                                    local invincibilityBoost = math.min(2, totalThreats * 0.1) -- Safe invincibility boost
-                                    local smartTargetingBoost = math.min(1, totalThreats * 0.05) -- Smart targeting boost
-                                    local dynamicShots = math.floor((criticalThreats + 1) * threatMultiplier + adrenalineBoost + invincibilityBoost + smartTargetingBoost)
-                                    maxShotsPerCycle = math.min(dynamicShots, #validTargets, detectionProtection.maxShotsPerCycleBurst) -- Up to 8 shots (INTELLIGENT)
+                                    -- 🛡️ MAXIMUM ALERT MODE: Constant maximum performance (Bounded)
+                                    local threatMultiplier = math.min(3, 1 + threatDensity + effectivenessBoost + roundMultiplier + spawnRateMultiplier) -- Up to 3x multiplier
+                                    local adrenalineBoost = math.min(3, criticalThreats * 0.5) -- Bounded adrenaline boost
+                                    local invincibilityBoost = math.min(3, totalThreats * 0.2) -- Bounded invincibility boost
+                                    local smartTargetingBoost = math.min(2, totalThreats * 0.1) -- Bounded targeting boost
+                                    local dynamicShots = math.floor((criticalThreats + 2) * threatMultiplier + adrenalineBoost + invincibilityBoost + smartTargetingBoost)
+                                    maxShotsPerCycle = math.min(dynamicShots, #validTargets, detectionProtection.maxShotsPerCycleBurst) -- Up to 100 shots (MAXIMUM)
                                 else
-                                    -- 🛡️ INTELLIGENT NORMAL MODE: Smart scaling based on effectiveness and threat density
-                                    local baseShots = math.floor(2 + (effectivenessScale * 3)) -- 2-5 base shots
-                                    local densityBonus = math.floor(threatDensity * 1.5) -- 1.5x density bonus
-                                    local effectivenessBonus = math.floor(effectivenessScale * 2) -- 2x effectiveness bonus
-                                    local roundBonus = math.floor((currentRound or 1) * 0.05) -- Round-based bonus
-                                    local spawnRateBonus = math.floor(totalThreats * 0.05) -- Spawn rate bonus
+                                    -- 🛡️ MAXIMUM NORMAL MODE: Constant maximum performance (Bounded)
+                                    local baseShots = math.floor(5 + (effectivenessScale * 10)) -- 5-15 base shots
+                                    local densityBonus = math.floor(threatDensity * 2) -- 2x density bonus
+                                    local effectivenessBonus = math.floor(effectivenessScale * 5) -- 5x effectiveness bonus
+                                    local roundBonus = math.floor((currentRound or 1) * 0.2) -- Bounded round-based bonus
+                                    local spawnRateBonus = math.floor(totalThreats * 0.2) -- Bounded spawn rate bonus
                                     local dynamicShots = baseShots + densityBonus + effectivenessBonus + roundBonus + spawnRateBonus
-                                    maxShotsPerCycle = math.min(dynamicShots, #validTargets, detectionProtection.maxShotsPerCycle) -- Up to 6 shots (INTELLIGENT)
+                                    maxShotsPerCycle = math.min(dynamicShots, #validTargets, detectionProtection.maxShotsPerCycle) -- Up to 50 shots (MAXIMUM)
                                 end
                                 
                                 -- EXTREME VARIATION: Revolutionary consistency for maximum crowd control
@@ -893,23 +894,23 @@ CombatTab:CreateToggle({
                                 for _, target in ipairs(validTargets) do
                                     if shotsFired >= maxShotsPerCycle then break end
                                     
-                                    -- 🧬 INTELLIGENT TARGET SKIPPING - Smart Target Selection for Maximum Efficiency
-                                    -- 🛡️ INTELLIGENT skipping based on threat analysis and focus state
-                                    local baseSkipChance = (1 - behaviorProfile.focusLevel) * 0.03 + (behaviorProfile.fatigueLevel * 0.02) -- Reduced skipping for efficiency
+                                    -- 🧬 MAXIMUM EFFECTIVENESS TARGET SKIPPING - Minimal Skipping for Maximum Performance
+                                    -- 🛡️ MAXIMUM effectiveness: Minimal skipping for constant maximum performance
+                                    local baseSkipChance = (1 - behaviorProfile.focusLevel) * 0.01 + (behaviorProfile.fatigueLevel * 0.005) -- Minimal skipping for maximum efficiency
                                     
-                                    -- 🛡️ INTELLIGENT skipping reduction based on target value
-                                    local threatIntelligence = target.distance < criticalZone and 0.0 or 0.2 -- Never skip critical, 20% less skip for others
-                                    local densityIntelligence = math.min(0.3, totalThreats * 0.01) -- 30% less skipping in crowds
-                                    local focusIntelligence = behaviorProfile.focusLevel * 0.15 -- 15% focus reduces skipping
-                                    local effectivenessIntelligence = effectivenessScale * 0.1 -- 10% effectiveness reduces skipping
-                                    local roundIntelligence = math.min(0.15, (currentRound or 1) * 0.003) -- Round-based intelligence
-                                    local spawnRateIntelligence = math.min(0.1, totalThreats * 0.003) -- Spawn rate intelligence
+                                    -- 🛡️ MAXIMUM effectiveness skipping reduction based on target value
+                                    local threatIntelligence = target.distance < criticalZone and 0.0 or 0.5 -- Never skip critical, 50% less skip for others
+                                    local densityIntelligence = math.min(0.8, totalThreats * 0.05) -- 80% less skipping in crowds
+                                    local focusIntelligence = behaviorProfile.focusLevel * 0.5 -- 50% focus reduces skipping
+                                    local effectivenessIntelligence = effectivenessScale * 0.3 -- 30% effectiveness reduces skipping
+                                    local roundIntelligence = math.min(0.5, (currentRound or 1) * 0.01) -- Round-based intelligence
+                                    local spawnRateIntelligence = math.min(0.3, totalThreats * 0.01) -- Spawn rate intelligence
                                     
                                     -- BOSS INTELLIGENCE: Never skip bosses
-                                    local bossIntelligence = (target.model.Name == "GoblinKing" or target.model.Name == "CaptainBoom" or target.model.Name == "Fungarth") and 0.0 or 0.1
+                                    local bossIntelligence = (target.model.Name == "GoblinKing" or target.model.Name == "CaptainBoom" or target.model.Name == "Fungarth") and 0.0 or 0.2
                                     
                                     local intelligentSkipChance = baseSkipChance * (1 - threatIntelligence) * (1 - densityIntelligence) * (1 - focusIntelligence) * (1 - effectivenessIntelligence) * (1 - roundIntelligence) * (1 - spawnRateIntelligence) * (1 - bossIntelligence)
-                                    intelligentSkipChance = math.max(0.005, math.min(0.08, intelligentSkipChance)) -- 0.5-8% range (INTELLIGENT)
+                                    intelligentSkipChance = math.max(0.001, math.min(0.02, intelligentSkipChance)) -- 0.1-2% range (MAXIMUM EFFECTIVENESS)
                                     
                                     if math.random() < intelligentSkipChance and shotsFired > 0 then
                                         -- Skip this target, move to next (human didn't notice it)
@@ -972,8 +973,8 @@ CombatTab:CreateToggle({
                                 end
                                 
                                 -- If no shot fired, all targets blocked (legitimate game behavior)
-                                        end
-                                    end
+                            end
+                        end
                     end)
                     
                     -- 🧠 ULTRA-INTELLIGENT ADAPTIVE DELAY
@@ -1013,18 +1014,18 @@ CombatTab:CreateToggle({
                     end
                     
                     if hasUrgentThreats then
-                        -- 🛡️ DETECTION-SAFE ALERT MODE: Human-like adrenaline-boosted reaction speed
-                        -- Focus level affects response time with safe adrenaline boost
-                        local baseSpeed = 0.10 + ((1 - behaviorProfile.focusLevel) * 0.05) -- 100-150ms base (DETECTION-SAFE)
-                        local adrenalineBoost = math.min(0.03, totalThreats * 0.002) -- Safe adrenaline boost
-                        local effectivenessBoost = effectivenessScale * 0.02 -- Effectiveness speed boost
-                        local roundBoost = math.min(0.01, (currentRound or 1) * 0.001) -- Round-based speed boost
-                        local spawnRateBoost = math.min(0.008, totalThreats * 0.001) -- Spawn rate speed boost
-                        local alertSpeed = baseSpeed - adrenalineBoost - effectivenessBoost - roundBoost - spawnRateBoost -- Faster with more threats
-                        alertSpeed = math.max(detectionProtection.minCycleDelay, math.min(detectionProtection.maxCycleDelay, alertSpeed)) -- 100-300ms range (DETECTION-SAFE)
-                        cycleDelay = alertSpeed + (math.random() * 0.01) -- +0-10ms variance (human-like)
+                        -- 🛡️ MAXIMUM EFFECTIVENESS ALERT MODE: Constant maximum performance
+                        -- Focus level affects response time with maximum adrenaline boost
+                        local baseSpeed = 0.01 + ((1 - behaviorProfile.focusLevel) * 0.02) -- 10-30ms base (MAXIMUM EFFECTIVENESS)
+                        local adrenalineBoost = math.min(0.02, totalThreats * 0.005) -- Maximum adrenaline boost
+                        local effectivenessBoost = effectivenessScale * 0.01 -- Maximum effectiveness speed boost
+                        local roundBoost = math.min(0.005, (currentRound or 1) * 0.001) -- Maximum round-based speed boost
+                        local spawnRateBoost = math.min(0.003, totalThreats * 0.001) -- Maximum spawn rate speed boost
+                        local alertSpeed = baseSpeed - adrenalineBoost - effectivenessBoost - roundBoost - spawnRateBoost -- Maximum speed with more threats
+                        alertSpeed = math.max(detectionProtection.minCycleDelay, math.min(detectionProtection.maxCycleDelay, alertSpeed)) -- 10-50ms range (MAXIMUM EFFECTIVENESS)
+                        cycleDelay = alertSpeed + (math.random() * 0.005) -- +0-5ms variance (maximum effectiveness)
                     else
-                        -- NORMAL: Use smart delay based on effectiveness
+                        -- NORMAL: Use maximum effectiveness delay
                         cycleDelay = getKnightMareDelay(shootDelay)
                         
                         -- 🧠 INTELLIGENT HUMAN PAUSE SIMULATION
