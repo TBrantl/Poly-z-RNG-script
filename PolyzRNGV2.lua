@@ -593,9 +593,18 @@ CombatTab:CreateToggle({
                         local enemies = workspace:FindFirstChild("Enemies")
                         local shootRemote = Remotes and Remotes:FindFirstChild("ShootEnemy")
                         
+                        -- Wait for Remotes to load if not ready
+                        if not Remotes then
+                            task.wait(0.1)
+                            return
+                        end
+                        
                         if enemies and shootRemote then
                             local weapon = getEquippedWeaponName()
                             local validTargets = {}
+                            
+                            -- Debug: Check if we have enemies
+                            print("[DEBUG] Found enemies:", #enemies:GetChildren())
                             
                             -- Collect ALL living enemies with distance info
                             local character = player.Character
@@ -625,6 +634,9 @@ CombatTab:CreateToggle({
                                     end
                                 end
                             end
+                            
+                            -- Debug: Check valid targets
+                            print("[DEBUG] Valid targets found:", #validTargets)
                             
                             -- 🎯 DYNAMIC PERFECT DEFENSE: Scales with effectiveness level
                             if #validTargets > 0 then
@@ -723,6 +735,9 @@ CombatTab:CreateToggle({
                                             shootRemote:FireServer(unpack(args))
                                         end)
                                         
+                                        -- Debug: Check if shot was successful
+                                        print("[DEBUG] Shot fired, success:", success)
+                                        
                                         -- 📊 Record shot for adaptive learning
                                         recordShotSuccess(success)
                                         
@@ -768,8 +783,8 @@ CombatTab:CreateToggle({
                                     end
                                 end
                             end
-                                    end
-                                end
+                        end
+                    end
                                 
                     -- 🧬 DYNAMIC CYCLE DELAY WITH BEHAVIORAL SIMULATION
                     local cycleDelay
