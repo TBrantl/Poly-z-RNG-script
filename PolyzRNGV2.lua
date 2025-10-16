@@ -698,7 +698,7 @@ CombatTab:CreateToggle({
                                 else
                                     -- NORMAL MODE: Scale with effectiveness AND player state
                                     local baseShots = math.floor(1 + (effectivenessScale * 2))
-                                    maxShotsPerCycle = math.min(baseShots, baseShotCapacity, 3)
+                                    maxShotsPerCycle = math.min(baseShots, shotCapacity, 3)
                                 end
                                 
                                 -- RANDOM VARIATION: Sometimes shoot fewer (distraction, hesitation)
@@ -765,8 +765,8 @@ CombatTab:CreateToggle({
                                 end -- Close the for loop
                                 
                                 -- If no shot fired, all targets blocked (legitimate game behavior)
-                                        end
-                                    end
+                            end
+                        end
                     end)
                     
                     -- 🧠 ULTRA-INTELLIGENT ADAPTIVE DELAY
@@ -832,21 +832,20 @@ CombatTab:CreateToggle({
                         -- Focused human stays alert: 150-200ms
                         local alertSpeed = 0.15 + (math.random() * 0.05)
                         cycleDelay = alertSpeed
-                        
                     else
                         -- NORMAL: Use smart delay based on effectiveness
                         cycleDelay = getKnightMareDelay(shootDelay)
                         
-                        -- 🧠 HUMAN PAUSE SIMULATION: Only when NOT overwhelmed
-                        -- Nobody takes breaks during heavy waves!
-                        if math.random() < 0.06 then -- 6% chance (reduced from 8%)
+                        -- 🧠 HUMAN PAUSE SIMULATION: Occasionally take a break
+                        -- Simulates looking around, checking UI, reloading mentally
+                        if math.random() < 0.08 then -- 8% chance per cycle
                             local pauseType = math.random()
-                            if pauseType < 0.5 then
-                                cycleDelay = cycleDelay + (0.2 + math.random() * 0.3) -- Quick glance (200-500ms)
-                            elseif pauseType < 0.8 then
-                                cycleDelay = cycleDelay + (0.5 + math.random() * 0.5) -- Check surroundings (500-1000ms)
+                            if pauseType < 0.4 then
+                                cycleDelay = cycleDelay + (0.3 + math.random() * 0.4) -- Quick glance (300-700ms)
+                            elseif pauseType < 0.7 then
+                                cycleDelay = cycleDelay + (0.8 + math.random() * 0.7) -- Check surroundings (800-1500ms)
                             else
-                                cycleDelay = cycleDelay + (1.0 + math.random() * 0.8) -- Brief distraction (1.0-1.8s)
+                                cycleDelay = cycleDelay + (1.5 + math.random() * 1.0) -- Brief distraction (1.5-2.5s)
                             end
                         end
                     end
@@ -1377,4 +1376,3 @@ MiscTab:CreateButton({
 
 -- Load config
 Rayfield:LoadConfiguration()
-
