@@ -274,113 +274,89 @@ CombatTab:CreateToggle({
                                 
                                 if stealthMode then
                                     maxShots = math.min(50, #validTargets) -- Safe mode: 50 shots (50x more)
+                                    local simultaneousKills = math.min(50, #validTargets)
+                                    local overkillShots = 1
                                 else
-                                        -- MASSIVE MULTIPLICATION: Kill multiple zombies simultaneously
-                                        local zombieCount = #validTargets
-                                        
-                                        -- ADAPTIVE MULTIPLICATION: More zombies = more aggressive
-                                        local simultaneousKills
-                                        local overkillShots
-                                        
-                                        if zombieCount >= 100 then
-                                            -- MASSIVE SWARM: Kill 100 zombies with 20 shots each
-                                            simultaneousKills = math.min(100, zombieCount)
-                                            overkillShots = 20 -- 20 shots per zombie
-                                        elseif zombieCount >= 50 then
-                                            -- LARGE SWARM: Kill 50 zombies with 15 shots each
-                                            simultaneousKills = math.min(50, zombieCount)
-                                            overkillShots = 15 -- 15 shots per zombie
-                                        elseif zombieCount >= 20 then
-                                            -- MEDIUM SWARM: Kill 30 zombies with 12 shots each
-                                            simultaneousKills = math.min(30, zombieCount)
-                                            overkillShots = 12 -- 12 shots per zombie
-                                        else
-                                            -- SMALL GROUP: Kill 20 zombies with 10 shots each
-                                            simultaneousKills = math.min(20, zombieCount)
-                                            overkillShots = 10 -- 10 shots per zombie
+                                    -- 🚀 MASSIVE MULTIPLICATION: Kill multiple zombies simultaneously
+                                    local zombieCount = #validTargets
+                                    
+                                    -- ADAPTIVE MULTIPLICATION: More zombies = more aggressive
+                                    local simultaneousKills
+                                    local overkillShots
+                                
+                                    -- 🧠 REVOLUTIONARY INTELLIGENT SCALING SYSTEM
+                                    local currentRound = 1 -- Default round
+                                    local performanceMultiplier = 1.0
+                                
+                                    -- 🚨 CRITICAL THREAT ANALYSIS - ABSOLUTE INVINCIBILITY
+                                    local closeThreats = 0
+                                    local criticalThreats = 0
+                                    local bossThreats = 0
+                                    local lethalThreats = 0
+                                    
+                                    for _, target in ipairs(validTargets) do
+                                        if target.distance < 15 then
+                                            lethalThreats = lethalThreats + 1 -- IMMEDIATE DEATH THREAT
+                                        elseif target.distance < 25 then
+                                            criticalThreats = criticalThreats + 1 -- CRITICAL THREAT
+                                        elseif target.distance < 50 then
+                                            closeThreats = closeThreats + 1 -- CLOSE THREAT
                                         end
                                         
-                                        maxShots = simultaneousKills * overkillShots -- 200-2000 shots per cycle
-                                    end
-                                end
-                                
-                                -- 🚀 MASSIVE MULTIPLICATION: Kill multiple zombies simultaneously
-                                local zombieCount = #validTargets
-                                
-                                -- ADAPTIVE MULTIPLICATION: More zombies = more aggressive
-                                local simultaneousKills
-                                local overkillShots
-                                
-                                -- 🧠 REVOLUTIONARY INTELLIGENT SCALING SYSTEM
-                                local currentRound = 1 -- Default round
-                                local performanceMultiplier = 1.0
-                                
-                                -- 🚨 CRITICAL THREAT ANALYSIS - ABSOLUTE INVINCIBILITY
-                                local closeThreats = 0
-                                local criticalThreats = 0
-                                local bossThreats = 0
-                                local lethalThreats = 0
-                                
-                                for _, target in ipairs(validTargets) do
-                                    if target.distance < 15 then
-                                        lethalThreats = lethalThreats + 1 -- IMMEDIATE DEATH THREAT
-                                    elseif target.distance < 25 then
-                                        criticalThreats = criticalThreats + 1 -- CRITICAL THREAT
-                                    elseif target.distance < 50 then
-                                        closeThreats = closeThreats + 1 -- CLOSE THREAT
+                                        if target.model.Name == "GoblinKing" or target.model.Name == "CaptainBoom" or target.model.Name == "Fungarth" then
+                                            bossThreats = bossThreats + 1
+                                        end
                                     end
                                     
-                                    if target.model.Name == "GoblinKing" or target.model.Name == "CaptainBoom" or target.model.Name == "Fungarth" then
-                                        bossThreats = bossThreats + 1
+                                    -- 🚨 ABSOLUTE INVINCIBILITY SCALING - INSTANT THREAT ELIMINATION
+                                    if lethalThreats > 0 then
+                                        performanceMultiplier = 10.0 -- LETHAL THREAT MODE - INSTANT ELIMINATION
+                                    elseif criticalThreats > 5 then
+                                        performanceMultiplier = 8.0 -- CRITICAL THREAT MODE - MAXIMUM POWER
+                                    elseif closeThreats > 10 then
+                                        performanceMultiplier = 5.0 -- EMERGENCY MODE - ULTRA POWER
+                                    elseif bossThreats > 0 then
+                                        performanceMultiplier = 4.0 -- BOSS MODE - BOSS DESTRUCTION
+                                    elseif zombieCount > 200 then
+                                        performanceMultiplier = 3.0 -- MASSIVE SWARM
+                                    elseif zombieCount > 100 then
+                                        performanceMultiplier = 2.5 -- LARGE SWARM
+                                    elseif zombieCount > 50 then
+                                        performanceMultiplier = 2.0 -- MEDIUM SWARM
                                     end
-                                end
-                                
-                                -- 🚨 ABSOLUTE INVINCIBILITY SCALING - INSTANT THREAT ELIMINATION
-                                if lethalThreats > 0 then
-                                    performanceMultiplier = 10.0 -- LETHAL THREAT MODE - INSTANT ELIMINATION
-                                elseif criticalThreats > 5 then
-                                    performanceMultiplier = 8.0 -- CRITICAL THREAT MODE - MAXIMUM POWER
-                                elseif closeThreats > 10 then
-                                    performanceMultiplier = 5.0 -- EMERGENCY MODE - ULTRA POWER
-                                elseif bossThreats > 0 then
-                                    performanceMultiplier = 4.0 -- BOSS MODE - BOSS DESTRUCTION
-                                elseif zombieCount > 200 then
-                                    performanceMultiplier = 3.0 -- MASSIVE SWARM
-                                elseif zombieCount > 100 then
-                                    performanceMultiplier = 2.5 -- LARGE SWARM
-                                elseif zombieCount > 50 then
-                                    performanceMultiplier = 2.0 -- MEDIUM SWARM
-                                end
-                                
-                                -- 🚨 ABSOLUTE INVINCIBILITY SCALING SYSTEM
-                                if lethalThreats > 0 then
-                                    -- LETHAL THREAT MODE: INSTANT ELIMINATION - ZERO DELAY
-                                    simultaneousKills = math.min(500, zombieCount) -- Kill ALL zombies instantly
-                                    overkillShots = math.floor(50 * performanceMultiplier) -- Up to 500 shots per zombie
-                                elseif criticalThreats > 5 then
-                                    -- CRITICAL THREAT MODE: MAXIMUM POWER
-                                    simultaneousKills = math.min(300, zombieCount)
-                                    overkillShots = math.floor(40 * performanceMultiplier) -- Up to 320 shots per zombie
-                                elseif zombieCount >= 200 then
-                                    -- APOCALYPTIC SWARM: Kill 200 zombies with 30 shots each
-                                    simultaneousKills = math.min(200, zombieCount)
-                                    overkillShots = math.floor(30 * performanceMultiplier) -- Up to 90 shots per zombie
-                                elseif zombieCount >= 100 then
-                                    -- MASSIVE SWARM: Kill 150 zombies with 25 shots each
-                                    simultaneousKills = math.min(150, zombieCount)
-                                    overkillShots = math.floor(25 * performanceMultiplier) -- Up to 75 shots per zombie
-                                elseif zombieCount >= 50 then
-                                    -- LARGE SWARM: Kill 100 zombies with 20 shots each
-                                    simultaneousKills = math.min(100, zombieCount)
-                                    overkillShots = math.floor(20 * performanceMultiplier) -- Up to 60 shots per zombie
-                                elseif zombieCount >= 20 then
-                                    -- MEDIUM SWARM: Kill 50 zombies with 15 shots each
-                                    simultaneousKills = math.min(50, zombieCount)
-                                    overkillShots = math.floor(15 * performanceMultiplier) -- Up to 45 shots per zombie
-                                else
-                                    -- SMALL GROUP: Kill 30 zombies with 12 shots each
-                                    simultaneousKills = math.min(30, zombieCount)
-                                    overkillShots = math.floor(12 * performanceMultiplier) -- Up to 36 shots per zombie
+                                    
+                                    -- 🚨 ABSOLUTE INVINCIBILITY SCALING SYSTEM
+                                    if lethalThreats > 0 then
+                                        -- LETHAL THREAT MODE: INSTANT ELIMINATION - ZERO DELAY
+                                        simultaneousKills = math.min(500, zombieCount) -- Kill ALL zombies instantly
+                                        overkillShots = math.floor(50 * performanceMultiplier) -- Up to 500 shots per zombie
+                                    elseif criticalThreats > 5 then
+                                        -- CRITICAL THREAT MODE: MAXIMUM POWER
+                                        simultaneousKills = math.min(300, zombieCount)
+                                        overkillShots = math.floor(40 * performanceMultiplier) -- Up to 320 shots per zombie
+                                    elseif zombieCount >= 200 then
+                                        -- APOCALYPTIC SWARM: Kill 200 zombies with 30 shots each
+                                        simultaneousKills = math.min(200, zombieCount)
+                                        overkillShots = math.floor(30 * performanceMultiplier) -- Up to 90 shots per zombie
+                                    elseif zombieCount >= 100 then
+                                        -- MASSIVE SWARM: Kill 150 zombies with 25 shots each
+                                        simultaneousKills = math.min(150, zombieCount)
+                                        overkillShots = math.floor(25 * performanceMultiplier) -- Up to 75 shots per zombie
+                                    elseif zombieCount >= 50 then
+                                        -- LARGE SWARM: Kill 100 zombies with 20 shots each
+                                        simultaneousKills = math.min(100, zombieCount)
+                                        overkillShots = math.floor(20 * performanceMultiplier) -- Up to 60 shots per zombie
+                                    elseif zombieCount >= 20 then
+                                        -- MEDIUM SWARM: Kill 50 zombies with 15 shots each
+                                        simultaneousKills = math.min(50, zombieCount)
+                                        overkillShots = math.floor(15 * performanceMultiplier) -- Up to 45 shots per zombie
+                                    else
+                                        -- SMALL GROUP: Kill 30 zombies with 12 shots each
+                                        simultaneousKills = math.min(30, zombieCount)
+                                        overkillShots = math.floor(12 * performanceMultiplier) -- Up to 36 shots per zombie
+                                    end
+                                    
+                                    maxShots = simultaneousKills * overkillShots -- 200-250,000 shots per cycle
                                 end
                                 
                                 -- PHASE 1: SIMULTANEOUS MULTI-TARGET KILLING
