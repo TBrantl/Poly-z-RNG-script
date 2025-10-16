@@ -42,6 +42,24 @@ local performanceStats = {
 
 -- Utility Functions
 local function getEquippedWeaponName()
+    -- 🎯 EXACT KNIGHTMARE WEAPON RETRIEVAL
+    -- Matches lines 12174-12176: PlayerData_2_upvr:FindFirstChild("equipped_"..string.lower(Variables_upvr:GetAttribute("Equipped_Slot")))
+    local variables = player:FindFirstChild("Variables")
+    if variables then
+        local equippedSlot = variables:GetAttribute("Equipped_Slot")
+        if equippedSlot then
+            local playerData = player:FindFirstChild("PlayerData")
+            if playerData then
+                local weaponName = "equipped_" .. string.lower(equippedSlot)
+                local weaponData = playerData:FindFirstChild(weaponName)
+                if weaponData and weaponData:IsA("StringValue") then
+                    return weaponData.Value
+                end
+            end
+        end
+    end
+    
+    -- Fallback: Try to get weapon from player model
     local model = workspace:FindFirstChild("Players"):FindFirstChild(player.Name)
     if model then
         for _, child in ipairs(model:GetChildren()) do
@@ -114,20 +132,20 @@ local detectionProtection = {
     humanReactionTimeMax = 0.35,  -- 350ms maximum (casual human)
     
     -- Human-like shot rate limits (prevents rapid-fire detection)
-    maxShotsPerSecond = 4,        -- 4 shots/sec sustained (professional)
-    maxShotsPerSecondBurst = 6,   -- 6 shots/sec burst (peak human)
+    maxShotsPerSecond = 6,        -- 6 shots/sec sustained (professional)
+    maxShotsPerSecondBurst = 8,   -- 8 shots/sec burst (peak human)
     
     -- Human-like multi-shot spacing (prevents machine-gun detection)
-    minMultiShotSpacing = 0.12,   -- 120ms minimum between shots
-    maxMultiShotSpacing = 0.25,   -- 250ms maximum between shots
+    minMultiShotSpacing = 0.08,   -- 80ms minimum between shots
+    maxMultiShotSpacing = 0.20,   -- 200ms maximum between shots
     
     -- Human-like cycle timing (prevents instant targeting detection)
-    minCycleDelay = 0.15,         -- 150ms minimum cycle delay
-    maxCycleDelay = 0.40,         -- 400ms maximum cycle delay
+    minCycleDelay = 0.10,         -- 100ms minimum cycle delay
+    maxCycleDelay = 0.30,         -- 300ms maximum cycle delay
     
     -- Human-like shot allocation (prevents superhuman target tracking)
-    maxShotsPerCycle = 6,         -- 6 shots per cycle maximum
-    maxShotsPerCycleBurst = 8,    -- 8 shots per cycle in alert mode
+    maxShotsPerCycle = 8,         -- 8 shots per cycle maximum
+    maxShotsPerCycleBurst = 12,   -- 12 shots per cycle in alert mode
     
     -- Risk thresholds for adaptive behavior
     lowRiskThreshold = 0.2,
@@ -162,16 +180,16 @@ local function updateEffectiveness(level)
     -- 🛡️ DETECTION-SAFE PERFORMANCE MODES: All values stay within human limits
     if level >= 98 then
         -- ULTIMATE MODE: Invincibility performance (98-100%)
-        shootDelay = 0.08 - ((level - 98) / 2 * 0.01) -- 0.08s to 0.07s (ULTIMATE)
+        shootDelay = 0.06 - ((level - 98) / 2 * 0.01) -- 0.06s to 0.05s (ULTIMATE)
     elseif level >= 90 then
         -- EXTREME MODE: Revolutionary performance (90-97%)
-        shootDelay = 0.12 - ((level - 90) / 8 * 0.04) -- 0.12s to 0.08s (EXTREME)
+        shootDelay = 0.10 - ((level - 90) / 8 * 0.04) -- 0.10s to 0.06s (EXTREME)
     elseif level >= 70 then
         -- REVOLUTIONARY MODE: Beyond superhuman (70-89%)
-        shootDelay = 0.18 - ((level - 70) / 20 * 0.06) -- 0.18s to 0.12s
+        shootDelay = 0.15 - ((level - 70) / 20 * 0.05) -- 0.15s to 0.10s
     else
         -- WORLD-CLASS MODE: Maximum human performance (0-69%)
-        shootDelay = 0.30 - (scaleFactor * 0.12) -- 0.30s to 0.18s
+        shootDelay = 0.25 - (scaleFactor * 0.10) -- 0.25s to 0.15s
     end
     
     -- 🛡️ DETECTION PROTECTION: Ensure all values stay within human limits
@@ -462,13 +480,20 @@ local function getKnightMareShotPosition(targetHead, targetModel)
     -- Matches: workspace:Raycast(Position, var215, RaycastParams_new_result1_2)
     local origin = camera.CFrame.Position -- Same as game's Position parameter
     local targetPos = targetHead.Position
-    local direction = (targetPos - origin).Unit
     local distance = (targetPos - origin).Magnitude
     
     -- KnightMare distance validation (matches their 250-unit raycast limit)
     if distance > math.min(maxShootDistance, 250) then
         return nil
     end
+    
+    -- 🎯 EXACT KNIGHTMARE SPREAD CALCULATION
+    -- Matches lines 12145-12153: var212, var213, var214, var215
+    local spread = 0.5 -- Base spread (var30_upvw equivalent)
+    local var212 = math.random(-spread, spread) / 4 -- Horizontal spread
+    local var213 = math.random(-spread, spread) / 4 -- Vertical spread
+    local var214 = camera.CFrame
+    local var215 = (var214 * CFrame.Angles(math.rad(var212), math.rad(var213), 0)).LookVector * 250
     
     -- 🎯 PERFECT GAME REPLICATION - Match lines 12154-12161 EXACTLY
     -- Game uses FilterType.Include with specific instances!
@@ -483,7 +508,7 @@ local function getKnightMareShotPosition(targetHead, targetModel)
     -- Note: Game doesn't set IgnoreWater, so we don't either
     
     -- 🎯 PERFORM RAYCAST (matches game's exact pattern)
-    local rayResult = workspace:Raycast(origin, direction * distance, raycastParams)
+    local rayResult = workspace:Raycast(origin, var215, raycastParams)
     
     if rayResult then
         -- 🎯 KNIGHTMARE VALIDATION: Instance:IsDescendantOf(workspace.Enemies)
@@ -522,11 +547,17 @@ local function getKnightMareShotPosition(targetHead, targetModel)
             for _, partName in ipairs(bodyParts) do
                 local part = targetModel:FindFirstChild(partName)
                 if part and part:IsA("BasePart") then
-                    local partDir = (part.Position - origin).Unit
                     local partDist = (part.Position - origin).Magnitude
-                    local partRay = workspace:Raycast(origin, partDir * partDist, raycastParams)
-                    
-                    if partRay and partRay.Instance:IsDescendantOf(workspace.Enemies) then
+                    if partDist <= 250 then
+                        -- Use KnightMare spread pattern for alternative targeting
+                        local partSpread = 1.0 -- Slightly more spread for alternative targeting
+                        local partVar212 = math.random(-partSpread, partSpread) / 4
+                        local partVar213 = math.random(-partSpread, partSpread) / 4
+                        local partVar214 = camera.CFrame
+                        local partVar215 = (partVar214 * CFrame.Angles(math.rad(partVar212), math.rad(partVar213), 0)).LookVector * 250
+                        local partRay = workspace:Raycast(origin, partVar215, raycastParams)
+                        
+                        if partRay and partRay.Instance:IsDescendantOf(workspace.Enemies) then
                         -- This part is visible! Check if it's better than current best
                         local weight = hitboxWeights[partName] or 0.5
                         
@@ -540,6 +571,7 @@ local function getKnightMareShotPosition(targetHead, targetModel)
                             bestHit = {partRay.Position, partRay.Instance}
                             bestWeight = weight
                         end
+                    end
                     end
                 end
             end
@@ -881,7 +913,7 @@ CombatTab:CreateToggle({
                                     
                                     if math.random() < intelligentSkipChance and shotsFired > 0 then
                                         -- Skip this target, move to next (human didn't notice it)
-                                        continue
+                                        goto continue
                                     end
                                     
                                     -- 🎯 KNIGHTMARE-SYNCHRONIZED TARGETING
@@ -936,6 +968,7 @@ CombatTab:CreateToggle({
                                     
                                     -- 🧠 INTELLIGENT TARGET SKIP: Don't waste time on blocked targets
                                     -- At high effectiveness, try more targets to find clear shots
+                                    ::continue::
                                 end
                                 
                                 -- If no shot fired, all targets blocked (legitimate game behavior)

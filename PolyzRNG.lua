@@ -886,7 +886,7 @@ CombatTab:CreateToggle({
                                     
                                     if math.random() < intelligentSkipChance and shotsFired > 0 then
                                         -- Skip this target, move to next (human didn't notice it)
-                                        continue
+                                        goto continue
                                     end
                                     
                                     -- 🎯 KNIGHTMARE-SYNCHRONIZED TARGETING
@@ -941,6 +941,7 @@ CombatTab:CreateToggle({
                                     
                                     -- 🧠 INTELLIGENT TARGET SKIP: Don't waste time on blocked targets
                                     -- At high effectiveness, try more targets to find clear shots
+                                    ::continue::
                                 end
                                 
                                 -- If no shot fired, all targets blocked (legitimate game behavior)
