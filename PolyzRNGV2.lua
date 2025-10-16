@@ -654,17 +654,16 @@ CombatTab:CreateToggle({
                                 local shotCapacity = math.floor(2 + (focusFactor * 2)) -- 1-4 shots based on state
                                 
                                 if criticalThreats > 0 then
-                                    -- ALERT MODE: Adrenaline boost allows more shots
-                                    local panicBoost = math.min(1, criticalThreats / 3) -- Up to +1 shot
-                                    maxShotsPerCycle = math.min(criticalThreats, shotCapacity + math.floor(panicBoost), 4)
+                                    -- ALERT MODE: Shoot ALL critical threats + more for crowd control
+                                    maxShotsPerCycle = math.min(criticalThreats + 1, #validTargets, 5) -- Up to 5 shots
                                 else
-                                    -- NORMAL MODE: Scale with effectiveness AND player state
-                                    local baseShots = math.floor(1 + (effectivenessScale * 2))
-                                    maxShotsPerCycle = math.min(baseShots, shotCapacity, 3)
+                                    -- NORMAL MODE: More aggressive for crowd control
+                                    local baseShots = math.floor(2 + (effectivenessScale * 2)) -- 2-4 shots minimum
+                                    maxShotsPerCycle = math.min(baseShots, #validTargets, 4) -- Up to 4 shots
                                 end
                                 
-                                -- RANDOM VARIATION: Sometimes shoot fewer (distraction, hesitation)
-                                if math.random() < 0.20 then -- 20% chance
+                                -- REDUCE VARIATION: Less random reduction for better crowd control
+                                if math.random() < 0.10 then -- 10% chance (reduced from 20%)
                                     maxShotsPerCycle = math.max(1, maxShotsPerCycle - 1)
                                 end
                                 
@@ -672,8 +671,8 @@ CombatTab:CreateToggle({
                                     if shotsFired >= maxShotsPerCycle then break end
                                     
                                     -- 🧬 HUMAN IMPERFECTION: Occasionally skip a target (distraction, hesitation)
-                                    -- Lower focus or higher fatigue = more likely to "miss" targeting
-                                    local skipChance = (1 - behaviorProfile.focusLevel) * 0.15 + (behaviorProfile.fatigueLevel * 0.10)
+                                    -- BUT: Reduce skipping for better crowd control
+                                    local skipChance = (1 - behaviorProfile.focusLevel) * 0.08 + (behaviorProfile.fatigueLevel * 0.05) -- Reduced
                                     if math.random() < skipChance and shotsFired > 0 then
                                         -- Skip this target, move to next (human didn't notice it)
                                         continue
@@ -749,22 +748,22 @@ CombatTab:CreateToggle({
                     if hasUrgentThreats then
                         -- ALERT MODE: Faster reaction like a focused human
                         -- Focus level affects response time
-                        local alertSpeed = 0.12 + ((1 - behaviorProfile.focusLevel) * 0.08) -- 120-200ms
-                        cycleDelay = alertSpeed + (math.random() * 0.05) -- +0-50ms variance
+                        local alertSpeed = 0.10 + ((1 - behaviorProfile.focusLevel) * 0.06) -- 100-160ms (faster)
+                        cycleDelay = alertSpeed + (math.random() * 0.04) -- +0-40ms variance
                     else
                         -- NORMAL: Use smart delay based on effectiveness
                         cycleDelay = getKnightMareDelay(shootDelay)
                         
-                        -- 🧠 HUMAN PAUSE SIMULATION: Occasionally take a break
+                        -- 🧠 HUMAN PAUSE SIMULATION: Reduced for better crowd control
                         -- Simulates looking around, checking UI, reloading mentally
-                        if math.random() < 0.08 then -- 8% chance per cycle
+                        if math.random() < 0.04 then -- 4% chance per cycle (reduced from 8%)
                             local pauseType = math.random()
                             if pauseType < 0.4 then
-                                cycleDelay = cycleDelay + (0.3 + math.random() * 0.4) -- Quick glance (300-700ms)
+                                cycleDelay = cycleDelay + (0.2 + math.random() * 0.3) -- Quick glance (200-500ms)
                             elseif pauseType < 0.7 then
-                                cycleDelay = cycleDelay + (0.8 + math.random() * 0.7) -- Check surroundings (800-1500ms)
+                                cycleDelay = cycleDelay + (0.5 + math.random() * 0.5) -- Check surroundings (500-1000ms)
                             else
-                                cycleDelay = cycleDelay + (1.5 + math.random() * 1.0) -- Brief distraction (1.5-2.5s)
+                                cycleDelay = cycleDelay + (1.0 + math.random() * 0.8) -- Brief distraction (1.0-1.8s)
                             end
                         end
                     end
