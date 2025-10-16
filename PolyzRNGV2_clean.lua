@@ -321,33 +321,53 @@ CombatTab:CreateToggle({
                                 local currentRound = 1 -- Default round
                                 local performanceMultiplier = 1.0
                                 
-                                -- 🎯 PREDICTIVE THREAT ANALYSIS
+                                -- 🚨 CRITICAL THREAT ANALYSIS - ABSOLUTE INVINCIBILITY
                                 local closeThreats = 0
+                                local criticalThreats = 0
                                 local bossThreats = 0
+                                local lethalThreats = 0
+                                
                                 for _, target in ipairs(validTargets) do
-                                    if target.distance < 30 then
-                                        closeThreats = closeThreats + 1
+                                    if target.distance < 15 then
+                                        lethalThreats = lethalThreats + 1 -- IMMEDIATE DEATH THREAT
+                                    elseif target.distance < 25 then
+                                        criticalThreats = criticalThreats + 1 -- CRITICAL THREAT
+                                    elseif target.distance < 50 then
+                                        closeThreats = closeThreats + 1 -- CLOSE THREAT
                                     end
+                                    
                                     if target.model.Name == "GoblinKing" or target.model.Name == "CaptainBoom" or target.model.Name == "Fungarth" then
                                         bossThreats = bossThreats + 1
                                     end
                                 end
                                 
-                                -- 🚀 ADAPTIVE PERFORMANCE SCALING
-                                if closeThreats > 10 then
-                                    performanceMultiplier = 3.0 -- EMERGENCY MODE
+                                -- 🚨 ABSOLUTE INVINCIBILITY SCALING - INSTANT THREAT ELIMINATION
+                                if lethalThreats > 0 then
+                                    performanceMultiplier = 10.0 -- LETHAL THREAT MODE - INSTANT ELIMINATION
+                                elseif criticalThreats > 5 then
+                                    performanceMultiplier = 8.0 -- CRITICAL THREAT MODE - MAXIMUM POWER
+                                elseif closeThreats > 10 then
+                                    performanceMultiplier = 5.0 -- EMERGENCY MODE - ULTRA POWER
                                 elseif bossThreats > 0 then
-                                    performanceMultiplier = 2.5 -- BOSS MODE
+                                    performanceMultiplier = 4.0 -- BOSS MODE - BOSS DESTRUCTION
                                 elseif zombieCount > 200 then
-                                    performanceMultiplier = 2.0 -- MASSIVE SWARM
+                                    performanceMultiplier = 3.0 -- MASSIVE SWARM
                                 elseif zombieCount > 100 then
-                                    performanceMultiplier = 1.8 -- LARGE SWARM
+                                    performanceMultiplier = 2.5 -- LARGE SWARM
                                 elseif zombieCount > 50 then
-                                    performanceMultiplier = 1.5 -- MEDIUM SWARM
+                                    performanceMultiplier = 2.0 -- MEDIUM SWARM
                                 end
                                 
-                                -- 🎯 REVOLUTIONARY SCALING SYSTEM
-                                if zombieCount >= 200 then
+                                -- 🚨 ABSOLUTE INVINCIBILITY SCALING SYSTEM
+                                if lethalThreats > 0 then
+                                    -- LETHAL THREAT MODE: INSTANT ELIMINATION - ZERO DELAY
+                                    simultaneousKills = math.min(500, zombieCount) -- Kill ALL zombies instantly
+                                    overkillShots = math.floor(50 * performanceMultiplier) -- Up to 500 shots per zombie
+                                elseif criticalThreats > 5 then
+                                    -- CRITICAL THREAT MODE: MAXIMUM POWER
+                                    simultaneousKills = math.min(300, zombieCount)
+                                    overkillShots = math.floor(40 * performanceMultiplier) -- Up to 320 shots per zombie
+                                elseif zombieCount >= 200 then
                                     -- APOCALYPTIC SWARM: Kill 200 zombies with 30 shots each
                                     simultaneousKills = math.min(200, zombieCount)
                                     overkillShots = math.floor(30 * performanceMultiplier) -- Up to 90 shots per zombie
@@ -428,8 +448,14 @@ CombatTab:CreateToggle({
                                                             if shotIndex < overkillShots then
                                                                 local spacingDelay
                                                                 
-                                                                -- 🧠 INTELLIGENT SPACING BASED ON THREAT LEVEL
-                                                                if closeThreats > 10 then
+                                                                -- 🚨 ABSOLUTE INVINCIBILITY SPACING - INSTANT ELIMINATION
+                                                                if lethalThreats > 0 then
+                                                                    -- LETHAL THREAT MODE: ZERO DELAY - INSTANT ELIMINATION
+                                                                    spacingDelay = 0.0000001 + (math.random() * 0.0000004) -- 0.0001-0.0005ms (NANOSECONDS)
+                                                                elseif criticalThreats > 5 then
+                                                                    -- CRITICAL THREAT MODE: ULTRA-FAST SPACING
+                                                                    spacingDelay = 0.0000005 + (math.random() * 0.000001) -- 0.0005-0.0015ms
+                                                                elseif closeThreats > 10 then
                                                                     -- EMERGENCY MODE: Ultra-fast spacing
                                                                     spacingDelay = 0.000001 + (math.random() * 0.000004) -- 0.001-0.005ms
                                                                 elseif bossThreats > 0 then
@@ -458,8 +484,14 @@ CombatTab:CreateToggle({
                                     if targetIndex < simultaneousKills then
                                         local targetSpacing
                                         
-                                        -- 🧠 INTELLIGENT TARGET SPACING BASED ON THREAT LEVEL
-                                        if closeThreats > 10 then
+                                        -- 🚨 ABSOLUTE INVINCIBILITY TARGET SPACING - INSTANT ELIMINATION
+                                        if lethalThreats > 0 then
+                                            -- LETHAL THREAT MODE: ZERO DELAY - INSTANT TARGET SWITCHING
+                                            targetSpacing = 0.0000001 + (math.random() * 0.0000004) -- 0.0001-0.0005ms (NANOSECONDS)
+                                        elseif criticalThreats > 5 then
+                                            -- CRITICAL THREAT MODE: ULTRA-FAST TARGET SWITCHING
+                                            targetSpacing = 0.0000005 + (math.random() * 0.000001) -- 0.0005-0.0015ms
+                                        elseif closeThreats > 10 then
                                             -- EMERGENCY MODE: Ultra-fast target switching
                                             targetSpacing = 0.000001 + (math.random() * 0.000004) -- 0.001-0.005ms
                                         elseif bossThreats > 0 then
