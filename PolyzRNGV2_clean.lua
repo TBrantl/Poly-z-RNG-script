@@ -254,16 +254,16 @@ CombatTab:CreateToggle({
                                 
                                 -- Sort by distance and threat level
                                 table.sort(validTargets, function(a, b)
-                                        local aBoss = a.model.Name == "GoblinKing" or a.model.Name == "CaptainBoom" or a.model.Name == "Fungarth"
-                                        local bBoss = b.model.Name == "GoblinKing" or b.model.Name == "CaptainBoom" or b.model.Name == "Fungarth"
-                                        
-                                        -- Bosses first
-                                        if aBoss and not bBoss then return true end
-                                        if bBoss and not aBoss then return false end
-                                        
-                                        -- Then by distance
-                                        return a.distance < b.distance
-                                    end)
+                                    local aBoss = a.model.Name == "GoblinKing" or a.model.Name == "CaptainBoom" or a.model.Name == "Fungarth"
+                                    local bBoss = b.model.Name == "GoblinKing" or b.model.Name == "CaptainBoom" or b.model.Name == "Fungarth"
+                                    
+                                    -- Bosses first
+                                    if aBoss and not bBoss then return true end
+                                    if bBoss and not aBoss then return false end
+                                    
+                                    -- Then by distance
+                                    return a.distance < b.distance
+                                end)
                                 
                                 -- 🚀 ABSOLUTE CONSTANT KILLING SHOT ALLOCATION - NO LIMITS
                                 local shotsFired = 0
