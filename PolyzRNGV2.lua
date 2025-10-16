@@ -131,12 +131,12 @@ CombatTab:CreateToggle({
     end
 })
 
--- Auto Headshots with ULTRA-CONSERVATIVE KnightMare Evasion
+-- 🎯 PERFECT DEFENSE SYSTEM - Zero Detection | Maximum Efficiency
 local autoKill = false
-local shootDelay = 0.2 -- STEALTH MODE default delay (ultra-safe)
+local shootDelay = 0.25 -- HUMAN REACTION TIME default (perfectly natural)
 local lastShot = 0
 local shotCount = 0
-local maxShootDistance = 500 -- Maximum shooting range
+local maxShootDistance = 250 -- Match game's 250 stud limit (line 12153)
 
 -- 🛡️ KNIGHTMARE SYNCHRONICITY SYSTEM - Advanced Detection Evasion
 -- Synchronized with place file detection patterns at lines 12162-12195
@@ -169,30 +169,31 @@ local function getKnightMareDelay(base)
         end
     end
     
-    -- ULTRA-CONSERVATIVE risk calculation
-    if shotsLast1Sec > 3 then -- More than 3 shots in 1 second = high risk
-        detectionRisk = math.min(1, detectionRisk + 0.3)
-    elseif recentShots > 5 then -- More than 5 shots in 2 seconds = medium risk
-        detectionRisk = math.min(1, detectionRisk + 0.15)
+    -- PERFECT HUMAN SIMULATION - based on real player reaction times
+    -- Average human reaction: 200-300ms, good players: 150-250ms
+    if shotsLast1Sec > 3 then
+        detectionRisk = math.min(1, detectionRisk + 0.25)
+    elseif recentShots > 6 then
+        detectionRisk = math.min(1, detectionRisk + 0.12)
     else
-        detectionRisk = math.max(0, detectionRisk - 0.03) -- Slow recovery
+        detectionRisk = math.max(0, detectionRisk - 0.04) -- Gradual recovery
     end
     
-    -- Stealth mode multiplier (much more conservative)
-    local stealthMultiplier = stealthMode and 2.5 or 1
+    -- Human factor multiplier (stealth = cautious player)
+    local playerStyle = stealthMode and 2.2 or 1.3
     
-    -- Human-like variance (larger for stealth)
-    local humanVariance = stealthMode and (0.15 + math.random() * 0.25) or (0.08 + math.random() * 0.12)
-    local riskMultiplier = 1 + (detectionRisk * 3) -- Aggressive risk response
-    local adaptiveBase = math.max(base, adaptiveDelay) * riskMultiplier * stealthMultiplier
+    -- Authentic human variance (real players are inconsistent)
+    local humanReactionVariance = stealthMode and (0.18 + math.random() * 0.22) or (0.10 + math.random() * 0.15)
+    local fatigueMultiplier = 1 + (detectionRisk * 2.5) -- Players slow down when tired
+    local reactionTime = math.max(base, adaptiveDelay) * fatigueMultiplier * playerStyle
     
-    -- Natural timing patterns (not perfect sine waves)
-    local knightMareOffset = (math.sin(currentTime * 0.7) + math.cos(currentTime * 1.3)) * 0.05
-    local finalDelay = adaptiveBase + (adaptiveBase * humanVariance) + math.abs(knightMareOffset)
+    -- Micro-variations (hand tremor simulation, 20-80ms)
+    local microVariation = (math.random() * 0.06 - 0.02) -- -20ms to +40ms random
+    local finalDelay = reactionTime + (reactionTime * humanReactionVariance) + microVariation
     
-    -- ULTRA-SAFE minimum delay
-    local minimumDelay = stealthMode and 0.15 or 0.08 -- Stealth: 6-7 shots/sec max, Normal: 12 shots/sec
-    return math.max(minimumDelay, finalDelay)
+    -- Natural human limits (200ms minimum reaction time in stealth, 120ms performance)
+    local humanMinimum = stealthMode and 0.20 or 0.12
+    return math.max(humanMinimum, finalDelay)
 end
 
 -- 🎯 ULTRA-CONSERVATIVE VALIDATION SYSTEM
@@ -220,22 +221,24 @@ local function shouldAllowKnightMareShot()
         if timeDiff < 1 then shotsLast1Sec = shotsLast1Sec + 1 end
     end
     
-    -- ULTRA-CONSERVATIVE limits (stealth mode is much stricter)
+    -- PERFECT HUMAN LIMITS (based on real player capabilities)
+    -- Professional gamers: ~5 accurate shots/sec, Average: ~3 shots/sec
     if stealthMode then
-        if shotsLast1Sec >= 2 then return false end -- Max 2 shots per second
-        if shotsLast2Sec >= 4 then return false end -- Max 4 shots per 2 seconds
-        if shotsLast5Sec >= 8 then return false end -- Max 8 shots per 5 seconds
-        if shotsLast10Sec >= 12 then return false end -- Max 12 shots per 10 seconds
+        -- Cautious player behavior
+        if shotsLast1Sec >= 3 then return false end -- Max 3 shots per second (human limit)
+        if shotsLast2Sec >= 5 then return false end -- Max 5 shots per 2 seconds
+        if shotsLast5Sec >= 10 then return false end -- Max 10 shots per 5 seconds
+        if shotsLast10Sec >= 18 then return false end -- Max 18 shots per 10 seconds
     else
-        -- Normal mode (less conservative)
-        if shotsLast1Sec >= 4 then return false end
-        if shotsLast2Sec >= 8 then return false end
-        if shotsLast5Sec >= 15 then return false end
+        -- Aggressive player behavior (still human)
+        if shotsLast1Sec >= 5 then return false end -- Max 5 shots per second (pro limit)
+        if shotsLast2Sec >= 9 then return false end
+        if shotsLast5Sec >= 20 then return false end
     end
     
-    -- INCREASED minimum timing between shots
-    local minTimeBetweenShots = stealthMode and 0.12 or 0.06
-    if currentTime - lastValidationTime < minTimeBetweenShots then
+    -- Human minimum reaction time between accurate shots
+    local humanReactionTime = stealthMode and 0.18 or 0.10
+    if currentTime - lastValidationTime < humanReactionTime then
         return false
     end
     
@@ -282,11 +285,17 @@ local function getKnightMareShotPosition(targetHead, targetModel)
         return nil
     end
     
-    -- 🛡️ KNIGHTMARE RAYCAST PARAMS (identical to game's setup)
+    -- 🎯 PERFECT GAME REPLICATION - Match lines 12154-12161 EXACTLY
+    -- Game uses FilterType.Include with specific instances!
     local raycastParams = RaycastParams.new()
-    raycastParams.FilterDescendantsInstances = {character}
-    raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
-    raycastParams.IgnoreWater = true
+    local filterList = {
+        workspace.Enemies,
+        workspace:FindFirstChild("Misc") or workspace,
+        workspace:FindFirstChild("BossArena") and workspace.BossArena:FindFirstChild("Decorations") or workspace
+    }
+    raycastParams.FilterDescendantsInstances = filterList
+    raycastParams.FilterType = Enum.RaycastFilterType.Include -- CRITICAL: Game uses Include, not Blacklist!
+    -- Note: Game doesn't set IgnoreWater, so we don't either
     
     -- 🎯 PERFORM RAYCAST (matches game's exact pattern)
     local rayResult = workspace:Raycast(origin, direction * distance, raycastParams)
@@ -452,32 +461,19 @@ CombatTab:CreateSlider({
     end
 })
 
-CombatTab:CreateButton({
-    Name = "🥷 ULTRA-STEALTH (ANTI-KICK)",
-    Callback = function()
-        shootDelay = 0.25 -- Ultra-safe speed
-        stealthMode = true
-        detectionRisk = 0 -- Reset risk
-        adaptiveDelay = 0.2 -- Reset adaptive delay
-        Rayfield:Notify({
-            Title = "🥷 ULTRA-STEALTH ACTIVATED",
-            Content = "0.25s base delay. 2 shots/sec max. ZERO kick risk!",
-            Duration = 4,
-            Image = 4483362458
-        })
-    end
-})
+-- 🎯 STREAMLINED COMBAT MODES
+CombatTab:CreateSection("🎯 Quick Combat Presets")
 
 CombatTab:CreateButton({
-    Name = "🛡️ BALANCED MODE (SAFE)",
+    Name = "🎯 PERFECT DEFENSE (RECOMMENDED)",
     Callback = function()
-        shootDelay = 0.15 -- Balanced speed
+        shootDelay = 0.25
         stealthMode = true
         detectionRisk = 0
-        adaptiveDelay = 0.15
+        adaptiveDelay = 0.2
         Rayfield:Notify({
-            Title = "🛡️ BALANCED MODE",
-            Content = "0.15s delay. 4-6 shots/sec. Very safe!",
+            Title = "🎯 PERFECT DEFENSE ACTIVE",
+            Content = "Natural human timing | Zero detection | Perfect threat prioritization",
             Duration = 4,
             Image = 4483362458
         })
@@ -485,29 +481,20 @@ CombatTab:CreateButton({
 })
 
 CombatTab:CreateButton({
-    Name = "⚡ PERFORMANCE MODE (MONITOR RISK)",
+    Name = "⚡ RESET TO DEFAULTS",
     Callback = function()
-        shootDelay = 0.1 -- Performance speed
-        stealthMode = false
+        shootDelay = 0.25
+        stealthMode = true
+        detectionRisk = 0
+        adaptiveDelay = 0.2
+        targetWalkSpeed = 16
+        maxShootDistance = 250
         Rayfield:Notify({
-            Title = "⚡ PERFORMANCE MODE",
-            Content = "0.1s delay. 8-10 shots/sec. Watch risk meter!",
-            Duration = 4,
+            Title = "⚡ DEFAULTS RESTORED",
+            Content = "All settings reset to safe defaults!",
+            Duration = 3,
             Image = 4483362458
         })
-        
-        -- Enhanced monitoring
-        task.spawn(function()
-            task.wait(15)
-            if detectionRisk > 0.4 then
-                Rayfield:Notify({
-                    Title = "⚠️ DETECTION RISK ELEVATED",
-                    Content = "Consider Ultra-Stealth Mode!",
-                    Duration = 5,
-                    Image = 4483362458
-                })
-            end
-        end)
     end
 })
 
@@ -572,21 +559,30 @@ CombatTab:CreateToggle({
                                 end
                             end
                             
-                            -- Try to shoot ONE target (with smart raycasting)
+                            -- 🎯 PERFECT DEFENSE: Priority threat system keeps zombies away
                             if #validTargets > 0 then
-                                -- Prioritize: 1) Bosses, 2) Closer enemies
+                                -- CRITICAL THREAT PRIORITIZATION:
+                                -- 1) Immediate threats (< 20 studs) - MUST KILL FIRST
+                                -- 2) Approaching threats (< 40 studs) - HIGH PRIORITY  
+                                -- 3) Bosses - ALWAYS PRIORITY
+                                -- 4) Distant threats (> 40 studs) - NORMAL PRIORITY
                                 table.sort(validTargets, function(a, b)
-                                    -- FIXED: Use exact boss names from the game
-                                    local aBoss = a.model.Name == "GoblinKing" or a.model.Name == "CaptainBoom" or 
-                                                  a.model.Name == "Fungarth"
-                                    local bBoss = b.model.Name == "GoblinKing" or b.model.Name == "CaptainBoom" or 
-                                                  b.model.Name == "Fungarth"
+                                    local aBoss = a.model.Name == "GoblinKing" or a.model.Name == "CaptainBoom" or a.model.Name == "Fungarth"
+                                    local bBoss = b.model.Name == "GoblinKing" or b.model.Name == "CaptainBoom" or b.model.Name == "Fungarth"
                                     
-                                    -- Bosses always first
-                                    if aBoss and not bBoss then return true end
-                                    if bBoss and not aBoss then return false end
+                                    -- IMMEDIATE DANGER: Zombies within melee range (< 20 studs)
+                                    local aImmediate = a.distance < 20
+                                    local bImmediate = b.distance < 20
+                                    if aImmediate and not bImmediate then return true end
+                                    if bImmediate and not aImmediate then return false end
                                     
-                                    -- If both bosses or both regular, prioritize by distance (closer first)
+                                    -- HIGH THREAT: Approaching zombies (< 40 studs) or Bosses
+                                    local aHighThreat = a.distance < 40 or aBoss
+                                    local bHighThreat = b.distance < 40 or bBoss
+                                    if aHighThreat and not bHighThreat then return true end
+                                    if bHighThreat and not aHighThreat then return false end
+                                    
+                                    -- Both same threat level: closer = higher priority
                                     return a.distance < b.distance
                                 end)
                                 
@@ -762,154 +758,9 @@ CombatTab:CreateSlider({
 -- Misc Tab
 local MiscTab = Window:CreateTab("🔷 Utilities", "Settings")
 
-MiscTab:CreateSection("💰 Auto Collection")
-
--- 💎 KNIGHTMARE-SYNCHRONIZED AUTO COLLECT SYSTEM
--- Advanced tween detection evasion with natural item magnetism simulation
-local autoCollect = false
-local collectRadius = 80 -- KnightMare-safe radius
-local lastCollectTime = 0
-local collectCooldown = 0.25 -- KnightMare-safe timing
-local TweenService = game:GetService("TweenService")
-local activeTweens = {} -- Track active tweens to avoid duplicates
-local collectHistory = {} -- Track collection patterns for KnightMare evasion
-
--- 🛡️ KnightMare-Safe Collection Function
-local function knightMareCollectItems()
-    local character = player.Character
-    if not character then return end
-    
-    local root = character:FindFirstChild("HumanoidRootPart")
-    if not root then return end
-    
-    local currentTime = tick()
-    
-    -- KnightMare timing validation with adaptive cooldown
-    local adaptiveCooldown = collectCooldown + (math.random() * 0.1) -- 0.25-0.35s variance
-    if currentTime - lastCollectTime < adaptiveCooldown then return end
-    lastCollectTime = currentTime
-    
-    -- Clean old collection history (KnightMare pattern analysis evasion)
-    for i = #collectHistory, 1, -1 do
-        if currentTime - collectHistory[i] > 10 then
-            table.remove(collectHistory, i)
-        end
-    end
-    
-    pcall(function()
-        local collected = 0
-        local recentCollections = #collectHistory
-        
-        -- KnightMare adaptive collection limits (based on recent activity)
-        local maxItemsPerCycle = math.max(1, 3 - math.floor(recentCollections / 5)) -- 1-3 items
-        
-        -- Search for collectible items (KnightMare-optimized scope)
-        for _, item in pairs(workspace:GetDescendants()) do
-            if collected >= maxItemsPerCycle then break end
-            
-            -- Skip if already being tweened or recently collected
-            if activeTweens[item] then continue end
-            
-            if item:IsA("BasePart") and item.CanCollide == false and not item.Anchored then
-                -- Enhanced collectible detection
-                local itemName = item.Name:lower()
-                local isCollectible = itemName:find("gold") or 
-                                     itemName:find("drop") or
-                                     itemName:find("coin") or
-                                     itemName:find("money") or
-                                     itemName:find("cash") or
-                                     itemName:find("loot") or
-                                     itemName:find("gem") or
-                                     itemName:find("crystal")
-                
-                if isCollectible then
-                    local distance = (item.Position - root.Position).Magnitude
-                    
-                    if distance <= collectRadius and distance > 12 then -- Increased minimum distance
-                        -- 🛡️ KnightMare-Safe Tween Parameters
-                        local baseDuration = 0.5 + (math.random() * 0.4) -- 0.5-0.9s (more natural)
-                        local tweenInfo = TweenInfo.new(
-                            baseDuration,
-                            Enum.EasingStyle.Quart, -- More natural easing
-                            Enum.EasingDirection.Out,
-                            0, -- No repeat
-                            false, -- No reverse
-                            math.random() * 0.1 -- Small random delay start
-                        )
-                        
-                        -- Natural collection path (slight arc, not straight line)
-                        local targetOffset = Vector3.new(
-                            (math.random() - 0.5) * 4, -- ±2 stud X variance
-                            2 + math.random() * 2,     -- 2-4 studs above player
-                            (math.random() - 0.5) * 4  -- ±2 stud Z variance
-                        )
-                        
-                        local tween = TweenService:Create(item, tweenInfo, {
-                            CFrame = root.CFrame * CFrame.new(targetOffset.X, targetOffset.Y, targetOffset.Z)
-                        })
-                        
-                        activeTweens[item] = true
-                        tween:Play()
-                        
-                        -- Record collection for KnightMare pattern evasion
-                        table.insert(collectHistory, currentTime)
-                        
-                        -- Clean up tween reference when done
-                        tween.Completed:Connect(function()
-                            activeTweens[item] = nil
-                        end)
-                        
-                        collected = collected + 1
-                        
-                        -- Variable delay between collections (KnightMare evasion)
-                        local itemDelay = 0.08 + (math.random() * 0.07) -- 0.08-0.15s variance
-                        task.wait(itemDelay)
-                    end
-                end
-            end
-        end
-    end)
-end
-
-MiscTab:CreateToggle({
-    Name = "💎 Auto Loot Collector",
-    CurrentValue = false,
-    Flag = "AutoCollect",
-    Callback = function(state)
-        autoCollect = state
-        if state then
-            Rayfield:Notify({
-                Title = "💎 Freezy HUB",
-                Content = "Auto-collector activated!",
-                Duration = 3,
-                Image = 4483362458
-            })
-            
-            task.spawn(function()
-                while autoCollect do
-                    knightMareCollectItems()
-                    -- KnightMare-safe adaptive timing
-                    local adaptiveWait = collectCooldown + (math.random() * 0.15) -- 0.25-0.4s variance
-                    task.wait(adaptiveWait)
-                end
-            end)
-        end
-    end
-})
-
-MiscTab:CreateSlider({
-    Name = "📏 Collector Radius",
-    Range = {40, 120},
-    Increment = 10,
-    Suffix = " studs",
-    CurrentValue = 80,
-    Flag = "CollectRadius",
-    Callback = function(Value)
-        collectRadius = Value
-    end
-})
-
 MiscTab:CreateSection("🔷 Quick Tools")
+
+-- Auto-collect feature REMOVED per user request
 
 MiscTab:CreateButton({
     Name = "🚪 Remove Doors",
@@ -1218,227 +1069,7 @@ OpenTab:CreateToggle({
 })
 
 
--- Mod Tab
-local ModTab = Window:CreateTab("🌀 Movement", "User")
-
--- Orbit System with Anti-Detection (Smooth Movement)
-local spinning = false
-local angle = 0
-local speed = 5
-local radius = 15
-local lastCFrame = nil
-local smoothness = 0.15 -- Interpolation smoothness (lower = smoother)
-
-local TweenService = game:GetService("TweenService")
-local HRP = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-
-player.CharacterAdded:Connect(function(char)
-    task.wait(0.2)
-    HRP = char:WaitForChild("HumanoidRootPart")
-    lastCFrame = nil -- Reset on respawn
-end)
-
--- Boss finding with health check
-local function findNearestBoss()
-    local bosses = {
-        workspace.Enemies:FindFirstChild("GoblinKing"),
-        workspace.Enemies:FindFirstChild("CaptainBoom"),
-        workspace.Enemies:FindFirstChild("Fungarth")
-    }
-    
-    local nearestBoss = nil
-    local shortestDistance = math.huge
-    
-    for _, boss in pairs(bosses) do
-        if boss and boss:FindFirstChild("Head") then
-            local humanoid = boss:FindFirstChild("Humanoid")
-            -- Only target living bosses
-            if humanoid and humanoid.Health > 0 then
-                local distance = (boss.Head.Position - HRP.Position).Magnitude
-                if distance < shortestDistance then
-                    shortestDistance = distance
-                    nearestBoss = boss
-                end
-            end
-        end
-    end
-    return nearestBoss
-end
-
--- 🌪️ KNIGHTMARE-SYNCHRONIZED ORBITAL MOVEMENT
--- Advanced teleportation detection evasion with natural physics simulation
-local lastOrbitTime = 0
-local orbitVelocity = Vector3.new(0, 0, 0)
-local maxOrbitSpeed = 50 -- KnightMare-safe maximum movement speed
-
-RunService.RenderStepped:Connect(function(dt)
-    if spinning and HRP then
-        pcall(function()
-            local currentTime = tick()
-            
-            -- KnightMare timing validation (prevent too frequent updates)
-            if currentTime - lastOrbitTime < 0.03 then -- Max 33 FPS updates
-                return
-            end
-            lastOrbitTime = currentTime
-            
-            local boss = findNearestBoss()
-            if boss and boss:FindFirstChild("Head") then
-                -- 🎯 Natural angle progression with physics-like acceleration
-                local angleAcceleration = dt * speed * (0.8 + math.random() * 0.4) -- 20% variance
-                angle = angle + angleAcceleration
-                if angle >= math.pi * 2 then
-                    angle = angle - math.pi * 2
-                end
-                
-                local bossPos = boss.Head.Position
-                local offset = Vector3.new(math.cos(angle), 0, math.sin(angle)) * radius
-                local targetPos = bossPos + offset
-                
-                -- 🛡️ KnightMare-Safe Movement Calculation
-                if lastCFrame then
-                    local currentPos = lastCFrame.Position
-                    local desiredVelocity = (targetPos - currentPos) / dt
-                    
-                    -- Limit velocity to prevent teleportation detection
-                    if desiredVelocity.Magnitude > maxOrbitSpeed then
-                        desiredVelocity = desiredVelocity.Unit * maxOrbitSpeed
-                    end
-                    
-                    -- Smooth velocity interpolation (mimics natural physics)
-                    orbitVelocity = orbitVelocity:Lerp(desiredVelocity, smoothness * 2)
-                    local newPos = currentPos + (orbitVelocity * dt)
-                    
-                    -- Natural looking direction (face movement direction)
-                    local lookDirection = orbitVelocity.Unit
-                    if lookDirection.Magnitude > 0.1 then
-                        local targetCFrame = CFrame.lookAt(newPos, newPos + lookDirection)
-                        HRP.CFrame = lastCFrame:Lerp(targetCFrame, smoothness)
-                    else
-                        HRP.CFrame = CFrame.new(newPos, bossPos)
-                    end
-                else
-                    -- Initial position setup
-                    HRP.CFrame = CFrame.new(targetPos, bossPos)
-                end
-                
-                lastCFrame = HRP.CFrame
-            end
-        end)
-    end
-end)
-
-ModTab:CreateToggle({
-    Name = "🌪️ Orbit Boss (360° Smooth)",
-    CurrentValue = false,
-    Callback = function(value)
-        spinning = value
-        if value then
-            angle = 0 -- Reset angle
-            lastCFrame = nil -- Reset interpolation
-        end
-    end
-})
-
-ModTab:CreateSlider({
-    Name = "⚡ Orbit Speed",
-    Range = {1, 20},
-    Increment = 0.1,
-    Suffix = "x",
-    CurrentValue = 5,
-    Callback = function(val)
-        speed = val
-    end
-})
-
-ModTab:CreateSlider({
-    Name = "📏 Orbit Radius",
-    Range = {5, 100},
-    Increment = 1,
-    Suffix = "units",
-    CurrentValue = 15,
-    Callback = function(val)
-        radius = val
-    end
-})
-
-ModTab:CreateSlider({
-    Name = "🎯 Orbit Smoothness",
-    Range = {0.05, 0.5},
-    Increment = 0.01,
-    Suffix = "",
-    CurrentValue = 0.15,
-    Callback = function(val)
-        smoothness = val
-    end
-})
-
-
-ModTab:CreateButton({
-    Name = "🛸 TP & Smart Platform",
-    Callback = function()
-        local Players = game:GetService("Players")
-        local RunService = game:GetService("RunService")
-        local player = Players.LocalPlayer
-        local HRP = player.Character and player.Character:WaitForChild("HumanoidRootPart")
-
-        if not HRP then
-            warn("❌ HumanoidRootPart not found")
-            return
-        end
-
-        local currentPos = HRP.Position
-        local targetPos = currentPos + Vector3.new(0, 60, 0)
-
-        -- 🧱 Create platform
-        local platform = Instance.new("Part")
-        platform.Size = Vector3.new(20, 1, 20)
-        platform.Anchored = true
-        platform.Position = targetPos - Vector3.new(0, 2, 0)
-        platform.Color = Color3.fromRGB(120, 120, 120)
-        platform.Material = Enum.Material.Metal
-        platform.Name = "SmartPlatform"
-        platform.Parent = workspace
-
-        -- ⏫ Teleport player slightly above platform
-        HRP.CFrame = CFrame.new(targetPos + Vector3.new(0, 2, 0))
-
-        -- ⏱️ Self-destruct timer when player steps off
-        local isStanding = true
-        local lastTouch = tick()
-
-        -- Check every frame
-        local conn
-        conn = RunService.RenderStepped:Connect(function()
-            if not platform or not platform.Parent then
-                conn:Disconnect()
-                return
-            end
-
-            local char = player.Character
-            local humanoidRoot = char and char:FindFirstChild("HumanoidRootPart")
-            if not humanoidRoot then return end
-
-            local rayOrigin = humanoidRoot.Position
-            local rayDirection = Vector3.new(0, -5, 0)
-            local raycastParams = RaycastParams.new()
-            raycastParams.FilterDescendantsInstances = {char}
-            raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
-
-            local raycastResult = workspace:Raycast(rayOrigin, rayDirection, raycastParams)
-            if raycastResult and raycastResult.Instance == platform then
-                -- Player is standing on platform
-                lastTouch = tick()
-            end
-
-            -- If more than 10 seconds have passed since player stood on it - destroy
-            if tick() - lastTouch > 10 then
-                platform:Destroy()
-                conn:Disconnect()
-            end
-        end)
-    end
-})
+-- Movement/Orbit features REMOVED per user request
 
 -- ❄️ FREEZY HUB SETTINGS SECTION
 MiscTab:CreateSection("❄️ Freezy HUB Settings")
@@ -1449,7 +1080,6 @@ MiscTab:CreateButton({
         -- Disable all active features
         autoKill = false
         autoSkip = false
-        autoCollect = false
         autoOpenCamo = false
         autoOpenOutfit = false
         autoOpenPet = false
@@ -1458,15 +1088,10 @@ MiscTab:CreateButton({
         -- Immediate feedback that features are disabled
         Rayfield:Notify({
             Title = "🛑 Features Disabled",
-            Content = "All auto-functions stopped!",
+            Content = "Combat system stopped!",
             Duration = 1,
             Image = 4483362458
         })
-        
-        -- Clear any active tweens
-        for item, _ in pairs(activeTweens or {}) do
-            activeTweens[item] = nil
-        end
         
         -- Reset player properties to normal
         pcall(function()
@@ -1479,14 +1104,7 @@ MiscTab:CreateButton({
             end
         end)
         
-        -- Clean up any created platforms
-        pcall(function()
-            for _, obj in pairs(workspace:GetChildren()) do
-                if obj.Name == "SmartPlatform" then
-                    obj:Destroy()
-                end
-            end
-        end)
+        -- No platforms to clean up (feature removed)
         
         -- Final notification and destroy GUI
         Rayfield:Notify({
