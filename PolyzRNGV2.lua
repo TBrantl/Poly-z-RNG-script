@@ -4,17 +4,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
 
--- Load Rayfield UI Library with error handling
-local Rayfield
-local success, error = pcall(function()
-    Rayfield = loadstring(game:HttpGet('https://limerbro.github.io/Roblox-Limer/rayfield.lua'))()
-end)
-
-if not success then
-    warn("[Freezy HUB] Failed to load Rayfield UI Library:", error)
-    -- Create a simple fallback UI or exit gracefully
-    return
-end
+-- Load Rayfield UI Library
+local Rayfield = loadstring(game:HttpGet('https://limerbro.github.io/Roblox-Limer/rayfield.lua'))()
 
 -- Wait for Remotes safely
 local Remotes
@@ -45,58 +36,17 @@ local performanceStats = {
     shotsBlocked = 0,
     shotsSuccessful = 0,
     riskLevel = "LOW",
+    adaptiveDelay = 0.1,
     lastUpdate = tick()
-}
-
--- 🛡️ DETECTION PROTECTION SYSTEM - Human-like limits for undetectable superhuman performance
-local detectionProtection = {
-    -- Human reaction time limits (OPTIMIZED FOR MAXIMUM SPEED)
-    humanReactionTimeMin = 0.03,  -- 30ms minimum (absolute human peak)
-    humanReactionTimeMax = 0.15,  -- 150ms maximum (pro-gamer level)
-    
-    -- Maximum shot rate limits (OPTIMIZED FOR MAXIMUM SPEED)
-    maxShotsPerSecond = 30,       -- 30 shots/sec sustained (optimized)
-    maxShotsPerSecondBurst = 50,  -- 50 shots/sec burst (peak performance)
-    
-    -- Maximum multi-shot spacing (OPTIMIZED FOR MAXIMUM SPEED)
-    minMultiShotSpacing = 0.01,   -- 10ms minimum between shots (optimized)
-    maxMultiShotSpacing = 0.03,   -- 30ms maximum between shots
-    
-    -- Maximum cycle timing (OPTIMIZED FOR MAXIMUM SPEED)
-    minCycleDelay = 0.005,        -- 5ms minimum cycle delay (optimized)
-    maxCycleDelay = 0.03,         -- 30ms maximum cycle delay
-    
-    -- Maximum shot allocation (OPTIMIZED FOR MAXIMUM SPEED)
-    maxShotsPerCycle = 80,        -- 80 shots per cycle maximum (optimized)
-    maxShotsPerCycleBurst = 150,  -- 150 shots per cycle in alert mode (optimized)
-    
-    -- Risk thresholds for adaptive behavior
-    lowRiskThreshold = 0.2,
-    mediumRiskThreshold = 0.5,
-    highRiskThreshold = 0.8,
-    
-    -- Behavioral simulation parameters
-    focusDriftRate = 0.01,        -- How fast focus changes
-    fatigueAccumulationRate = 0.005, -- How fast fatigue accumulates
-    skillDriftAmplitude = 0.05,   -- How much skill varies
-    patternBreakInterval = 30,
-    lastPatternBreak = 0,
-    sessionVariation = math.random() * 0.3 + 0.1,
-    microPauses = true,
-    naturalInconsistency = 0.15,
 }
 
 -- Utility Functions
 local function getEquippedWeaponName()
-    -- Fallback: Try to get weapon from player model
-    local playersFolder = workspace:FindFirstChild("Players")
-    if playersFolder then
-        local model = playersFolder:FindFirstChild(player.Name)
-        if model then
-            for _, child in ipairs(model:GetChildren()) do
-                if child:IsA("Model") then
-                    return child.Name
-                end
+    local model = workspace:FindFirstChild("Players"):FindFirstChild(player.Name)
+    if model then
+        for _, child in ipairs(model:GetChildren()) do
+            if child:IsA("Model") then
+                return child.Name
             end
         end
     end
@@ -117,44 +67,38 @@ local adaptiveLabel = CombatTab:CreateLabel("⚡ Adaptive Delay: 0.10s")
 
 -- 📊 Real-time Dynamic Defense Monitoring
 task.spawn(function()
-    -- Wait for all variables to be initialized
-    task.wait(1)
-    
     while true do
         local currentTime = tick()
         
-        -- Safety check for variable initialization
-        if effectivenessLevel and detectionRisk and shootDelay then
-            -- Update weapon info
-            weaponLabel:Set("🔫 Equipped Weapon: " .. getEquippedWeaponName())
+        -- Update weapon info
+        weaponLabel:Set("🔫 Equipped Weapon: " .. getEquippedWeaponName())
+        
+        -- Update performance stats every 2 seconds
+        if currentTime - performanceStats.lastUpdate > 2 then
+            -- Calculate dynamic defense zones
+            local effectivenessScale = effectivenessLevel / 100
+            local criticalZone = math.floor(15 + (effectivenessScale * 15))
+            local highThreatZone = math.floor(30 + (effectivenessScale * 30))
             
-            -- Update performance stats every 2 seconds
-            if currentTime - performanceStats.lastUpdate > 2 then
-                -- Calculate dynamic defense zones
-                local effectivenessScale = effectivenessLevel / 100
-                local criticalZone = math.floor(15 + (effectivenessScale * 15))
-                local highThreatZone = math.floor(30 + (effectivenessScale * 30))
-                
-                -- Detection risk display
-                local riskLevel = "ZERO"
-                local riskColor = "✅"
-                
-                if detectionRisk > 0.2 then
-                    riskLevel = "LOW"
-                    riskColor = "🟢"
-                end
-                if detectionRisk > 0.5 then
-                    riskLevel = "ELEVATED"
-                    riskColor = "🟡"
-                end
-                
-                -- Update UI labels with dynamic info
-                riskLabel:Set(riskColor .. " Detection Risk: " .. riskLevel .. " | Effectiveness: " .. effectivenessLevel .. "%")
-                performanceLabel:Set("🎯 Defense Zones: Critical<" .. criticalZone .. " | High<" .. highThreatZone .. " studs")
-                adaptiveLabel:Set("⚡ Shot Delay: " .. string.format("%.2f", shootDelay) .. "s | Kills: " .. performanceStats.shotsSuccessful)
-                
-                performanceStats.lastUpdate = currentTime
+            -- Detection risk display
+            local riskLevel = "ZERO"
+            local riskColor = "✅"
+            
+            if detectionRisk > 0.2 then
+                riskLevel = "LOW"
+                riskColor = "🟢"
             end
+            if detectionRisk > 0.5 then
+                riskLevel = "ELEVATED"
+                riskColor = "🟡"
+            end
+            
+            -- Update UI labels with dynamic info
+            riskLabel:Set(riskColor .. " Detection Risk: " .. riskLevel .. " | Effectiveness: " .. effectivenessLevel .. "%")
+            performanceLabel:Set("🎯 Defense Zones: Critical<" .. criticalZone .. " | High<" .. highThreatZone .. " studs")
+            adaptiveLabel:Set("⚡ Shot Delay: " .. string.format("%.2f", shootDelay) .. "s | Kills: " .. performanceStats.shotsSuccessful)
+            
+            performanceStats.lastUpdate = currentTime
         end
         
         task.wait(0.5) -- Update UI every 0.5 seconds
@@ -162,13 +106,6 @@ task.spawn(function()
 end)
 
 CombatTab:CreateSection("⚔️ Perfect Defense System")
-
--- 🎯 PERFECT DEFENSE SYSTEM - Zero Detection | Maximum Efficiency
-local autoKill = false
-local shootDelay = 0.25 -- HUMAN REACTION TIME default (perfectly natural)
-local lastShot = 0
-local shotCount = 0
-local maxShootDistance = 250 -- Match game's 250 stud limit (line 12153)
 
 -- 🎯 INTELLIGENT EFFECTIVENESS SYSTEM
 local effectivenessLevel = 50 -- Default to balanced (0-100%)
@@ -217,6 +154,13 @@ end
 
 -- Initialize with balanced default
 updateEffectiveness(50)
+
+-- 🎯 PERFECT DEFENSE SYSTEM - Zero Detection | Maximum Efficiency
+local autoKill = false
+local shootDelay = 0.25 -- HUMAN REACTION TIME default (perfectly natural)
+local lastShot = 0
+local shotCount = 0
+local maxShootDistance = 250 -- Match game's 250 stud limit (line 12153)
 
 -- 🛡️ KNIGHTMARE SYNCHRONICITY SYSTEM - Advanced Detection Evasion
 -- Synchronized with place file detection patterns at lines 12162-12195
@@ -604,8 +548,8 @@ local function getKnightMareShotPosition(targetHead, targetModel)
                                     end
                                 end
                             end
-                        end
-                    end
+                end
+            end
             
             -- If nothing visible, return nil (skip this target)
             return nil
@@ -938,8 +882,8 @@ CombatTab:CreateToggle({
                                 
                                 -- If no shot fired, all targets blocked (legitimate game behavior)
                                 ::continue::
-                                end
-                            end
+                                        end
+                                    end
                     end)
                     
                     -- 🧠 ULTRA-INTELLIGENT ADAPTIVE DELAY
@@ -995,8 +939,8 @@ CombatTab:CreateToggle({
                                     cycleDelay = cycleDelay + (0.3 + math.random() * 0.3) -- Check surroundings (300-600ms)
                                 else
                                     cycleDelay = cycleDelay + (0.5 + math.random() * 0.5) -- Brief distraction (500-1000ms)
-                                end
                             end
+                        end
                         end
                     end
                     
@@ -1183,8 +1127,8 @@ MiscTab:CreateButton({
                         fireproximityprompt(descendant, 0)
                         activated = activated + 1
                         task.wait(0.1) -- Small delay between purchases
-                    end
-                end
+            end  
+        end
             end
         end)
         
@@ -1220,8 +1164,8 @@ MiscTab:CreateButton({
                         fireproximityprompt(descendant, 0)
                         enhanced = enhanced + 1
                         task.wait(0.15) -- Small delay between enhancements
-                    end
-                end
+            end  
+        end
             end
         end)
         
