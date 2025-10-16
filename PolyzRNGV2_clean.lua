@@ -418,25 +418,31 @@ CombatTab:CreateToggle({
                                                             if shotIndex < overkillShots then
                                                                 local spacingDelay
                                                                 
-                                                                -- 🚨 ABSOLUTE INVINCIBILITY SPACING - INSTANT ELIMINATION
+                                                                -- 🚀 ADVANCED BYPASS SPACING - NO LIMITS, MAXIMUM PERFORMANCE
                                                                 if lethalThreats > 0 then
-                                                                    -- LETHAL THREAT MODE: ZERO DELAY - INSTANT ELIMINATION
-                                                                    spacingDelay = 0.0000001 + (math.random() * 0.0000004) -- 0.0001-0.0005ms (NANOSECONDS)
+                                                                    -- LETHAL THREAT MODE: Ultra-fast bypass
+                                                                    spacingDelay = 0.001 + (math.random() * 0.002) -- 1-3ms (server tick rate)
                                                                 elseif criticalThreats > 5 then
-                                                                    -- CRITICAL THREAT MODE: ULTRA-FAST SPACING
-                                                                    spacingDelay = 0.0000005 + (math.random() * 0.000001) -- 0.0005-0.0015ms
+                                                                    -- CRITICAL THREAT MODE: Fast bypass
+                                                                    spacingDelay = 0.002 + (math.random() * 0.003) -- 2-5ms
                                                                 elseif closeThreats > 10 then
-                                                                    -- EMERGENCY MODE: Ultra-fast spacing
-                                                                    spacingDelay = 0.000001 + (math.random() * 0.000004) -- 0.001-0.005ms
+                                                                    -- EMERGENCY MODE: Fast bypass
+                                                                    spacingDelay = 0.005 + (math.random() * 0.005) -- 5-10ms
                                                                 elseif bossThreats > 0 then
-                                                                    -- BOSS MODE: Very fast spacing
-                                                                    spacingDelay = 0.000005 + (math.random() * 0.00001) -- 0.005-0.015ms
+                                                                    -- BOSS MODE: Fast bypass
+                                                                    spacingDelay = 0.01 + (math.random() * 0.01) -- 10-20ms
                                                                 elseif isBoss then
-                                                                    -- BOSS TARGET: Fast spacing
-                                                                    spacingDelay = 0.00001 + (math.random() * 0.00002) -- 0.01-0.03ms
+                                                                    -- BOSS TARGET: Fast bypass
+                                                                    spacingDelay = 0.015 + (math.random() * 0.01) -- 15-25ms
                                                                 else
-                                                                    -- NORMAL: Standard fast spacing
-                                                                    spacingDelay = 0.00001 + (math.random() * 0.00004) -- 0.01-0.05ms
+                                                                    -- NORMAL: Fast bypass
+                                                                    spacingDelay = 0.02 + (math.random() * 0.01) -- 20-30ms
+                                                                end
+                                                                
+                                                                -- 🛡️ SERVER SYNCHRONIZATION BYPASS
+                                                                local serverSync = (tick() * 1000) % 16.67
+                                                                if serverSync < 8.33 then
+                                                                    spacingDelay = spacingDelay * 0.3 -- Triple speed during server processing
                                                                 end
                                                                 
                                                                 task.wait(spacingDelay)
@@ -454,25 +460,31 @@ CombatTab:CreateToggle({
                                     if targetIndex < simultaneousKills then
                                         local targetSpacing
                                         
-                                        -- 🚨 ABSOLUTE INVINCIBILITY TARGET SPACING - INSTANT ELIMINATION
+                                        -- 🚀 ADVANCED BYPASS TARGET SPACING - NO LIMITS, MAXIMUM PERFORMANCE
                                         if lethalThreats > 0 then
-                                            -- LETHAL THREAT MODE: ZERO DELAY - INSTANT TARGET SWITCHING
-                                            targetSpacing = 0.0000001 + (math.random() * 0.0000004) -- 0.0001-0.0005ms (NANOSECONDS)
+                                            -- LETHAL THREAT MODE: Ultra-fast bypass
+                                            targetSpacing = 0.001 + (math.random() * 0.002) -- 1-3ms (server tick rate)
                                         elseif criticalThreats > 5 then
-                                            -- CRITICAL THREAT MODE: ULTRA-FAST TARGET SWITCHING
-                                            targetSpacing = 0.0000005 + (math.random() * 0.000001) -- 0.0005-0.0015ms
+                                            -- CRITICAL THREAT MODE: Fast bypass
+                                            targetSpacing = 0.002 + (math.random() * 0.003) -- 2-5ms
                                         elseif closeThreats > 10 then
-                                            -- EMERGENCY MODE: Ultra-fast target switching
-                                            targetSpacing = 0.000001 + (math.random() * 0.000004) -- 0.001-0.005ms
+                                            -- EMERGENCY MODE: Fast bypass
+                                            targetSpacing = 0.005 + (math.random() * 0.005) -- 5-10ms
                                         elseif bossThreats > 0 then
-                                            -- BOSS MODE: Very fast target switching
-                                            targetSpacing = 0.000005 + (math.random() * 0.00001) -- 0.005-0.015ms
+                                            -- BOSS MODE: Fast bypass
+                                            targetSpacing = 0.01 + (math.random() * 0.01) -- 10-20ms
                                         elseif target.distance < 30 then
-                                            -- CLOSE THREAT: Fast target switching
-                                            targetSpacing = 0.00001 + (math.random() * 0.00002) -- 0.01-0.03ms
+                                            -- CLOSE THREAT: Fast bypass
+                                            targetSpacing = 0.015 + (math.random() * 0.01) -- 15-25ms
                                         else
-                                            -- NORMAL: Standard fast target switching
-                                            targetSpacing = 0.00001 + (math.random() * 0.00004) -- 0.01-0.05ms
+                                            -- NORMAL: Fast bypass
+                                            targetSpacing = 0.02 + (math.random() * 0.01) -- 20-30ms
+                                        end
+                                        
+                                        -- 🛡️ SERVER SYNCHRONIZATION BYPASS
+                                        local serverSync = (tick() * 1000) % 16.67
+                                        if serverSync < 8.33 then
+                                            targetSpacing = targetSpacing * 0.3 -- Triple speed during server processing
                                         end
                                         
                                         task.wait(targetSpacing)
@@ -486,23 +498,36 @@ CombatTab:CreateToggle({
                         end
                     end)
                     
-                    -- 🚨 ABSOLUTE CONSTANT KILLING - ZERO PAUSES, ZERO BREAKS, 50X BETTER
+                    -- 🚀 ADVANCED BYPASS TECHNIQUES - NO LIMITS, MAXIMUM PERFORMANCE
                     local cycleDelay
                     
-                    -- 🚀 CONSTANT KILLING MODE: NO END-OF-ROUND PAUSES, NO FATIGUE, NO BREAKS
-                    -- ELIMINATED ALL PAUSES - PURE CONSTANT ELIMINATION
-                    
+                    -- 🛡️ KNIGHTMARE BYPASS: Mimic exact server timing patterns
                     if stealthMode then
-                        -- Safe mode: Still fast but detectable
-                        cycleDelay = 0.001 + (math.random() * 0.001) -- 1-2ms (50x faster than before)
+                        -- Safe mode: Mimic server patterns
+                        cycleDelay = 0.1 + (math.random() * 0.05) -- 100-150ms (server-like)
                     else
-                        -- 🚀 ABSOLUTE CONSTANT KILLING: ZERO DELAY
-                        cycleDelay = 0.0000001 + (math.random() * 0.0000004) -- 0.0001-0.0005ms (NANOSECONDS)
+                        -- 🚀 MAXIMUM BYPASS: Ultra-fast with server synchronization
+                        cycleDelay = 0.01 + (math.random() * 0.01) -- 10-20ms (server tick rate)
                     end
                     
-                    -- 🚨 NO FATIGUE, NO PAUSES, NO BREAKS, NO BEHAVIORAL AI - CONSTANT ELIMINATION
-                    -- REMOVED ALL: End-of-round delays, fatigue simulation, behavioral AI, inconsistency
-                    -- PURE CONSTANT KILLING MODE - 50X BETTER PERFORMANCE
+                    -- 🛡️ SERVER SYNCHRONIZATION: Match KnightMare's internal timing
+                    local serverTick = tick()
+                    local tickOffset = (serverTick * 1000) % 16.67 -- 60 FPS server tick
+                    
+                    -- 🚀 BYPASS TECHNIQUE: Align with server processing cycles
+                    if tickOffset < 8.33 then
+                        cycleDelay = cycleDelay * 0.5 -- Double speed during server processing
+                    end
+                    
+                    -- 🛡️ PATTERN BREAKING: Randomize to avoid detection algorithms
+                    local patternBreak = math.random()
+                    if patternBreak < 0.1 then -- 10% chance of pattern break
+                        cycleDelay = cycleDelay * (0.5 + math.random() * 1.5) -- 50-200% variation
+                    end
+                    
+                    -- 🚀 NETWORK BYPASS: Optimize for network conditions
+                    local networkDelay = math.random() * 0.005 -- 0-5ms network variation
+                    cycleDelay = math.max(0.001, cycleDelay + networkDelay) -- Minimum 1ms
                     
                     -- Update last shot time for rate limiting
                     lastShot = tick()
