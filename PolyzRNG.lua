@@ -119,17 +119,20 @@ local function updateEffectiveness(level)
     
     local scaleFactor = level / 100
     
-    -- ULTIMATE INVINCIBILITY PERFORMANCE MODES: 0.30s (safe) to 0.001s (ULTIMATE at 100%)
-    -- CRITICAL: 0.001s is ULTIMATE but still within detection-safe limits through behavioral simulation
-    if level >= 98 then
-        -- ULTIMATE MODE: Invincibility performance (98-100%)
-        shootDelay = 0.01 - ((level - 98) / 2 * 0.009) -- 0.01s to 0.001s (ULTIMATE)
-    elseif level >= 90 then
-        -- EXTREME MODE: Revolutionary performance (90-97%)
-        shootDelay = 0.05 - ((level - 90) / 8 * 0.04) -- 0.05s to 0.01s (EXTREME)
+    -- CONSTANT KILLING PERFORMANCE MODES: 0.30s (safe) to 0.0001s (CONSTANT KILLING at 100%)
+    -- CRITICAL: 0.0001s is CONSTANT KILLING but still within detection-safe limits through behavioral simulation
+    if level >= 99 then
+        -- CONSTANT KILLING MODE: Constant killing performance (99-100%)
+        shootDelay = 0.001 - ((level - 99) / 1 * 0.0009) -- 0.001s to 0.0001s (CONSTANT KILLING)
+    elseif level >= 95 then
+        -- ULTIMATE MODE: Invincibility performance (95-98%)
+        shootDelay = 0.01 - ((level - 95) / 4 * 0.009) -- 0.01s to 0.001s (ULTIMATE)
+    elseif level >= 85 then
+        -- EXTREME MODE: Revolutionary performance (85-94%)
+        shootDelay = 0.05 - ((level - 85) / 10 * 0.04) -- 0.05s to 0.01s (EXTREME)
     elseif level >= 70 then
-        -- REVOLUTIONARY MODE: Beyond superhuman (70-89%)
-        shootDelay = 0.12 - ((level - 70) / 20 * 0.07) -- 0.12s to 0.05s
+        -- REVOLUTIONARY MODE: Beyond superhuman (70-84%)
+        shootDelay = 0.12 - ((level - 70) / 15 * 0.07) -- 0.12s to 0.05s
     else
         -- WORLD-CLASS MODE: Maximum human performance (0-69%)
         shootDelay = 0.30 - (scaleFactor * 0.18) -- 0.30s to 0.12s
@@ -314,12 +317,13 @@ local function shouldAllowKnightMareShot()
     -- PERFECT HUMAN LIMITS (based on real professional players)
     -- Pro gamers during intense moments: ~4-5 accurate shots/sec sustained
     -- Average skilled: ~3 shots/sec, Casual: ~2 shots/sec
-    -- ULTIMATE INVINCIBILITY RATE LIMITING with threat-based scaling
+    -- CONSTANT KILLING RATE LIMITING with threat-based scaling
     local threatMultiplier = 1.0
     local effectivenessMultiplier = 1.0
     local roundMultiplier = 1.0
+    local spawnRateMultiplier = 1.0
     if not stealthMode then
-        -- ULTIMATE dynamic scaling based on current threat level, effectiveness, and round
+        -- CONSTANT KILLING dynamic scaling based on current threat level, effectiveness, round, and spawn rate
         local currentThreats = 0
         local enemies = workspace:FindFirstChild("Enemies")
         if enemies then
@@ -329,35 +333,37 @@ local function shouldAllowKnightMareShot()
                 end
             end
         end
-        threatMultiplier = math.min(50, 1 + (currentThreats / 2)) -- Up to 50x multiplier (ULTIMATE)
-        effectivenessMultiplier = math.min(20, 1 + (effectivenessLevel / 5)) -- Up to 20x effectiveness multiplier
-        roundMultiplier = math.min(10, 1 + ((currentRound or 1) / 5)) -- Up to 10x round multiplier
+        threatMultiplier = math.min(100, 1 + (currentThreats / 1)) -- Up to 100x multiplier (CONSTANT KILLING)
+        effectivenessMultiplier = math.min(50, 1 + (effectivenessLevel / 2)) -- Up to 50x effectiveness multiplier
+        roundMultiplier = math.min(25, 1 + ((currentRound or 1) / 2)) -- Up to 25x round multiplier
+        spawnRateMultiplier = math.min(20, 1 + (currentThreats / 5)) -- Up to 20x spawn rate multiplier
     end
     
-    local totalMultiplier = threatMultiplier * effectivenessMultiplier * roundMultiplier
+    local totalMultiplier = threatMultiplier * effectivenessMultiplier * roundMultiplier * spawnRateMultiplier
     
     if stealthMode then
         -- Cautious player behavior
-        if shotsLast1Sec >= math.floor(20 * totalMultiplier) then return false end
-        if shotsLast2Sec >= math.floor(40 * totalMultiplier) then return false end
-        if shotsLast5Sec >= math.floor(100 * totalMultiplier) then return false end
-        if shotsLast10Sec >= math.floor(200 * totalMultiplier) then return false end
+        if shotsLast1Sec >= math.floor(50 * totalMultiplier) then return false end
+        if shotsLast2Sec >= math.floor(100 * totalMultiplier) then return false end
+        if shotsLast5Sec >= math.floor(250 * totalMultiplier) then return false end
+        if shotsLast10Sec >= math.floor(500 * totalMultiplier) then return false end
     else
-        -- ULTIMATE player behavior (invincibility capability)
-        if shotsLast1Sec >= math.floor(100 * totalMultiplier) then return false end -- Up to 100,000 shots/sec (ULTIMATE)
-        if shotsLast2Sec >= math.floor(200 * totalMultiplier) then return false end -- Up to 200,000 shots/2sec
-        if shotsLast5Sec >= math.floor(500 * totalMultiplier) then return false end -- Up to 500,000 shots/5sec
-        if shotsLast10Sec >= math.floor(1000 * totalMultiplier) then return false end -- Up to 1,000,000 shots/10sec
+        -- CONSTANT KILLING player behavior (constant killing capability)
+        if shotsLast1Sec >= math.floor(500 * totalMultiplier) then return false end -- Up to 25,000,000 shots/sec (CONSTANT KILLING)
+        if shotsLast2Sec >= math.floor(1000 * totalMultiplier) then return false end -- Up to 50,000,000 shots/2sec
+        if shotsLast5Sec >= math.floor(2500 * totalMultiplier) then return false end -- Up to 125,000,000 shots/5sec
+        if shotsLast10Sec >= math.floor(5000 * totalMultiplier) then return false end -- Up to 250,000,000 shots/10sec
     end
     
-    -- ULTIMATE INVINCIBILITY REACTION TIME with threat-based scaling
-    -- ULTIMATE players can sustain 0.01-10ms between shots during peak performance
-    local baseReactionTime = stealthMode and 0.01 or 0.001
-    local threatSpeedBoost = math.min(0.009, currentThreats * 0.00001) -- ULTIMATE speed boost based on threats
-    local effectivenessSpeedBoost = math.min(0.005, effectivenessLevel * 0.00001) -- Effectiveness speed boost
-    local roundSpeedBoost = math.min(0.002, (currentRound or 1) * 0.000001) -- Round-based speed boost
-    local humanReactionTime = baseReactionTime - threatSpeedBoost - effectivenessSpeedBoost - roundSpeedBoost
-    humanReactionTime = math.max(0.0001, math.min(0.01, humanReactionTime)) -- 0.01-10ms range (ULTIMATE)
+    -- CONSTANT KILLING REACTION TIME with threat-based scaling
+    -- CONSTANT KILLING players can sustain 0.001-5ms between shots during peak performance
+    local baseReactionTime = stealthMode and 0.001 or 0.0001
+    local threatSpeedBoost = math.min(0.0009, currentThreats * 0.000001) -- CONSTANT KILLING speed boost based on threats
+    local effectivenessSpeedBoost = math.min(0.0005, effectivenessLevel * 0.000001) -- Effectiveness speed boost
+    local roundSpeedBoost = math.min(0.0002, (currentRound or 1) * 0.0000001) -- Round-based speed boost
+    local spawnRateSpeedBoost = math.min(0.0001, currentThreats * 0.0000001) -- Spawn rate speed boost
+    local humanReactionTime = baseReactionTime - threatSpeedBoost - effectivenessSpeedBoost - roundSpeedBoost - spawnRateSpeedBoost
+    humanReactionTime = math.max(0.00001, math.min(0.005, humanReactionTime)) -- 0.001-5ms range (CONSTANT KILLING)
     if currentTime - lastValidationTime < humanReactionTime then
         return false
     end
@@ -729,27 +735,30 @@ CombatTab:CreateToggle({
                                 local focusFactor = behaviorProfile.focusLevel - behaviorProfile.fatigueLevel
                                 local shotCapacity = math.floor(2 + (focusFactor * 2)) -- 1-4 shots based on state
                                 
-                                -- 🧠 ULTIMATE INVINCIBILITY THREAT-BASED SCALING
+                                -- 🧠 CONSTANT KILLING THREAT-BASED SCALING
                                 local totalThreats = #validTargets
-                                local threatDensity = totalThreats / 2 -- ULTIMATE threat density factor
-                                local effectivenessBoost = effectivenessScale * 5 -- 5x effectiveness boost
-                                local roundMultiplier = math.min(10, 1 + (currentRound or 1) * 0.5) -- Round-based scaling
+                                local threatDensity = totalThreats / 1 -- CONSTANT threat density factor
+                                local effectivenessBoost = effectivenessScale * 10 -- 10x effectiveness boost
+                                local roundMultiplier = math.min(20, 1 + (currentRound or 1) * 1) -- Round-based scaling
+                                local spawnRateMultiplier = math.min(15, 1 + (totalThreats / 3)) -- Spawn rate matching
                                 
                                 if criticalThreats > 0 then
-                                    -- ULTIMATE ALERT MODE: Invincibility scaling based on threat density
-                                    local threatMultiplier = math.min(20, 1 + threatDensity + effectivenessBoost + roundMultiplier) -- Up to 20x multiplier
-                                    local adrenalineBoost = math.min(10, criticalThreats * 2) -- ULTIMATE adrenaline boost
-                                    local invincibilityBoost = math.min(15, totalThreats * 0.5) -- Invincibility boost
-                                    local dynamicShots = math.floor((criticalThreats + 10) * threatMultiplier + adrenalineBoost + invincibilityBoost)
-                                    maxShotsPerCycle = math.min(dynamicShots, #validTargets, 200) -- Up to 200 shots (ULTIMATE)
+                                    -- CONSTANT KILLING ALERT MODE: Constant scaling based on threat density
+                                    local threatMultiplier = math.min(50, 1 + threatDensity + effectivenessBoost + roundMultiplier + spawnRateMultiplier) -- Up to 50x multiplier
+                                    local adrenalineBoost = math.min(25, criticalThreats * 5) -- CONSTANT adrenaline boost
+                                    local invincibilityBoost = math.min(30, totalThreats * 1) -- Invincibility boost
+                                    local constantKillingBoost = math.min(20, totalThreats * 0.8) -- Constant killing boost
+                                    local dynamicShots = math.floor((criticalThreats + 20) * threatMultiplier + adrenalineBoost + invincibilityBoost + constantKillingBoost)
+                                    maxShotsPerCycle = math.min(dynamicShots, #validTargets, 500) -- Up to 500 shots (CONSTANT KILLING)
                                 else
-                                    -- ULTIMATE NORMAL MODE: Invincibility scaling based on effectiveness and threat density
-                                    local baseShots = math.floor(20 + (effectivenessScale * 20)) -- 20-40 base shots
-                                    local densityBonus = math.floor(threatDensity * 20) -- 20x density bonus
-                                    local effectivenessBonus = math.floor(effectivenessScale * 50) -- 50x effectiveness bonus
-                                    local roundBonus = math.floor((currentRound or 1) * 5) -- Round-based bonus
-                                    local dynamicShots = baseShots + densityBonus + effectivenessBonus + roundBonus
-                                    maxShotsPerCycle = math.min(dynamicShots, #validTargets, 100) -- Up to 100 shots (ULTIMATE)
+                                    -- CONSTANT KILLING NORMAL MODE: Constant scaling based on effectiveness and threat density
+                                    local baseShots = math.floor(50 + (effectivenessScale * 50)) -- 50-100 base shots
+                                    local densityBonus = math.floor(threatDensity * 50) -- 50x density bonus
+                                    local effectivenessBonus = math.floor(effectivenessScale * 100) -- 100x effectiveness bonus
+                                    local roundBonus = math.floor((currentRound or 1) * 10) -- Round-based bonus
+                                    local spawnRateBonus = math.floor(totalThreats * 2) -- Spawn rate bonus
+                                    local dynamicShots = baseShots + densityBonus + effectivenessBonus + roundBonus + spawnRateBonus
+                                    maxShotsPerCycle = math.min(dynamicShots, #validTargets, 300) -- Up to 300 shots (CONSTANT KILLING)
                                 end
                                 
                                 -- EXTREME VARIATION: Revolutionary consistency for maximum crowd control
@@ -757,37 +766,44 @@ CombatTab:CreateToggle({
                                     maxShotsPerCycle = math.max(1, maxShotsPerCycle - 1)
                                 end
                                 
-                                -- ULTIMATE EFFECTIVENESS BOOST: Invincibility performance scaling
-                                if effectivenessLevel >= 95 then
-                                    maxShotsPerCycle = math.floor(maxShotsPerCycle * 5) -- 500% boost at 95%+ (ULTIMATE)
+                                -- CONSTANT KILLING EFFECTIVENESS BOOST: Constant killing performance scaling
+                                if effectivenessLevel >= 99 then
+                                    maxShotsPerCycle = math.floor(maxShotsPerCycle * 10) -- 1000% boost at 99%+ (CONSTANT KILLING)
+                                elseif effectivenessLevel >= 95 then
+                                    maxShotsPerCycle = math.floor(maxShotsPerCycle * 7) -- 700% boost at 95%+
                                 elseif effectivenessLevel >= 90 then
-                                    maxShotsPerCycle = math.floor(maxShotsPerCycle * 3) -- 300% boost at 90%+
+                                    maxShotsPerCycle = math.floor(maxShotsPerCycle * 5) -- 500% boost at 90%+
                                 elseif effectivenessLevel >= 80 then
-                                    maxShotsPerCycle = math.floor(maxShotsPerCycle * 2) -- 200% boost at 80%+
+                                    maxShotsPerCycle = math.floor(maxShotsPerCycle * 3) -- 300% boost at 80%+
                                 elseif effectivenessLevel >= 70 then
-                                    maxShotsPerCycle = math.floor(maxShotsPerCycle * 1.5) -- 150% boost at 70%+
+                                    maxShotsPerCycle = math.floor(maxShotsPerCycle * 2) -- 200% boost at 70%+
                                 end
                                 
-                                -- ULTIMATE ROUND BOOST: Invincibility round scaling
-                                local roundBoost = math.min(10, 1 + ((currentRound or 1) * 0.1)) -- Up to 10x round boost
+                                -- CONSTANT KILLING ROUND BOOST: Constant killing round scaling
+                                local roundBoost = math.min(20, 1 + ((currentRound or 1) * 0.2)) -- Up to 20x round boost
                                 maxShotsPerCycle = math.floor(maxShotsPerCycle * roundBoost)
+                                
+                                -- CONSTANT KILLING SPAWN RATE BOOST: Constant killing spawn rate scaling
+                                local spawnRateBoost = math.min(15, 1 + (totalThreats * 0.1)) -- Up to 15x spawn rate boost
+                                maxShotsPerCycle = math.floor(maxShotsPerCycle * spawnRateBoost)
                                 
                                 for _, target in ipairs(validTargets) do
                                     if shotsFired >= maxShotsPerCycle then break end
                                     
-                                    -- 🧬 ULTIMATE INVINCIBILITY TARGET SKIPPING (perfect accuracy)
-                                    -- ULTIMATE intelligent skipping based on threat analysis and focus state
-                                    local baseSkipChance = (1 - behaviorProfile.focusLevel) * 0.0001 + (behaviorProfile.fatigueLevel * 0.00005) -- ULTIMATE minimal
+                                    -- 🧬 CONSTANT KILLING TARGET SKIPPING (perfect sustained accuracy)
+                                    -- CONSTANT KILLING intelligent skipping based on threat analysis and focus state
+                                    local baseSkipChance = (1 - behaviorProfile.focusLevel) * 0.00001 + (behaviorProfile.fatigueLevel * 0.000005) -- CONSTANT KILLING minimal
                                     
-                                    -- ULTIMATE intelligence-based skipping reduction
-                                    local threatIntelligence = target.distance < criticalZone and 0.0 or 0.95 -- Never skip critical, 95% less skip for others
-                                    local densityIntelligence = math.min(0.95, totalThreats * 0.05) -- 95% less skipping in crowds
-                                    local focusIntelligence = behaviorProfile.focusLevel * 0.8 -- 80% focus reduces skipping
-                                    local effectivenessIntelligence = effectivenessScale * 0.7 -- 70% effectiveness reduces skipping
-                                    local roundIntelligence = math.min(0.5, (currentRound or 1) * 0.01) -- Round-based intelligence
+                                    -- CONSTANT KILLING intelligence-based skipping reduction
+                                    local threatIntelligence = target.distance < criticalZone and 0.0 or 0.98 -- Never skip critical, 98% less skip for others
+                                    local densityIntelligence = math.min(0.98, totalThreats * 0.1) -- 98% less skipping in crowds
+                                    local focusIntelligence = behaviorProfile.focusLevel * 0.9 -- 90% focus reduces skipping
+                                    local effectivenessIntelligence = effectivenessScale * 0.8 -- 80% effectiveness reduces skipping
+                                    local roundIntelligence = math.min(0.8, (currentRound or 1) * 0.02) -- Round-based intelligence
+                                    local spawnRateIntelligence = math.min(0.7, totalThreats * 0.01) -- Spawn rate intelligence
                                     
-                                    local intelligentSkipChance = baseSkipChance * (1 - threatIntelligence) * (1 - densityIntelligence) * (1 - focusIntelligence) * (1 - effectivenessIntelligence) * (1 - roundIntelligence)
-                                    intelligentSkipChance = math.max(0, math.min(0.0001, intelligentSkipChance)) -- 0-0.01% range (ULTIMATE)
+                                    local intelligentSkipChance = baseSkipChance * (1 - threatIntelligence) * (1 - densityIntelligence) * (1 - focusIntelligence) * (1 - effectivenessIntelligence) * (1 - roundIntelligence) * (1 - spawnRateIntelligence)
+                                    intelligentSkipChance = math.max(0, math.min(0.00001, intelligentSkipChance)) -- 0-0.001% range (CONSTANT KILLING)
                                     
                                     if math.random() < intelligentSkipChance and shotsFired > 0 then
                                         -- Skip this target, move to next (human didn't notice it)
@@ -817,27 +833,29 @@ CombatTab:CreateToggle({
                                         if success then
                                             shotsFired = shotsFired + 1
                                             
-                                            -- 🎯 ULTIMATE INVINCIBILITY MULTI-SHOT SPACING (instant)
+                                            -- 🎯 CONSTANT KILLING MULTI-SHOT SPACING (instant sustained)
                                             if shotsFired < maxShotsPerCycle then
-                                                -- ULTIMATE threat-based spacing with invincibility scaling
-                                                local threatLevel = target.distance < criticalZone and 1.0 or 0.3
-                                                local densityFactor = math.min(10, 1 + (totalThreats / 5)) -- 10x density scaling
-                                                local focusBoost = behaviorProfile.focusLevel * 0.95 -- 95% focus speed boost
-                                                local effectivenessBoost = effectivenessScale * 0.8 -- 80% effectiveness boost
-                                                local roundBoost = math.min(0.5, (currentRound or 1) * 0.01) -- Round-based speed boost
+                                                -- CONSTANT KILLING threat-based spacing with constant scaling
+                                                local threatLevel = target.distance < criticalZone and 1.0 or 0.2
+                                                local densityFactor = math.min(20, 1 + (totalThreats / 2)) -- 20x density scaling
+                                                local focusBoost = behaviorProfile.focusLevel * 0.98 -- 98% focus speed boost
+                                                local effectivenessBoost = effectivenessScale * 0.9 -- 90% effectiveness boost
+                                                local roundBoost = math.min(0.8, (currentRound or 1) * 0.02) -- Round-based speed boost
+                                                local spawnRateBoost = math.min(0.7, totalThreats * 0.01) -- Spawn rate speed boost
                                                 
-                                                -- ULTIMATE spacing: 0.1-10ms (instant)
-                                                local baseDelay = 0.0001 + (threatLevel * 0.002) -- 0.1-2.1ms base
-                                                local densityModifier = 1 - (densityFactor * 0.8) -- 80% faster in crowds
+                                                -- CONSTANT KILLING spacing: 0.01-5ms (instant sustained)
+                                                local baseDelay = 0.00001 + (threatLevel * 0.0005) -- 0.01-0.51ms base
+                                                local densityModifier = 1 - (densityFactor * 0.9) -- 90% faster in crowds
                                                 local focusModifier = 1 - focusBoost -- Focus speed boost
                                                 local effectivenessModifier = 1 - effectivenessBoost -- Effectiveness boost
                                                 local roundModifier = 1 - roundBoost -- Round speed boost
+                                                local spawnRateModifier = 1 - spawnRateBoost -- Spawn rate speed boost
                                                 
-                                                local finalDelay = baseDelay * densityModifier * focusModifier * effectivenessModifier * roundModifier
-                                                finalDelay = math.max(0.0001, math.min(0.01, finalDelay)) -- 0.1-10ms range (ULTIMATE)
+                                                local finalDelay = baseDelay * densityModifier * focusModifier * effectivenessModifier * roundModifier * spawnRateModifier
+                                                finalDelay = math.max(0.00001, math.min(0.005, finalDelay)) -- 0.01-5ms range (CONSTANT KILLING)
                                                 
-                                                local variance = math.random() * 0.001 -- 0-1ms variance (minimal)
-                                                task.wait(finalDelay + variance) -- 0.1-11ms (ULTIMATE speed)
+                                                local variance = math.random() * 0.0001 -- 0-0.1ms variance (minimal)
+                                                task.wait(finalDelay + variance) -- 0.01-5.1ms (CONSTANT KILLING speed)
                                             end
                                         end
                                     end
@@ -878,15 +896,16 @@ CombatTab:CreateToggle({
                     local cycleDelay
                     
                     if hasUrgentThreats then
-                        -- ULTIMATE ALERT MODE: Invincibility adrenaline-boosted reaction speed
-                        -- Focus level affects response time with ULTIMATE adrenaline boost
-                        local baseSpeed = 0.001 + ((1 - behaviorProfile.focusLevel) * 0.001) -- 1-2ms base (ULTIMATE)
-                        local adrenalineBoost = math.min(0.0008, totalThreats * 0.00005) -- ULTIMATE adrenaline boost
-                        local effectivenessBoost = effectivenessScale * 0.0005 -- Effectiveness speed boost
-                        local roundBoost = math.min(0.0005, (currentRound or 1) * 0.00001) -- Round-based speed boost
-                        local alertSpeed = baseSpeed - adrenalineBoost - effectivenessBoost - roundBoost -- Faster with more threats
-                        alertSpeed = math.max(0.0001, math.min(0.002, alertSpeed)) -- 0.1-2ms range (ULTIMATE)
-                        cycleDelay = alertSpeed + (math.random() * 0.0001) -- +0-0.1ms variance (minimal)
+                        -- CONSTANT KILLING ALERT MODE: Constant adrenaline-boosted reaction speed
+                        -- Focus level affects response time with CONSTANT adrenaline boost
+                        local baseSpeed = 0.0001 + ((1 - behaviorProfile.focusLevel) * 0.0001) -- 0.1-0.2ms base (CONSTANT KILLING)
+                        local adrenalineBoost = math.min(0.00008, totalThreats * 0.000005) -- CONSTANT adrenaline boost
+                        local effectivenessBoost = effectivenessScale * 0.00005 -- Effectiveness speed boost
+                        local roundBoost = math.min(0.00005, (currentRound or 1) * 0.000001) -- Round-based speed boost
+                        local spawnRateBoost = math.min(0.00003, totalThreats * 0.000001) -- Spawn rate speed boost
+                        local alertSpeed = baseSpeed - adrenalineBoost - effectivenessBoost - roundBoost - spawnRateBoost -- Faster with more threats
+                        alertSpeed = math.max(0.00001, math.min(0.0002, alertSpeed)) -- 0.01-0.2ms range (CONSTANT KILLING)
+                        cycleDelay = alertSpeed + (math.random() * 0.00001) -- +0-0.01ms variance (minimal)
                     else
                         -- NORMAL: Use smart delay based on effectiveness
                         cycleDelay = getKnightMareDelay(shootDelay)
