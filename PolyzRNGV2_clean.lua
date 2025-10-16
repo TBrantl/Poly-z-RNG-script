@@ -248,6 +248,9 @@ CombatTab:CreateToggle({
                             local weapon = getEquippedWeaponName()
                             local validTargets = {}
                             
+                            -- Debug: Print weapon name
+                            print("[DEBUG] Weapon:", weapon)
+                            
                             -- Collect ALL living enemies with distance info
                             local character = player.Character
                             local root = character and character:FindFirstChild("HumanoidRootPart")
@@ -274,6 +277,7 @@ CombatTab:CreateToggle({
                             end
                             
                             -- 🎯 SUPERHUMAN TARGETING SYSTEM
+                            print("[DEBUG] Valid targets found:", #validTargets)
                             if #validTargets > 0 then
                                 -- Sort by distance and threat level
                                 table.sort(validTargets, function(a, b)
@@ -332,17 +336,8 @@ CombatTab:CreateToggle({
                                                 raycastParams.FilterDescendantsInstances = {workspace.Enemies}
                                                 raycastParams.FilterType = Enum.RaycastFilterType.Include
                                                 
-                                                -- 🛡️ KNIGHTMARE SPREAD CALCULATION: Match game's exact spread
-                                                local camera = workspace.CurrentCamera
-                                                local spreadAngle = math.rad(0.5) -- KnightMare's spread angle
-                                                local randomX = (math.random() - 0.5) * spreadAngle
-                                                local randomY = (math.random() - 0.5) * spreadAngle
-                                                
-                                                -- Apply spread to direction
-                                                local spreadDirection = (camera.CFrame * CFrame.Angles(randomX, randomY, 0)).LookVector
-                                                local spreadDistance = math.min(distance, 250) -- KnightMare's max range
-                                                
-                                                local rayResult = workspace:Raycast(origin, spreadDirection * spreadDistance, raycastParams)
+                                                -- Use direct direction to target (working method)
+                                                local rayResult = workspace:Raycast(origin, direction * distance, raycastParams)
                                                 
                                                 if rayResult and rayResult.Instance:IsDescendantOf(workspace.Enemies) then
                                                     -- 🛡️ KNIGHTMARE-EXACT FIRESERVER ARGUMENTS
@@ -368,6 +363,7 @@ CombatTab:CreateToggle({
                                                         if success then
                                                             shotsFired = shotsFired + 1
                                                             performanceStats.shotsSuccessful = performanceStats.shotsSuccessful + 1
+                                                            print("[DEBUG] Shot fired successfully! Total shots:", shotsFired)
                                                             
                                                             -- 🛡️ KNIGHTMARE-SYNCHRONIZED MULTI-SHOT SPACING
                                                             if shotsFired < maxShots then
@@ -388,6 +384,7 @@ CombatTab:CreateToggle({
                                                             end
                                                         else
                                                             performanceStats.shotsBlocked = performanceStats.shotsBlocked + 1
+                                                            print("[DEBUG] Shot failed! Blocked shots:", performanceStats.shotsBlocked)
                                                         end
                                                     end
                                                 end
@@ -395,7 +392,11 @@ CombatTab:CreateToggle({
                                         end
                                     end
                                 end
+                            else
+                                print("[DEBUG] No valid targets found")
                             end
+                        else
+                            print("[DEBUG] Missing enemies or shootRemote")
                         end
                     end)
                     
