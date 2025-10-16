@@ -296,25 +296,16 @@ CombatTab:CreateToggle({
                                 local shotsFired = 0
                                 local effectivenessScale = effectivenessLevel / 100
                                 
-                                -- 🛡️ KNIGHTMARE RATE LIMITING: Respect server-side limits
-                                local currentTime = tick()
-                                local timeSinceLastShot = currentTime - lastShot
-                                
-                                -- Calculate max shots based on effectiveness with KnightMare limits
+                                -- Calculate max shots based on effectiveness (simplified)
                                 local maxShots
                                 if effectivenessLevel >= 95 then
-                                    maxShots = math.min(8, #validTargets) -- Reduced to avoid detection
+                                    maxShots = math.min(6, #validTargets) -- Up to 6 shots at 95%+
                                 elseif effectivenessLevel >= 80 then
-                                    maxShots = math.min(6, #validTargets) -- Reduced to avoid detection
+                                    maxShots = math.min(5, #validTargets) -- Up to 5 shots at 80%+
                                 elseif effectivenessLevel >= 60 then
-                                    maxShots = math.min(4, #validTargets) -- Reduced to avoid detection
+                                    maxShots = math.min(4, #validTargets) -- Up to 4 shots at 60%+
                                 else
-                                    maxShots = math.min(3, #validTargets) -- Safe baseline
-                                end
-                                
-                                -- 🛡️ KNIGHTMARE TIMING VALIDATION: Ensure minimum shot spacing
-                                if timeSinceLastShot < 0.1 then -- Minimum 100ms between shot cycles
-                                    maxShots = math.min(1, maxShots) -- Force single shot if too fast
+                                    maxShots = math.min(3, #validTargets) -- Up to 3 shots below 60%
                                 end
                                 
                                 for i = 1, maxShots do
@@ -343,49 +334,35 @@ CombatTab:CreateToggle({
                                                     -- 🛡️ KNIGHTMARE-EXACT FIRESERVER ARGUMENTS
                                                     local args = {target.model, rayResult.Instance, rayResult.Position, 0, weapon}
                                                     
-                                                    -- 🛡️ KNIGHTMARE VALIDATION: Ensure all arguments are valid
-                                                    local isValidShot = true
-                                                    if not target.model or not target.model.Parent then
-                                                        isValidShot = false
-                                                    end
-                                                    if not rayResult.Instance or not rayResult.Instance.Parent then
-                                                        isValidShot = false
-                                                    end
-                                                    if not weapon or weapon == "" then
-                                                        isValidShot = false
-                                                    end
+                                                    local success = pcall(function()
+                                                        shootRemote:FireServer(unpack(args))
+                                                    end)
                                                     
-                                                    if isValidShot then
-                                                        local success = pcall(function()
-                                                            shootRemote:FireServer(unpack(args))
-                                                        end)
+                                                    if success then
+                                                        shotsFired = shotsFired + 1
+                                                        performanceStats.shotsSuccessful = performanceStats.shotsSuccessful + 1
+                                                        print("[DEBUG] Shot fired successfully! Total shots:", shotsFired)
                                                         
-                                                        if success then
-                                                            shotsFired = shotsFired + 1
-                                                            performanceStats.shotsSuccessful = performanceStats.shotsSuccessful + 1
-                                                            print("[DEBUG] Shot fired successfully! Total shots:", shotsFired)
-                                                            
-                                                            -- 🛡️ KNIGHTMARE-SYNCHRONIZED MULTI-SHOT SPACING
-                                                            if shotsFired < maxShots then
-                                                                local spacingDelay
-                                                                if effectivenessLevel >= 95 then
-                                                                    spacingDelay = 0.08 + (math.random() * 0.04) -- 80-120ms (KnightMare safe)
-                                                                elseif effectivenessLevel >= 80 then
-                                                                    spacingDelay = 0.12 + (math.random() * 0.06) -- 120-180ms (KnightMare safe)
-                                                                else
-                                                                    spacingDelay = 0.15 + (math.random() * 0.1) -- 150-250ms (KnightMare safe)
-                                                                end
-                                                                
-                                                                -- 🛡️ KNIGHTMARE HUMANIZATION: Add natural variation
-                                                                local humanVariation = (math.random() - 0.5) * 0.02 -- ±10ms variation
-                                                                spacingDelay = math.max(0.05, spacingDelay + humanVariation) -- Minimum 50ms
-                                                                
-                                                                task.wait(spacingDelay)
+                                                        -- 🛡️ KNIGHTMARE-SYNCHRONIZED MULTI-SHOT SPACING
+                                                        if shotsFired < maxShots then
+                                                            local spacingDelay
+                                                            if effectivenessLevel >= 95 then
+                                                                spacingDelay = 0.08 + (math.random() * 0.04) -- 80-120ms (KnightMare safe)
+                                                            elseif effectivenessLevel >= 80 then
+                                                                spacingDelay = 0.12 + (math.random() * 0.06) -- 120-180ms (KnightMare safe)
+                                                            else
+                                                                spacingDelay = 0.15 + (math.random() * 0.1) -- 150-250ms (KnightMare safe)
                                                             end
-                                                        else
-                                                            performanceStats.shotsBlocked = performanceStats.shotsBlocked + 1
-                                                            print("[DEBUG] Shot failed! Blocked shots:", performanceStats.shotsBlocked)
+                                                            
+                                                            -- 🛡️ KNIGHTMARE HUMANIZATION: Add natural variation
+                                                            local humanVariation = (math.random() - 0.5) * 0.02 -- ±10ms variation
+                                                            spacingDelay = math.max(0.05, spacingDelay + humanVariation) -- Minimum 50ms
+                                                            
+                                                            task.wait(spacingDelay)
                                                         end
+                                                    else
+                                                        performanceStats.shotsBlocked = performanceStats.shotsBlocked + 1
+                                                        print("[DEBUG] Shot failed! Blocked shots:", performanceStats.shotsBlocked)
                                                     end
                                                 end
                                             end
