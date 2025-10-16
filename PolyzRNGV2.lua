@@ -4,8 +4,17 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
 
--- Load Rayfield UI Library
-local Rayfield = loadstring(game:HttpGet('https://limerbro.github.io/Roblox-Limer/rayfield.lua'))()
+-- Load Rayfield UI Library with error handling
+local Rayfield
+local success, error = pcall(function()
+    Rayfield = loadstring(game:HttpGet('https://limerbro.github.io/Roblox-Limer/rayfield.lua'))()
+end)
+
+if not success then
+    warn("[Freezy HUB] Failed to load Rayfield UI Library:", error)
+    -- Create a simple fallback UI or exit gracefully
+    return
+end
 
 -- Wait for Remotes safely
 local Remotes
@@ -175,7 +184,6 @@ local lastValidationTime = 0
 local shotHistory = {} -- Track shot timing patterns
 local detectionRisk = 0 -- Dynamic risk assessment
 local adaptiveDelay = 0.1 -- Starts conservative, adapts based on success
-local currentRound = 1 -- Current round number
 
 -- 🧠 REVOLUTIONARY ADAPTIVE INTELLIGENCE SYSTEM
 local stealthMode = true -- Ultra-safe by default
@@ -351,7 +359,7 @@ local function shouldAllowKnightMareShot()
         end
         threatMultiplier = math.min(100, 1 + (currentThreats / 1)) -- Up to 100x multiplier (CONSTANT KILLING)
         effectivenessMultiplier = math.min(50, 1 + (effectivenessLevel / 2)) -- Up to 50x effectiveness multiplier
-        roundMultiplier = math.min(25, 1 + ((currentRound or 1) / 2)) -- Up to 25x round multiplier
+        roundMultiplier = math.min(25, 1 + (1 / 2)) -- Up to 25x round multiplier
         spawnRateMultiplier = math.min(20, 1 + (currentThreats / 5)) -- Up to 20x spawn rate multiplier
     end
     
@@ -376,7 +384,7 @@ local function shouldAllowKnightMareShot()
     local baseReactionTime = stealthMode and 0.001 or 0.0001
     local threatSpeedBoost = math.min(0.0009, currentThreats * 0.000001) -- CONSTANT KILLING speed boost based on threats
     local effectivenessSpeedBoost = math.min(0.0005, effectivenessLevel * 0.000001) -- Effectiveness speed boost
-    local roundSpeedBoost = math.min(0.0002, (currentRound or 1) * 0.0000001) -- Round-based speed boost
+    local roundSpeedBoost = math.min(0.0002, 1 * 0.0000001) -- Round-based speed boost
     local spawnRateSpeedBoost = math.min(0.0001, currentThreats * 0.0000001) -- Spawn rate speed boost
     local humanReactionTime = baseReactionTime - threatSpeedBoost - effectivenessSpeedBoost - roundSpeedBoost - spawnRateSpeedBoost
     humanReactionTime = math.max(0.00001, math.min(0.005, humanReactionTime)) -- 0.001-5ms range (CONSTANT KILLING)
@@ -755,7 +763,7 @@ CombatTab:CreateToggle({
                                 local totalThreats = #validTargets
                                 local threatDensity = math.min(5, totalThreats / 2) -- Bounded threat density
                                 local effectivenessBoost = math.min(3, effectivenessScale * 2.5) -- Bounded effectiveness boost
-                                local roundMultiplier = math.min(2.5, 1 + (currentRound or 1) * 0.08) -- Bounded round scaling
+                                local roundMultiplier = math.min(2.5, 1 + 1 * 0.08) -- Bounded round scaling
                                 local spawnRateMultiplier = math.min(2, 1 + (totalThreats / 8)) -- Bounded spawn rate matching
                                 
                                 if criticalThreats > 0 then
@@ -771,7 +779,7 @@ CombatTab:CreateToggle({
                                     local baseShots = math.floor(12 + (effectivenessScale * 20)) -- 12-32 base shots
                                     local densityBonus = math.floor(threatDensity * 4) -- 4x density bonus
                                     local effectivenessBonus = math.floor(effectivenessScale * 12) -- 12x effectiveness bonus
-                                    local roundBonus = math.floor((currentRound or 1) * 0.5) -- Round-based bonus
+                                    local roundBonus = math.floor(1 * 0.5) -- Round-based bonus
                                     local spawnRateBonus = math.floor(totalThreats * 0.5) -- Spawn rate bonus
                                     local dynamicShots = baseShots + densityBonus + effectivenessBonus + roundBonus + spawnRateBonus
                                     maxShotsPerCycle = math.min(dynamicShots, #validTargets, 120) -- Up to 120 shots in normal mode (OPTIMIZED)
@@ -796,7 +804,7 @@ CombatTab:CreateToggle({
                                 end
                                 
                                 -- 🚀 SUPERHUMAN ROUND BOOST: AI-powered round scaling
-                                local roundBoost = math.min(3.5, 1 + ((currentRound or 1) * 0.05)) -- Up to 3.5x round boost (SUPERHUMAN)
+                                local roundBoost = math.min(3.5, 1 + (1 * 0.05)) -- Up to 3.5x round boost (SUPERHUMAN)
                                 maxShotsPerCycle = math.floor(maxShotsPerCycle * roundBoost)
                                 
                                 -- 🚀 SUPERHUMAN SPAWN RATE BOOST: AI-powered spawn rate scaling
@@ -815,7 +823,7 @@ CombatTab:CreateToggle({
                                     local densityIntelligence = math.min(0.9, totalThreats * 0.1) -- 90% less skipping in crowds
                                     local focusIntelligence = behaviorProfile.focusLevel * 0.8 -- 80% focus reduces skipping
                                     local effectivenessIntelligence = effectivenessScale * 0.7 -- 70% effectiveness reduces skipping
-                                    local roundIntelligence = math.min(0.7, (currentRound or 1) * 0.02) -- Round-based intelligence
+                                    local roundIntelligence = math.min(0.7, 1 * 0.02) -- Round-based intelligence
                                     local spawnRateIntelligence = math.min(0.6, totalThreats * 0.015) -- Spawn rate intelligence
                                     
                                     local intelligentSkipChance = baseSkipChance * (1 - threatIntelligence) * (1 - densityIntelligence) * (1 - focusIntelligence) * (1 - effectivenessIntelligence) * (1 - roundIntelligence) * (1 - spawnRateIntelligence)
@@ -856,7 +864,7 @@ CombatTab:CreateToggle({
                                                 local densityFactor = math.min(8, 1 + (totalThreats / 3)) -- 8x density scaling (optimized)
                                                 local focusBoost = behaviorProfile.focusLevel * 0.7 -- 70% focus speed boost
                                                 local effectivenessBoost = effectivenessScale * 0.6 -- 60% effectiveness boost
-                                                local roundBoost = math.min(0.5, (currentRound or 1) * 0.015) -- Round-based speed boost
+                                                local roundBoost = math.min(0.5, 1 * 0.015) -- Round-based speed boost
                                                 local spawnRateBoost = math.min(0.4, totalThreats * 0.012) -- Spawn rate speed boost
                                                 
                                                 -- SUPERHUMAN spacing: 0.5-15ms (AI-powered instant sustained)
@@ -918,7 +926,7 @@ CombatTab:CreateToggle({
                         local baseSpeed = 0.002 + ((1 - behaviorProfile.focusLevel) * 0.003) -- 2-5ms base (SUPERHUMAN)
                         local adrenalineBoost = math.min(0.001, totalThreats * 0.0001) -- SUPERHUMAN adrenaline boost
                         local effectivenessBoost = effectivenessScale * 0.0008 -- Effectiveness speed boost
-                        local roundBoost = math.min(0.0005, (currentRound or 1) * 0.00005) -- Round-based speed boost
+                        local roundBoost = math.min(0.0005, 1 * 0.00005) -- Round-based speed boost
                         local spawnRateBoost = math.min(0.0003, totalThreats * 0.00003) -- Spawn rate speed boost
                         local alertSpeed = baseSpeed - adrenalineBoost - effectivenessBoost - roundBoost - spawnRateBoost -- Faster with more threats
                         alertSpeed = math.max(0.001, math.min(0.005, alertSpeed)) -- 1-5ms range (SUPERHUMAN)
