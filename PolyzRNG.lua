@@ -119,9 +119,9 @@ local function updateEffectiveness(level)
     
     local scaleFactor = level / 100
     
-    -- Adaptive shot delay: 0.30s (safe) to 0.18s (skilled human at 100%)
-    -- CRITICAL: Never go below 0.18s - that's the absolute human limit
-    shootDelay = 0.30 - (scaleFactor * 0.12)
+    -- Enhanced shot delay: 0.30s (safe) to 0.16s (elite human at 100%)
+    -- CRITICAL: Never go below 0.16s - that's the absolute elite human limit
+    shootDelay = 0.30 - (scaleFactor * 0.14)
     
     -- Adaptive human reaction time
     adaptiveDelay = shootDelay
@@ -129,8 +129,8 @@ local function updateEffectiveness(level)
     -- Auto-enable stealth mode for lower effectiveness
     stealthMode = level < 70 -- Below 70% = stealth, above = performance
     
-    -- DYNAMIC RANGE SCALING: Higher effectiveness = longer range engagement
-    -- 0% = 150 studs, 50% = 200 studs, 100% = 250 studs (game max)
+    -- ENHANCED RANGE SCALING: Higher effectiveness = longer range engagement
+    -- 0% = 150 studs, 50% = 225 studs, 100% = 250 studs (game max)
     maxShootDistance = math.floor(150 + (scaleFactor * 100))
     
     -- Reset risk when changing effectiveness
@@ -392,13 +392,28 @@ local function getKnightMareShotPosition(targetHead, targetModel)
             -- 🔄 OBSTACLE DETECTED - Smart alternative targeting
             -- KnightMare allows multiple raycast attempts (human-like behavior)
             
-            -- Try multiple body parts (important for bosses with different structures)
+            -- 🎯 INTELLIGENT HITBOX PRIORITIZATION FOR MAXIMUM HIT RATE
+            -- Prioritize larger, easier-to-hit body parts first
             local bodyParts = {
-                "Torso", "UpperTorso", "LowerTorso",
-                "HumanoidRootPart", 
-                "Left Arm", "Right Arm", "LeftUpperArm", "RightUpperArm",
-                "Left Leg", "Right Leg", "LeftUpperLeg", "RightUpperLeg"
+                -- PRIMARY TARGETS: Large, easy-to-hit body parts (highest priority)
+                "Head", "Torso", "UpperTorso", "LowerTorso", "HumanoidRootPart",
+                -- SECONDARY TARGETS: Medium-sized parts
+                "LeftUpperArm", "RightUpperArm", "LeftUpperLeg", "RightUpperLeg",
+                -- TERTIARY TARGETS: Smaller parts (only if others fail)
+                "Left Arm", "Right Arm", "Left Leg", "Right Leg"
             }
+            
+            -- 🎯 HITBOX SIZE WEIGHTS (larger = easier to hit, better hit rate)
+            local hitboxWeights = {
+                ["Head"] = 1.0, -- Perfect target, one-shot potential
+                ["Torso"] = 0.9, ["UpperTorso"] = 0.9, ["LowerTorso"] = 0.9, ["HumanoidRootPart"] = 0.9, -- Large targets
+                ["LeftUpperArm"] = 0.7, ["RightUpperArm"] = 0.7, ["LeftUpperLeg"] = 0.7, ["RightUpperLeg"] = 0.7, -- Medium targets
+                ["Left Arm"] = 0.5, ["Right Arm"] = 0.5, ["Left Leg"] = 0.5, ["Right Leg"] = 0.5 -- Small targets
+            }
+            
+            -- 🎯 SMART HITBOX SELECTION WITH WEIGHTED PRIORITY
+            local bestHit = nil
+            local bestWeight = 0
             
             for _, partName in ipairs(bodyParts) do
                 local part = targetModel:FindFirstChild(partName)
@@ -408,10 +423,26 @@ local function getKnightMareShotPosition(targetHead, targetModel)
                     local partRay = workspace:Raycast(origin, partDir * partDist, raycastParams)
                     
                     if partRay and partRay.Instance:IsDescendantOf(workspace.Enemies) then
-                        -- This part is visible! Shoot it
-                        return partRay.Position, partRay.Instance
+                        -- This part is visible! Check if it's better than current best
+                        local weight = hitboxWeights[partName] or 0.5
+                        
+                        -- Prefer headshots for one-shot kills
+                        if partName == "Head" then
+                            return partRay.Position, partRay.Instance -- Always take headshots
+                        end
+                        
+                        -- For other parts, choose the best available
+                        if weight > bestWeight then
+                            bestHit = {partRay.Position, partRay.Instance}
+                            bestWeight = weight
+                        end
                     end
                 end
+            end
+            
+            -- Return the best hit found
+            if bestHit then
+                return bestHit[1], bestHit[2]
             end
             
                     -- ENHANCED BOSS TARGETING: Try ANY part in the model that's visible
@@ -562,9 +593,16 @@ CombatTab:CreateToggle({
                         local enemies = workspace:FindFirstChild("Enemies")
                         local shootRemote = Remotes and Remotes:FindFirstChild("ShootEnemy")
                         
+                        -- Wait for Remotes to load if not ready
+                        if not Remotes then
+                            task.wait(0.1)
+                            return
+                        end
+                        
                         if enemies and shootRemote then
                             local weapon = getEquippedWeaponName()
                             local validTargets = {}
+                            
                             
                             -- Collect ALL living enemies with distance info
                             local character = player.Character
@@ -595,6 +633,7 @@ CombatTab:CreateToggle({
                                 end
                             end
                             
+                            
                             -- 🎯 DYNAMIC PERFECT DEFENSE: Scales with effectiveness level
                             if #validTargets > 0 then
                                 -- INTELLIGENT DEFENSE ZONES (scale with effectiveness)
@@ -604,6 +643,7 @@ CombatTab:CreateToggle({
                                 local highThreatZone = 30 + (effectivenessScale * 30) -- 30-60 studs
                                 local preemptiveZone = 50 + (effectivenessScale * 50) -- 50-100 studs
                                 
+                                -- 🎯 SIMPLE BUT EFFECTIVE TARGET SORTING (Working Version)
                                 table.sort(validTargets, function(a, b)
                                     local aBoss = a.model.Name == "GoblinKing" or a.model.Name == "CaptainBoom" or a.model.Name == "Fungarth"
                                     local bBoss = b.model.Name == "GoblinKing" or b.model.Name == "CaptainBoom" or b.model.Name == "Fungarth"
@@ -632,7 +672,7 @@ CombatTab:CreateToggle({
                                     return a.distance < b.distance
                                 end)
                                 
-                                -- 🧠 ULTRA-INTELLIGENT SHOT DISTRIBUTION
+                                -- 🧠 SIMPLE BUT EFFECTIVE SHOT DISTRIBUTION (Working Version)
                                 local shotsFired = 0
                                 
                                 -- CRITICAL ZONE LOGIC: Shoot ALL threats in critical zone first!
@@ -643,37 +683,33 @@ CombatTab:CreateToggle({
                                     end
                                 end
                                 
-                                -- 🧠 INTELLIGENT ADAPTIVE ALLOCATION
-                                -- Varies based on player state, not just effectiveness
+                                -- 🧠 SIMPLE ADAPTIVE ALLOCATION
                                 local maxShotsPerCycle
                                 
                                 -- FOCUS-BASED SHOT CAPACITY
-                                -- Focused player = can track more targets
-                                -- Fatigued player = tracks fewer
                                 local focusFactor = behaviorProfile.focusLevel - behaviorProfile.fatigueLevel
                                 local shotCapacity = math.floor(2 + (focusFactor * 2)) -- 1-4 shots based on state
                                 
                                 if criticalThreats > 0 then
-                                    -- ALERT MODE: Adrenaline boost allows more shots
-                                    local panicBoost = math.min(1, criticalThreats / 3) -- Up to +1 shot
-                                    maxShotsPerCycle = math.min(criticalThreats, shotCapacity + math.floor(panicBoost), 4)
+                                    -- ALERT MODE: Shoot ALL critical threats + more for crowd control
+                                    maxShotsPerCycle = math.min(criticalThreats + 2, #validTargets, 7) -- Up to 7 shots (increased from 5)
                                 else
-                                    -- NORMAL MODE: Scale with effectiveness AND player state
-                                    local baseShots = math.floor(1 + (effectivenessScale * 2))
-                                    maxShotsPerCycle = math.min(baseShots, shotCapacity, 3)
+                                    -- NORMAL MODE: More aggressive for crowd control
+                                    local baseShots = math.floor(3 + (effectivenessScale * 3)) -- 3-6 shots minimum (increased from 2-4)
+                                    maxShotsPerCycle = math.min(baseShots, #validTargets, 6) -- Up to 6 shots (increased from 4)
                                 end
                                 
-                                -- RANDOM VARIATION: Sometimes shoot fewer (distraction, hesitation)
-                                if math.random() < 0.20 then -- 20% chance
+                                -- REDUCE VARIATION: Less random reduction for better crowd control
+                                if math.random() < 0.10 then -- 10% chance (reduced from 20%)
                                     maxShotsPerCycle = math.max(1, maxShotsPerCycle - 1)
                                 end
                                 
                                 for _, target in ipairs(validTargets) do
                                     if shotsFired >= maxShotsPerCycle then break end
                                     
-                                    -- 🧬 HUMAN IMPERFECTION: Occasionally skip a target (distraction, hesitation)
-                                    -- Lower focus or higher fatigue = more likely to "miss" targeting
-                                    local skipChance = (1 - behaviorProfile.focusLevel) * 0.15 + (behaviorProfile.fatigueLevel * 0.10)
+                                    -- 🧬 OPTIMIZED TARGET SKIPPING (enhanced accuracy)
+                                    -- Reduced skipping for maximum efficiency
+                                    local skipChance = (1 - behaviorProfile.focusLevel) * 0.04 + (behaviorProfile.fatigueLevel * 0.03) -- Further reduced
                                     if math.random() < skipChance and shotsFired > 0 then
                                         -- Skip this target, move to next (human didn't notice it)
                                         continue
@@ -695,19 +731,20 @@ CombatTab:CreateToggle({
                                             shootRemote:FireServer(unpack(args))
                                         end)
                                         
+                                        
                                         -- 📊 Record shot for adaptive learning
                                         recordShotSuccess(success)
                                         
                                         if success then
                                             shotsFired = shotsFired + 1
                                             
-                                            -- 🎯 SMART MULTI-SHOT SPACING (human panic simulation)
+                                            -- 🎯 OPTIMIZED MULTI-SHOT SPACING (enhanced speed)
                                             if shotsFired < maxShotsPerCycle then
-                                                -- Critical threats = faster but still human-like
-                                                -- Human panic: 80-150ms between rapid shots
-                                                local urgentDelay = target.distance < criticalZone and 0.08 or 0.12
-                                                local variance = math.random() * 0.07 -- 0-70ms variance
-                                                task.wait(urgentDelay + variance) -- 80-150ms (human limit)
+                                                -- Critical threats = maximum human speed
+                                                -- Enhanced panic: 60-120ms between rapid shots (faster)
+                                                local urgentDelay = target.distance < criticalZone and 0.06 or 0.08
+                                                local variance = math.random() * 0.06 -- 0-60ms variance (reduced)
+                                                task.wait(urgentDelay + variance) -- 60-120ms (enhanced speed)
                                             end
                                         end
                                     end
@@ -722,7 +759,7 @@ CombatTab:CreateToggle({
                     end)
                     
                     -- 🧠 ULTRA-INTELLIGENT ADAPTIVE DELAY
-                    -- Check if there are critical threats nearby
+                    -- Check if there are critical threats nearby (more sensitive detection)
                     local hasUrgentThreats = false
                     local enemies = workspace:FindFirstChild("Enemies")
                     if enemies then
@@ -733,7 +770,8 @@ CombatTab:CreateToggle({
                                 if zombie:IsA("Model") and zombie:FindFirstChild("Head") then
                                     local distance = (zombie.Head.Position - root.Position).Magnitude
                                     local effectivenessScale = effectivenessLevel / 100
-                                    local urgentZone = 15 + (effectivenessScale * 15)
+                                    -- More sensitive urgent zone to prevent pausing when zombies are close
+                                    local urgentZone = 25 + (effectivenessScale * 25) -- 25-50 studs (increased from 15-30)
                                     if distance < urgentZone then
                                         hasUrgentThreats = true
                                         break
@@ -747,25 +785,28 @@ CombatTab:CreateToggle({
                     local cycleDelay
                     
                     if hasUrgentThreats then
-                        -- ALERT MODE: Faster reaction like a focused human
+                        -- ALERT MODE: Maximum human reaction speed
                         -- Focus level affects response time
-                        local alertSpeed = 0.12 + ((1 - behaviorProfile.focusLevel) * 0.08) -- 120-200ms
-                        cycleDelay = alertSpeed + (math.random() * 0.05) -- +0-50ms variance
+                        local alertSpeed = 0.08 + ((1 - behaviorProfile.focusLevel) * 0.04) -- 80-120ms (enhanced speed)
+                        cycleDelay = alertSpeed + (math.random() * 0.03) -- +0-30ms variance (reduced)
                     else
                         -- NORMAL: Use smart delay based on effectiveness
                         cycleDelay = getKnightMareDelay(shootDelay)
                         
-                        -- 🧠 HUMAN PAUSE SIMULATION: Occasionally take a break
-                        -- Simulates looking around, checking UI, reloading mentally
-                        if math.random() < 0.08 then -- 8% chance per cycle
-                            local pauseType = math.random()
-                            if pauseType < 0.4 then
-                                cycleDelay = cycleDelay + (0.3 + math.random() * 0.4) -- Quick glance (300-700ms)
-                            elseif pauseType < 0.7 then
-                                cycleDelay = cycleDelay + (0.8 + math.random() * 0.7) -- Check surroundings (800-1500ms)
-                            else
-                                cycleDelay = cycleDelay + (1.5 + math.random() * 1.0) -- Brief distraction (1.5-2.5s)
+                        -- 🧠 INTELLIGENT HUMAN PAUSE SIMULATION
+                        -- NEVER pause when urgent threats are present (survival instinct)
+                        if not hasUrgentThreats then
+                            -- Reduced pause chance when no urgent threats
+                            if math.random() < 0.02 then -- 2% chance per cycle (very reduced)
+                                local pauseType = math.random()
+                                if pauseType < 0.4 then
+                                    cycleDelay = cycleDelay + (0.1 + math.random() * 0.2) -- Quick glance (100-300ms)
+                                elseif pauseType < 0.7 then
+                                    cycleDelay = cycleDelay + (0.3 + math.random() * 0.3) -- Check surroundings (300-600ms)
+                                else
+                                    cycleDelay = cycleDelay + (0.5 + math.random() * 0.5) -- Brief distraction (500-1000ms)
                             end
+                        end
                         end
                     end
                     
@@ -1205,7 +1246,7 @@ MiscTab:CreateSection("❄️ Freezy HUB Settings")
 MiscTab:CreateButton({
     Name = "🔌 Unload Freezy HUB",
     Callback = function()
-        -- Disable all active features
+        -- 🛑 IMMEDIATE FEATURE DISABLE
         autoKill = false
         autoSkip = false
         autoOpenCamo = false
@@ -1213,14 +1254,16 @@ MiscTab:CreateButton({
         autoOpenPet = false
         autoOpenGun = false
         
-        -- Immediate feedback that features are disabled
+        -- 🛑 IMMEDIATE NOTIFICATION
         Rayfield:Notify({
-            Title = "🛑 Features Disabled",
-            Content = "Combat system stopped!",
+            Title = "🛑 SHUTTING DOWN",
+            Content = "All features disabled! Cleaning up...",
             Duration = 1,
             Image = 4483362458
         })
         
+        -- 🛑 AGGRESSIVE CLEANUP - IMMEDIATE
+        task.spawn(function()
         -- Reset player properties to normal
         pcall(function()
             local character = player.Character
@@ -1232,48 +1275,103 @@ MiscTab:CreateButton({
             end
         end)
         
-        -- No platforms to clean up (feature removed)
-        
-        -- Final notification and destroy GUI
-        Rayfield:Notify({
-            Title = "❄️ Freezy HUB",
-            Content = "Script safely unloaded! Stay frosty! 🧊",
-            Duration = 2,
-            Image = 4483362458
-        })
-        
-        -- Wait a moment then destroy the GUI completely
-        task.spawn(function()
-            task.wait(1.5)
-            
-            -- More aggressive GUI cleanup
-            pcall(function()
-                -- Try multiple destruction methods
+            -- 🗑️ DESTROY ALL GUI ELEMENTS IMMEDIATELY
+        pcall(function()
+                -- Destroy Rayfield library completely
                 if Rayfield then
+                    -- Disable first
+                    if Rayfield.Enabled ~= nil then
+                        Rayfield.Enabled = false
+                    end
+                    
+                    -- Destroy main window
                     if Rayfield.Main then
                         Rayfield.Main:Destroy()
                     end
-                    if Rayfield.Enabled then
-                        Rayfield.Enabled = false
+                    
+                    -- Call destroy method if exists
+                    if Rayfield.Destroy then
+                        Rayfield:Destroy()
                     end
+                    
+                    -- Clear Rayfield reference
+                    Rayfield = nil
                 end
                 
-                -- Find and destroy any remaining GUI elements
+                -- 🗑️ DESTROY ALL GUI IN PLAYERGUI
                 local playerGui = game.Players.LocalPlayer:FindFirstChild("PlayerGui")
                 if playerGui then
                     for _, gui in pairs(playerGui:GetChildren()) do
-                        if gui.Name:find("Rayfield") or gui.Name:find("Freezy") then
+                        -- Destroy anything related to Rayfield, Freezy, or UI
+                        if gui.Name:lower():find("rayfield") or 
+                           gui.Name:lower():find("freezy") or
+                           gui.Name:find("UI") or
+                           gui.ClassName == "ScreenGui" and gui:FindFirstChild("Main") then
+                            pcall(function()
                             gui:Destroy()
+                            end)
                         end
+                    end
+                end
+                
+                -- 🗑️ DESTROY ALL GUI IN COREGUI
+                local coreGui = game:GetService("CoreGui")
+                for _, gui in pairs(coreGui:GetChildren()) do
+                    if gui.Name:lower():find("rayfield") or 
+                       gui.Name:lower():find("freezy") or
+                       gui.Name:find("UI") then
+                        pcall(function()
+                            gui:Destroy()
+                        end)
                     end
                 end
             end)
             
-            -- Clean up global variables
+            -- 🗑️ CLEAN UP ALL GLOBAL VARIABLES
+            pcall(function()
             getgenv().FreezyHubLoaded = nil
+                getgenv().Rayfield = nil
+                _G.FreezyHub = nil
+                _G.Rayfield = nil
+                _G.autoKill = nil
+                _G.autoSkip = nil
+                _G.autoOpenCamo = nil
+                _G.autoOpenOutfit = nil
+                _G.autoOpenPet = nil
+                _G.autoOpenGun = nil
+            end)
             
-            -- Force garbage collection
+            -- 🗑️ FORCE MULTIPLE GARBAGE COLLECTIONS
+            for i = 1, 5 do
+                task.wait(0.1)
             game:GetService("RunService").Heartbeat:Wait()
+                collectgarbage("collect")
+            end
+            
+            -- 🗑️ FINAL DESTRUCTION - DESTROY SCRIPT ITSELF
+            pcall(function()
+                -- Try to destroy the script
+                if script and script.Parent then
+                    script:Destroy()
+                end
+            end)
+            
+            -- 🗑️ CLEAR ALL REFERENCES
+            pcall(function()
+                -- Clear all local variables
+                autoKill = nil
+                autoSkip = nil
+                autoOpenCamo = nil
+                autoOpenOutfit = nil
+                autoOpenPet = nil
+                autoOpenGun = nil
+                player = nil
+                Remotes = nil
+                Window = nil
+                CombatTab = nil
+                MiscTab = nil
+                OpenTab = nil
+            end)
         end)
     end
 })
