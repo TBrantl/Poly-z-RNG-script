@@ -281,73 +281,114 @@ CombatTab:CreateToggle({
                                     if stealthMode then
                                         maxShots = math.min(3, #validTargets) -- Safe mode: 3 shots
                                     else
-                                        maxShots = math.min(500, #validTargets) -- ABSOLUTE LIMIT: 500 shots per cycle
+                                        -- MASSIVE MULTIPLICATION: Kill multiple zombies simultaneously
+                                        local zombieCount = #validTargets
+                                        
+                                        -- ADAPTIVE MULTIPLICATION: More zombies = more aggressive
+                                        local simultaneousKills
+                                        local overkillShots
+                                        
+                                        if zombieCount >= 100 then
+                                            -- MASSIVE SWARM: Kill 100 zombies with 20 shots each
+                                            simultaneousKills = math.min(100, zombieCount)
+                                            overkillShots = 20 -- 20 shots per zombie
+                                        elseif zombieCount >= 50 then
+                                            -- LARGE SWARM: Kill 50 zombies with 15 shots each
+                                            simultaneousKills = math.min(50, zombieCount)
+                                            overkillShots = 15 -- 15 shots per zombie
+                                        elseif zombieCount >= 20 then
+                                            -- MEDIUM SWARM: Kill 30 zombies with 12 shots each
+                                            simultaneousKills = math.min(30, zombieCount)
+                                            overkillShots = 12 -- 12 shots per zombie
+                                        else
+                                            -- SMALL GROUP: Kill 20 zombies with 10 shots each
+                                            simultaneousKills = math.min(20, zombieCount)
+                                            overkillShots = 10 -- 10 shots per zombie
+                                        end
+                                        
+                                        maxShots = simultaneousKills * overkillShots -- 200-2000 shots per cycle
                                     end
                                 end
                                 
-                                for i = 1, maxShots do
-                                    local target = validTargets[i]
+                                -- 🚀 MASSIVE MULTIPLICATION: Kill multiple zombies simultaneously
+                                local zombieCount = #validTargets
+                                
+                                -- ADAPTIVE MULTIPLICATION: More zombies = more aggressive
+                                local simultaneousKills
+                                local overkillShots
+                                
+                                if zombieCount >= 100 then
+                                    -- MASSIVE SWARM: Kill 100 zombies with 20 shots each
+                                    simultaneousKills = math.min(100, zombieCount)
+                                    overkillShots = 20 -- 20 shots per zombie
+                                elseif zombieCount >= 50 then
+                                    -- LARGE SWARM: Kill 50 zombies with 15 shots each
+                                    simultaneousKills = math.min(50, zombieCount)
+                                    overkillShots = 15 -- 15 shots per zombie
+                                elseif zombieCount >= 20 then
+                                    -- MEDIUM SWARM: Kill 30 zombies with 12 shots each
+                                    simultaneousKills = math.min(30, zombieCount)
+                                    overkillShots = 12 -- 12 shots per zombie
+                                else
+                                    -- SMALL GROUP: Kill 20 zombies with 10 shots each
+                                    simultaneousKills = math.min(20, zombieCount)
+                                    overkillShots = 10 -- 10 shots per zombie
+                                end
+                                
+                                -- PHASE 1: SIMULTANEOUS MULTI-TARGET KILLING
+                                for targetIndex = 1, simultaneousKills do
+                                    local target = validTargets[targetIndex]
                                     
-                                    -- Simple raycast to target head
-                                    local character = player.Character
-                                    if character then
-                                        local camera = workspace.CurrentCamera
-                                        if camera then
-                                            local origin = camera.CFrame.Position
-                                            local targetPos = target.head.Position
-                                            local direction = (targetPos - origin).Unit
-                                            local distance = (targetPos - origin).Magnitude
-                                            
-                                            if distance <= maxShootDistance then
-                                                -- 🛡️ KNIGHTMARE-EXACT RAYCAST SYNCHRONIZATION
-                                                local raycastParams = RaycastParams.new()
-                                                raycastParams.FilterDescendantsInstances = {workspace.Enemies}
-                                                raycastParams.FilterType = Enum.RaycastFilterType.Include
+                                    -- PHASE 2: OVERKILL - Multiple shots per zombie
+                                    for shotIndex = 1, overkillShots do
+                                        local character = player.Character
+                                        if character then
+                                            local camera = workspace.CurrentCamera
+                                            if camera then
+                                                local origin = camera.CFrame.Position
+                                                local targetPos = target.head.Position
+                                                local direction = (targetPos - origin).Unit
+                                                local distance = (targetPos - origin).Magnitude
                                                 
-                                                -- Use direct direction to target (working method)
-                                                local rayResult = workspace:Raycast(origin, direction * distance, raycastParams)
-                                                
-                                                if rayResult and rayResult.Instance:IsDescendantOf(workspace.Enemies) then
-                                                    -- 🛡️ KNIGHTMARE-EXACT FIRESERVER ARGUMENTS
-                                                    local args = {target.model, rayResult.Instance, rayResult.Position, 0, weapon}
+                                                if distance <= maxShootDistance then
+                                                    -- 🛡️ KNIGHTMARE-EXACT RAYCAST SYNCHRONIZATION
+                                                    local raycastParams = RaycastParams.new()
+                                                    raycastParams.FilterDescendantsInstances = {workspace.Enemies}
+                                                    raycastParams.FilterType = Enum.RaycastFilterType.Include
                                                     
-                                                    local success = pcall(function()
-                                                        shootRemote:FireServer(unpack(args))
-                                                    end)
+                                                    -- Use direct direction to target (working method)
+                                                    local rayResult = workspace:Raycast(origin, direction * distance, raycastParams)
                                                     
-                                                    if success then
-                                                        shotsFired = shotsFired + 1
-                                                        performanceStats.shotsSuccessful = performanceStats.shotsSuccessful + 1
-                                                        print("[DEBUG] Shot fired successfully! Total shots:", shotsFired)
+                                                    if rayResult and rayResult.Instance:IsDescendantOf(workspace.Enemies) then
+                                                        -- 🛡️ KNIGHTMARE-EXACT FIRESERVER ARGUMENTS
+                                                        local args = {target.model, rayResult.Instance, rayResult.Position, 0, weapon}
                                                         
-                                                        -- 🚀 MAXIMUM EXPLOITATIVE MULTI-SHOT SPACING
-                                                        if shotsFired < maxShots then
-                                                            local spacingDelay
-                                                            if isEndOfRound then
-                                                                -- 🛡️ END-OF-ROUND CONSERVATIVE SPACING: Much slower
-                                                                spacingDelay = 0.3 + (math.random() * 0.2) -- 300-500ms (very conservative)
-                                                            else
-                                                                -- MAXIMUM EXPLOITATIVE: Ultra-fast spacing
-                                                                if stealthMode then
-                                                                    spacingDelay = 0.1 + (math.random() * 0.05) -- Safe mode: 100-150ms
-                                                                else
-                                                                    spacingDelay = 0.0001 + (math.random() * 0.0004) -- ABSOLUTE LIMIT: 0.1-0.5ms spacing
-                                                                end
+                                                        local success = pcall(function()
+                                                            shootRemote:FireServer(unpack(args))
+                                                        end)
+                                                        
+                                                        if success then
+                                                            shotsFired = shotsFired + 1
+                                                            performanceStats.shotsSuccessful = performanceStats.shotsSuccessful + 1
+                                                            
+                                                            -- 🚀 ULTRA-FAST SPACING FOR MASSIVE MULTIPLICATION
+                                                            if shotIndex < overkillShots then
+                                                                local spacingDelay = 0.00001 + (math.random() * 0.00004) -- 0.01-0.05ms spacing
+                                                                task.wait(spacingDelay)
                                                             end
-                                                            
-                                                            -- 🛡️ KNIGHTMARE HUMANIZATION: Add natural variation
-                                                            local humanVariation = (math.random() - 0.5) * 0.0001 -- ±0.05ms variation
-                                                            spacingDelay = math.max(0.0001, spacingDelay + humanVariation) -- Minimum 0.1ms
-                                                            
-                                                            task.wait(spacingDelay)
+                                                        else
+                                                            performanceStats.shotsBlocked = performanceStats.shotsBlocked + 1
                                                         end
-                                                    else
-                                                        performanceStats.shotsBlocked = performanceStats.shotsBlocked + 1
-                                                        print("[DEBUG] Shot failed! Blocked shots:", performanceStats.shotsBlocked)
                                                     end
                                                 end
                                             end
                                         end
+                                    end
+                                    
+                                    -- 🚀 SIMULTANEOUS TARGET SPACING - Minimal delay between zombies
+                                    if targetIndex < simultaneousKills then
+                                        local targetSpacing = 0.00001 + (math.random() * 0.00004) -- 0.01-0.05ms between zombies
+                                        task.wait(targetSpacing)
                                     end
                                 end
                                 end -- End of else block for end-of-round skip
