@@ -251,8 +251,9 @@ CombatTab:CreateToggle({
                             if #validTargets > 0 then
                                 -- 🚀 CONSTANT KILLING: NO SKIPS, NO PAUSES, NO BREAKS
                                 -- ELIMINATED ALL SKIP LOGIC - CONSTANT ELIMINATION
-                                    -- Sort by distance and threat level
-                                    table.sort(validTargets, function(a, b)
+                                
+                                -- Sort by distance and threat level
+                                table.sort(validTargets, function(a, b)
                                         local aBoss = a.model.Name == "GoblinKing" or a.model.Name == "CaptainBoom" or a.model.Name == "Fungarth"
                                         local bBoss = b.model.Name == "GoblinKing" or b.model.Name == "CaptainBoom" or b.model.Name == "Fungarth"
                                         
@@ -501,7 +502,6 @@ CombatTab:CreateToggle({
                                         task.wait(targetSpacing)
                                     end
                                 end
-                                end -- End of else block for end-of-round skip
                             else
                                 print("[DEBUG] No valid targets found")
                             end
