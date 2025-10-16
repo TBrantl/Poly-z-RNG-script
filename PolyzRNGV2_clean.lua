@@ -90,9 +90,6 @@ local shootDelay = 0.25 -- Default safe speed
 local lastShot = 0
 local shotCount = 0
 local maxShootDistance = 150 -- Default safe range
-local adaptiveDelay = 0.1 -- Default safe adaptive speed
-local stealthMode = true -- Default safe mode
-local detectionRisk = 0 -- ZERO DETECTION RISK
 local effectivenessLevel = 50 -- Default effectiveness level (0-100%)
 
 -- Combat Tab
