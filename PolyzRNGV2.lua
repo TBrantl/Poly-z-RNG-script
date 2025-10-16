@@ -618,6 +618,14 @@ CombatTab:CreateToggle({
                                 local highThreatZone = 30 + (effectivenessScale * 30) -- 30-60 studs
                                 local preemptiveZone = 50 + (effectivenessScale * 50) -- 50-100 studs
                                 
+                                -- COUNT CRITICAL THREATS FIRST (needed for logic below)
+                                local criticalThreats = 0
+                                for _, t in ipairs(validTargets) do
+                                    if t.distance < criticalZone then
+                                        criticalThreats = criticalThreats + 1
+                                    end
+                                end
+                                
                                 table.sort(validTargets, function(a, b)
                                     local aBoss = a.model.Name == "GoblinKing" or a.model.Name == "CaptainBoom" or a.model.Name == "Fungarth"
                                     local bBoss = b.model.Name == "GoblinKing" or b.model.Name == "CaptainBoom" or b.model.Name == "Fungarth"
@@ -646,18 +654,8 @@ CombatTab:CreateToggle({
                                     return a.distance < b.distance
                                 end)
                                 
-                                -- 🧠 ULTRA-INTELLIGENT SHOT DISTRIBUTION
-                                local shotsFired = 0
-                                
-                                -- CRITICAL ZONE LOGIC: Shoot ALL threats in critical zone first!
-                                local criticalThreats = 0
-                                for _, t in ipairs(validTargets) do
-                                    if t.distance < criticalZone then
-                                        criticalThreats = criticalThreats + 1
-                                    end
-                                end
-                                
                                 -- 🧠 ULTRA-INTELLIGENT THREAT-AWARE ALLOCATION
+                                local shotsFired = 0
                                 local maxShotsPerCycle
                                 
                                 -- ANALYZE OVERALL THREAT LEVEL (zombie density)
