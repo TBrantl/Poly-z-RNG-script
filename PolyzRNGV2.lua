@@ -36,17 +36,58 @@ local performanceStats = {
     shotsBlocked = 0,
     shotsSuccessful = 0,
     riskLevel = "LOW",
-    adaptiveDelay = 0.1,
     lastUpdate = tick()
+}
+
+-- 🛡️ DETECTION PROTECTION SYSTEM - Human-like limits for undetectable superhuman performance
+local detectionProtection = {
+    -- Human reaction time limits (OPTIMIZED FOR MAXIMUM SPEED)
+    humanReactionTimeMin = 0.03,  -- 30ms minimum (absolute human peak)
+    humanReactionTimeMax = 0.15,  -- 150ms maximum (pro-gamer level)
+    
+    -- Maximum shot rate limits (OPTIMIZED FOR MAXIMUM SPEED)
+    maxShotsPerSecond = 30,       -- 30 shots/sec sustained (optimized)
+    maxShotsPerSecondBurst = 50,  -- 50 shots/sec burst (peak performance)
+    
+    -- Maximum multi-shot spacing (OPTIMIZED FOR MAXIMUM SPEED)
+    minMultiShotSpacing = 0.01,   -- 10ms minimum between shots (optimized)
+    maxMultiShotSpacing = 0.03,   -- 30ms maximum between shots
+    
+    -- Maximum cycle timing (OPTIMIZED FOR MAXIMUM SPEED)
+    minCycleDelay = 0.005,        -- 5ms minimum cycle delay (optimized)
+    maxCycleDelay = 0.03,         -- 30ms maximum cycle delay
+    
+    -- Maximum shot allocation (OPTIMIZED FOR MAXIMUM SPEED)
+    maxShotsPerCycle = 80,        -- 80 shots per cycle maximum (optimized)
+    maxShotsPerCycleBurst = 150,  -- 150 shots per cycle in alert mode (optimized)
+    
+    -- Risk thresholds for adaptive behavior
+    lowRiskThreshold = 0.2,
+    mediumRiskThreshold = 0.5,
+    highRiskThreshold = 0.8,
+    
+    -- Behavioral simulation parameters
+    focusDriftRate = 0.01,        -- How fast focus changes
+    fatigueAccumulationRate = 0.005, -- How fast fatigue accumulates
+    skillDriftAmplitude = 0.05,   -- How much skill varies
+    patternBreakInterval = 30,
+    lastPatternBreak = 0,
+    sessionVariation = math.random() * 0.3 + 0.1,
+    microPauses = true,
+    naturalInconsistency = 0.15,
 }
 
 -- Utility Functions
 local function getEquippedWeaponName()
-    local model = workspace:FindFirstChild("Players"):FindFirstChild(player.Name)
+    -- Fallback: Try to get weapon from player model
+    local playersFolder = workspace:FindFirstChild("Players")
+    if playersFolder then
+        local model = playersFolder:FindFirstChild(player.Name)
     if model then
         for _, child in ipairs(model:GetChildren()) do
             if child:IsA("Model") then
                 return child.Name
+                end
             end
         end
     end
@@ -880,6 +921,7 @@ CombatTab:CreateToggle({
                                 end
                                 
                                 -- If no shot fired, all targets blocked (legitimate game behavior)
+                                ::continue::
                                         end
                                     end
                     end)
