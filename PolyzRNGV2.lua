@@ -890,8 +890,8 @@ CombatTab:CreateToggle({
                                 
                                 -- If no shot fired, all targets blocked (legitimate game behavior)
                                 ::continue::
-                                        end
-                                    end
+                                end
+                            end
                     end)
                     
                     -- 🧠 ULTRA-INTELLIGENT ADAPTIVE DELAY
