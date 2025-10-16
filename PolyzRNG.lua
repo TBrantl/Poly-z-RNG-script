@@ -376,9 +376,10 @@ local function shouldAllowKnightMareShot()
     local effectivenessMultiplier = 1.0
     local roundMultiplier = 1.0
     local spawnRateMultiplier = 1.0
+    local currentThreats = 0 -- Define currentThreats in higher scope
+    
     if not stealthMode then
         -- CONSTANT KILLING dynamic scaling based on current threat level, effectiveness, round, and spawn rate
-        local currentThreats = 0
         local enemies = workspace:FindFirstChild("Enemies")
         if enemies then
             for _, zombie in pairs(enemies:GetChildren()) do
@@ -690,6 +691,11 @@ CombatTab:CreateToggle({
                             return
                         end
                         
+                        -- Debug: Check if we're in the shooting loop
+                        if tick() % 5 < 0.1 then -- Print every 5 seconds
+                            print("[DEBUG] AutoKill loop running - looking for targets...")
+                        end
+                        
                         local enemies = workspace:FindFirstChild("Enemies")
                         local shootRemote = Remotes and Remotes:FindFirstChild("ShootEnemy")
                         
@@ -736,6 +742,10 @@ CombatTab:CreateToggle({
                             
                             -- 🎯 DYNAMIC PERFECT DEFENSE: Scales with effectiveness level
                             if #validTargets > 0 then
+                                -- Debug: Show target count
+                                if tick() % 3 < 0.1 then -- Print every 3 seconds
+                                    print("[DEBUG] Found " .. #validTargets .. " valid targets")
+                                end
                                 -- INTELLIGENT DEFENSE ZONES (scale with effectiveness)
                                 -- Higher effectiveness = more aggressive preemptive targeting
                                 local effectivenessScale = effectivenessLevel / 100
@@ -881,6 +891,8 @@ CombatTab:CreateToggle({
                                             shootRemote:FireServer(unpack(args))
                                         end)
                                         
+                                        -- Debug: Show shot attempt
+                                        print("[DEBUG] Shot fired at " .. target.model.Name .. " - Success: " .. tostring(success))
                                         
                                         -- 📊 Record shot for adaptive learning
                                         recordShotSuccess(success)
