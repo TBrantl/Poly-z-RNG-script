@@ -161,8 +161,18 @@ local shotHistory = {} -- Track shot timing patterns
 local detectionRisk = 0 -- Dynamic risk assessment
 local adaptiveDelay = 0.1 -- Starts conservative, adapts based on success
 
--- 🧠 ULTRA-CONSERVATIVE ADAPTIVE SYSTEM (STEALTH MODE)
+-- 🧠 REVOLUTIONARY ADAPTIVE INTELLIGENCE SYSTEM
 local stealthMode = true -- Ultra-safe by default
+local sessionStartTime = tick()
+local behaviorProfile = {
+    focusLevel = 0.5, -- 0 = distracted, 1 = hyper-focused
+    fatigueLevel = 0, -- 0 = fresh, 1 = exhausted
+    consistencyProfile = math.random() * 0.3 + 0.1, -- Each session has unique consistency (10-40%)
+    skillDrift = 0, -- Simulates getting better/worse over time
+    lastFocusChange = tick(),
+    lastFatigueChange = tick(),
+}
+
 local function getKnightMareDelay(base)
     local currentTime = tick()
     
@@ -178,33 +188,90 @@ local function getKnightMareDelay(base)
         end
     end
     
-    -- PERFECT HUMAN SIMULATION - based on real player reaction times
-    -- Average human reaction: 200-300ms, good players: 180-250ms, pros: 150-200ms
-    if shotsLast1Sec > 4 then
-        detectionRisk = math.min(1, detectionRisk + 0.20)
-    elseif recentShots > 8 then
-        detectionRisk = math.min(1, detectionRisk + 0.10)
-    else
-        detectionRisk = math.max(0, detectionRisk - 0.03) -- Gradual recovery
+    -- 🧬 EVOLUTIONARY BEHAVIOR SIMULATION - Infinitely Adaptive
+    -- Update behavioral profile dynamically
+    local sessionDuration = currentTime - sessionStartTime
+    
+    -- FOCUS DRIFT: Humans naturally lose/gain focus over time
+    if currentTime - behaviorProfile.lastFocusChange > math.random(10, 30) then
+        local focusChange = (math.random() - 0.5) * 0.15 -- ±7.5% focus drift
+        behaviorProfile.focusLevel = math.max(0.3, math.min(1, behaviorProfile.focusLevel + focusChange))
+        behaviorProfile.lastFocusChange = currentTime
     end
     
-    -- Human factor multiplier (stealth = cautious player)
-    local playerStyle = stealthMode and 2.2 or 1.5
+    -- FATIGUE ACCUMULATION: Humans get tired (or adrenaline kicks in)
+    if currentTime - behaviorProfile.lastFatigueChange > math.random(20, 45) then
+        -- Fatigue increases, but adrenaline can temporarily reduce it
+        local fatigueChange = math.random() * 0.08 - 0.02 -- Mostly increases
+        behaviorProfile.fatigueLevel = math.max(0, math.min(0.7, behaviorProfile.fatigueLevel + fatigueChange))
+        behaviorProfile.lastFatigueChange = currentTime
+    end
     
-    -- Authentic human variance (real players are very inconsistent)
-    -- Larger variance = more human-like, harder to detect patterns
-    local humanReactionVariance = stealthMode and (0.20 + math.random() * 0.30) or (0.15 + math.random() * 0.25)
-    local fatigueMultiplier = 1 + (detectionRisk * 2.0) -- Players slow down when tired
-    local reactionTime = math.max(base, adaptiveDelay) * fatigueMultiplier * playerStyle
+    -- SKILL DRIFT: Performance varies throughout session
+    behaviorProfile.skillDrift = math.sin(sessionDuration * 0.05) * 0.1 -- Oscillates ±10%
     
-    -- Micro-variations (hand tremor simulation, inconsistent timing)
-    local microVariation = (math.random() * 0.08 - 0.03) -- -30ms to +50ms random
-    local finalDelay = reactionTime + (reactionTime * humanReactionVariance) + microVariation
+    -- DETECTION RISK ANALYSIS (adaptive)
+    if shotsLast1Sec > 4 then
+        detectionRisk = math.min(1, detectionRisk + 0.15)
+    elseif recentShots > 8 then
+        detectionRisk = math.min(1, detectionRisk + 0.08)
+    else
+        detectionRisk = math.max(0, detectionRisk - 0.04) -- Recovery
+    end
     
-    -- Natural human limits (200ms minimum in stealth, 180ms in performance)
-    -- NEVER go below 180ms - that's professional esports player limit
-    local humanMinimum = stealthMode and 0.20 or 0.18
-    return math.max(humanMinimum, finalDelay)
+    -- 🎯 MULTI-FACTOR HUMAN SIMULATION
+    -- Base player style (varies with stealth mode)
+    local basePlayerStyle = stealthMode and 2.2 or 1.5
+    
+    -- FOCUS MULTIPLIER: Focused = faster, distracted = slower
+    local focusMultiplier = 1.3 - (behaviorProfile.focusLevel * 0.5) -- 0.8-1.3x
+    
+    -- FATIGUE MULTIPLIER: Tired = slower reactions
+    local fatigueMultiplier = 1 + (behaviorProfile.fatigueLevel * 1.5) -- 1.0-2.05x
+    
+    -- RISK MULTIPLIER: High risk = more careful
+    local riskMultiplier = 1 + (detectionRisk * 1.8) -- 1.0-2.8x
+    
+    -- SKILL DRIFT MULTIPLIER: Natural performance variation
+    local skillMultiplier = 1 + behaviorProfile.skillDrift -- 0.9-1.1x
+    
+    -- COMBINE ALL FACTORS (multiplicative for realism)
+    local playerStyle = basePlayerStyle * focusMultiplier * fatigueMultiplier * riskMultiplier * skillMultiplier
+    
+    -- UNIQUE SESSION VARIANCE: Each session plays differently
+    -- Uses the unique consistency profile generated at session start
+    local baseVariance = behaviorProfile.consistencyProfile
+    local reactionVariance = baseVariance + (math.random() * baseVariance) -- 10-80% variance
+    
+    -- CALCULATE BASE REACTION TIME
+    local reactionTime = math.max(base, adaptiveDelay) * playerStyle
+    
+    -- MICRO-VARIATIONS: Hand tremor, mouse slip, distraction
+    -- These are completely random and unpredictable
+    local microVariation = (math.random() * 0.10 - 0.04) -- -40ms to +60ms
+    
+    -- MACRO-VARIANCE: Occasional significantly different timing
+    -- Simulates hesitation, double-take, distraction bursts
+    if math.random() < 0.15 then -- 15% chance of macro-variance
+        microVariation = microVariation + (math.random() * 0.15) -- +0-150ms extra
+    end
+    
+    -- FINAL DELAY CALCULATION
+    local finalDelay = reactionTime + (reactionTime * reactionVariance) + microVariation
+    
+    -- ADAPTIVE MINIMUM BASED ON CONTEXT
+    -- Low effectiveness or high risk = slower minimum
+    -- High effectiveness and low risk = can be faster
+    local contextualMinimum
+    if detectionRisk > 0.3 then
+        contextualMinimum = 0.22 -- Play it safe when risk is high
+    elseif stealthMode then
+        contextualMinimum = 0.20 -- Conservative baseline
+    else
+        contextualMinimum = 0.18 -- Professional baseline
+    end
+    
+    return math.max(contextualMinimum, finalDelay)
 end
 
 -- 🎯 ULTRA-CONSERVATIVE VALIDATION SYSTEM
@@ -517,12 +584,12 @@ CombatTab:CreateToggle({
                                         local effectiveRange = maxShootDistance
                                         
                                         if distance <= effectiveRange then
-                                            table.insert(validTargets, {
-                                                model = zombie,
-                                                head = head,
-                                                humanoid = humanoid,
-                                                distance = distance
-                                            })
+                                        table.insert(validTargets, {
+                                            model = zombie,
+                                            head = head,
+                                            humanoid = humanoid,
+                                            distance = distance
+                                        })
                                         end
                                     end
                                 end
@@ -576,20 +643,41 @@ CombatTab:CreateToggle({
                                     end
                                 end
                                 
-                                -- INTELLIGENT ALLOCATION:
-                                -- If zombies in critical zone, prioritize them but stay human-realistic
-                                -- Professional gamers can track 3-4 targets rapidly
+                                -- 🧠 INTELLIGENT ADAPTIVE ALLOCATION
+                                -- Varies based on player state, not just effectiveness
                                 local maxShotsPerCycle
+                                
+                                -- FOCUS-BASED SHOT CAPACITY
+                                -- Focused player = can track more targets
+                                -- Fatigued player = tracks fewer
+                                local focusFactor = behaviorProfile.focusLevel - behaviorProfile.fatigueLevel
+                                local shotCapacity = math.floor(2 + (focusFactor * 2)) -- 1-4 shots based on state
+                                
                                 if criticalThreats > 0 then
-                                    -- ALERT MODE: Focus on critical threats (human can track 3-4 rapidly)
-                                    maxShotsPerCycle = math.min(math.max(criticalThreats, 3), #validTargets, 4)
+                                    -- ALERT MODE: Adrenaline boost allows more shots
+                                    local panicBoost = math.min(1, criticalThreats / 3) -- Up to +1 shot
+                                    maxShotsPerCycle = math.min(criticalThreats, shotCapacity + math.floor(panicBoost), 4)
                                 else
-                                    -- NORMAL MODE: Scale with effectiveness (1-3 shots, human realistic)
-                                    maxShotsPerCycle = math.min(math.floor(1 + (effectivenessScale * 2)), #validTargets, 3)
+                                    -- NORMAL MODE: Scale with effectiveness AND player state
+                                    local baseShots = math.floor(1 + (effectivenessScale * 2))
+                                    maxShotsPerCycle = math.min(baseShots, shotCapacity, 3)
+                                end
+                                
+                                -- RANDOM VARIATION: Sometimes shoot fewer (distraction, hesitation)
+                                if math.random() < 0.20 then -- 20% chance
+                                    maxShotsPerCycle = math.max(1, maxShotsPerCycle - 1)
                                 end
                                 
                                 for _, target in ipairs(validTargets) do
                                     if shotsFired >= maxShotsPerCycle then break end
+                                    
+                                    -- 🧬 HUMAN IMPERFECTION: Occasionally skip a target (distraction, hesitation)
+                                    -- Lower focus or higher fatigue = more likely to "miss" targeting
+                                    local skipChance = (1 - behaviorProfile.focusLevel) * 0.15 + (behaviorProfile.fatigueLevel * 0.10)
+                                    if math.random() < skipChance and shotsFired > 0 then
+                                        -- Skip this target, move to next (human didn't notice it)
+                                        continue
+                                    end
                                     
                                     -- 🎯 KNIGHTMARE-SYNCHRONIZED TARGETING
                                     local isBoss = target.model.Name == "GoblinKing" or target.model.Name == "CaptainBoom" or target.model.Name == "Fungarth"
@@ -629,8 +717,8 @@ CombatTab:CreateToggle({
                                 end
                                 
                                 -- If no shot fired, all targets blocked (legitimate game behavior)
-                            end
-                        end
+                                        end
+                                    end
                     end)
                     
                     -- 🧠 ULTRA-INTELLIGENT ADAPTIVE DELAY
@@ -652,20 +740,33 @@ CombatTab:CreateToggle({
                                     end
                                 end
                             end
-                        end
-                    end
-                    
-                    -- DYNAMIC CYCLE DELAY:
-                    -- Urgent threats = faster but still human (alert player)
-                    -- No threats = normal delay (relaxed player)
+                                    end
+                                end
+                                
+                    -- 🧬 DYNAMIC CYCLE DELAY WITH BEHAVIORAL SIMULATION
                     local cycleDelay
+                    
                     if hasUrgentThreats then
                         -- ALERT MODE: Faster reaction like a focused human
-                        -- Professional gamers can sustain 100-120ms reaction during intense moments
-                        cycleDelay = 0.10 + (math.random() * 0.05) -- 100-150ms (alert human)
+                        -- Focus level affects response time
+                        local alertSpeed = 0.12 + ((1 - behaviorProfile.focusLevel) * 0.08) -- 120-200ms
+                        cycleDelay = alertSpeed + (math.random() * 0.05) -- +0-50ms variance
                     else
                         -- NORMAL: Use smart delay based on effectiveness
                         cycleDelay = getKnightMareDelay(shootDelay)
+                        
+                        -- 🧠 HUMAN PAUSE SIMULATION: Occasionally take a break
+                        -- Simulates looking around, checking UI, reloading mentally
+                        if math.random() < 0.08 then -- 8% chance per cycle
+                            local pauseType = math.random()
+                            if pauseType < 0.4 then
+                                cycleDelay = cycleDelay + (0.3 + math.random() * 0.4) -- Quick glance (300-700ms)
+                            elseif pauseType < 0.7 then
+                                cycleDelay = cycleDelay + (0.8 + math.random() * 0.7) -- Check surroundings (800-1500ms)
+                            else
+                                cycleDelay = cycleDelay + (1.5 + math.random() * 1.0) -- Brief distraction (1.5-2.5s)
+                            end
+                        end
                     end
                     
                     task.wait(cycleDelay)
