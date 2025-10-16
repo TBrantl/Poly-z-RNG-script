@@ -51,6 +51,55 @@ local shotCount = 0
 local maxShootDistance = 250 -- Match game's 250 stud limit (line 12153)
 local currentRound = 1 -- Current round for scaling
 
+-- 🛡️ KNIGHTMARE SYNCHRONICITY SYSTEM - Advanced Detection Evasion
+local lastValidationTime = 0
+local shotHistory = {} -- Track shot timing patterns
+local detectionRisk = 0 -- Dynamic risk assessment
+local adaptiveDelay = 0.1 -- Starts conservative, adapts based on success
+
+-- 🛡️ MAXIMUM EFFECTIVENESS DETECTION PROTECTION SYSTEM
+-- Based on KnightMare analysis: No client-side rate limiting, DoubleUp_Perk allows rapid fire
+local detectionProtection = {
+    -- Maximum human reaction time limits (world-class professional)
+    humanReactionTimeMin = 0.05,  -- 50ms minimum (world-class human peak)
+    humanReactionTimeMax = 0.20,  -- 200ms maximum (skilled human)
+    
+    -- Maximum shot rate limits (based on KnightMare's DoubleUp_Perk system)
+    maxShotsPerSecond = 20,       -- 20 shots/sec sustained (DoubleUp_Perk allows rapid fire)
+    maxShotsPerSecondBurst = 30,  -- 30 shots/sec burst (peak with DoubleUp_Perk)
+    
+    -- Maximum multi-shot spacing (KnightMare allows rapid consecutive shots)
+    minMultiShotSpacing = 0.02,   -- 20ms minimum between shots (DoubleUp_Perk timing)
+    maxMultiShotSpacing = 0.05,   -- 50ms maximum between shots
+    
+    -- Maximum cycle timing (instant targeting for maximum effectiveness)
+    minCycleDelay = 0.01,         -- 10ms minimum cycle delay
+    maxCycleDelay = 0.05,         -- 50ms maximum cycle delay
+    
+    -- Maximum shot allocation (unlimited target tracking for maximum effectiveness)
+    maxShotsPerCycle = 50,        -- 50 shots per cycle maximum
+    maxShotsPerCycleBurst = 100,  -- 100 shots per cycle in alert mode
+    
+    -- Risk thresholds for adaptive behavior
+    lowRiskThreshold = 0.2,
+    mediumRiskThreshold = 0.5,
+    highRiskThreshold = 0.8,
+    
+    -- Behavioral simulation parameters
+    focusDriftRate = 0.01,        -- How fast focus changes
+    fatigueAccumulationRate = 0.005, -- How fast fatigue accumulates
+    skillDriftAmplitude = 0.05,   -- How much skill varies
+    
+    -- Pattern breaking system
+    patternBreakInterval = 30,    -- Break patterns every 30 seconds
+    lastPatternBreak = 0,         -- Last time pattern was broken
+    
+    -- Session variation
+    sessionVariation = math.random() * 0.3 + 0.1, -- Unique session variation (10-40%)
+    microPauses = true,           -- Enable micro-pauses for realism
+    naturalInconsistency = 0.15,  -- Natural inconsistency level
+}
+
 -- Utility Functions
 local function getEquippedWeaponName()
     -- 🎯 EXACT KNIGHTMARE WEAPON RETRIEVAL
@@ -71,11 +120,14 @@ local function getEquippedWeaponName()
     end
     
     -- Fallback: Try to get weapon from player model
-    local model = workspace:FindFirstChild("Players"):FindFirstChild(player.Name)
+    local playersFolder = workspace:FindFirstChild("Players")
+    if playersFolder then
+        local model = playersFolder:FindFirstChild(player.Name)
     if model then
         for _, child in ipairs(model:GetChildren()) do
             if child:IsA("Model") then
                 return child.Name
+                end
             end
         end
     end
@@ -136,47 +188,6 @@ end)
 
 CombatTab:CreateSection("⚔️ Perfect Defense System")
 
--- 🛡️ MAXIMUM EFFECTIVENESS DETECTION PROTECTION SYSTEM
--- Based on KnightMare analysis: No client-side rate limiting, DoubleUp_Perk allows rapid fire
-local detectionProtection = {
-    -- Maximum human reaction time limits (world-class professional)
-    humanReactionTimeMin = 0.05,  -- 50ms minimum (world-class human peak)
-    humanReactionTimeMax = 0.20,  -- 200ms maximum (skilled human)
-    
-    -- Maximum shot rate limits (based on KnightMare's DoubleUp_Perk system)
-    maxShotsPerSecond = 20,       -- 20 shots/sec sustained (DoubleUp_Perk allows rapid fire)
-    maxShotsPerSecondBurst = 30,  -- 30 shots/sec burst (peak with DoubleUp_Perk)
-    
-    -- Maximum multi-shot spacing (KnightMare allows rapid consecutive shots)
-    minMultiShotSpacing = 0.02,   -- 20ms minimum between shots (DoubleUp_Perk timing)
-    maxMultiShotSpacing = 0.05,   -- 50ms maximum between shots
-    
-    -- Maximum cycle timing (instant targeting for maximum effectiveness)
-    minCycleDelay = 0.01,         -- 10ms minimum cycle delay
-    maxCycleDelay = 0.05,         -- 50ms maximum cycle delay
-    
-    -- Maximum shot allocation (unlimited target tracking for maximum effectiveness)
-    maxShotsPerCycle = 50,        -- 50 shots per cycle maximum
-    maxShotsPerCycleBurst = 100,  -- 100 shots per cycle in alert mode
-    
-    -- Risk thresholds for adaptive behavior
-    lowRiskThreshold = 0.2,
-    mediumRiskThreshold = 0.5,
-    highRiskThreshold = 0.8,
-    
-    -- Behavioral simulation parameters
-    focusDriftRate = 0.01,        -- How fast focus changes
-    fatigueAccumulationRate = 0.005, -- How fast fatigue builds
-    skillDriftAmplitude = 0.05,   -- How much skill varies
-    
-    -- Advanced anti-detection features
-    patternBreakInterval = 30,    -- Break patterns every 30 seconds
-    lastPatternBreak = 0,         -- Last pattern break time
-    sessionVariation = math.random() * 0.3 + 0.1, -- Unique session variation (10-40%)
-    microPauses = true,           -- Enable micro-pauses for realism
-    naturalInconsistency = 0.15,  -- Natural inconsistency level
-}
-
 -- 🎯 INTELLIGENT EFFECTIVENESS SYSTEM
 local function updateEffectiveness(level)
     effectivenessLevel = level
@@ -231,11 +242,6 @@ updateEffectiveness(50)
 -- 2. Client raycast pattern: workspace:Raycast(Position, Direction, Params)
 -- 3. FireServer args: (EnemyModel, HitPart, HitPosition, 0, WeaponName)
 -- 4. Rate limiting based on tick() intervals and shot frequency
-
-local lastValidationTime = 0
-local shotHistory = {} -- Track shot timing patterns
-local detectionRisk = 0 -- Dynamic risk assessment
-local adaptiveDelay = 0.1 -- Starts conservative, adapts based on success
 
 -- 🧠 REVOLUTIONARY ADAPTIVE INTELLIGENCE SYSTEM
 local stealthMode = true -- Ultra-safe by default
