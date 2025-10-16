@@ -317,36 +317,89 @@ CombatTab:CreateToggle({
                                 local simultaneousKills
                                 local overkillShots
                                 
-                                if zombieCount >= 100 then
-                                    -- MASSIVE SWARM: Kill 100 zombies with 20 shots each
-                                    simultaneousKills = math.min(100, zombieCount)
-                                    overkillShots = 20 -- 20 shots per zombie
+                                -- 🧠 REVOLUTIONARY INTELLIGENT SCALING SYSTEM
+                                local currentRound = 1 -- Default round
+                                local performanceMultiplier = 1.0
+                                
+                                -- 🎯 PREDICTIVE THREAT ANALYSIS
+                                local closeThreats = 0
+                                local bossThreats = 0
+                                for _, target in ipairs(validTargets) do
+                                    if target.distance < 30 then
+                                        closeThreats = closeThreats + 1
+                                    end
+                                    if target.model.Name == "GoblinKing" or target.model.Name == "CaptainBoom" or target.model.Name == "Fungarth" then
+                                        bossThreats = bossThreats + 1
+                                    end
+                                end
+                                
+                                -- 🚀 ADAPTIVE PERFORMANCE SCALING
+                                if closeThreats > 10 then
+                                    performanceMultiplier = 3.0 -- EMERGENCY MODE
+                                elseif bossThreats > 0 then
+                                    performanceMultiplier = 2.5 -- BOSS MODE
+                                elseif zombieCount > 200 then
+                                    performanceMultiplier = 2.0 -- MASSIVE SWARM
+                                elseif zombieCount > 100 then
+                                    performanceMultiplier = 1.8 -- LARGE SWARM
+                                elseif zombieCount > 50 then
+                                    performanceMultiplier = 1.5 -- MEDIUM SWARM
+                                end
+                                
+                                -- 🎯 REVOLUTIONARY SCALING SYSTEM
+                                if zombieCount >= 200 then
+                                    -- APOCALYPTIC SWARM: Kill 200 zombies with 30 shots each
+                                    simultaneousKills = math.min(200, zombieCount)
+                                    overkillShots = math.floor(30 * performanceMultiplier) -- Up to 90 shots per zombie
+                                elseif zombieCount >= 100 then
+                                    -- MASSIVE SWARM: Kill 150 zombies with 25 shots each
+                                    simultaneousKills = math.min(150, zombieCount)
+                                    overkillShots = math.floor(25 * performanceMultiplier) -- Up to 75 shots per zombie
                                 elseif zombieCount >= 50 then
-                                    -- LARGE SWARM: Kill 50 zombies with 15 shots each
-                                    simultaneousKills = math.min(50, zombieCount)
-                                    overkillShots = 15 -- 15 shots per zombie
+                                    -- LARGE SWARM: Kill 100 zombies with 20 shots each
+                                    simultaneousKills = math.min(100, zombieCount)
+                                    overkillShots = math.floor(20 * performanceMultiplier) -- Up to 60 shots per zombie
                                 elseif zombieCount >= 20 then
-                                    -- MEDIUM SWARM: Kill 30 zombies with 12 shots each
-                                    simultaneousKills = math.min(30, zombieCount)
-                                    overkillShots = 12 -- 12 shots per zombie
+                                    -- MEDIUM SWARM: Kill 50 zombies with 15 shots each
+                                    simultaneousKills = math.min(50, zombieCount)
+                                    overkillShots = math.floor(15 * performanceMultiplier) -- Up to 45 shots per zombie
                                 else
-                                    -- SMALL GROUP: Kill 20 zombies with 10 shots each
-                                    simultaneousKills = math.min(20, zombieCount)
-                                    overkillShots = 10 -- 10 shots per zombie
+                                    -- SMALL GROUP: Kill 30 zombies with 12 shots each
+                                    simultaneousKills = math.min(30, zombieCount)
+                                    overkillShots = math.floor(12 * performanceMultiplier) -- Up to 36 shots per zombie
                                 end
                                 
                                 -- PHASE 1: SIMULTANEOUS MULTI-TARGET KILLING
                                 for targetIndex = 1, simultaneousKills do
                                     local target = validTargets[targetIndex]
                                     
-                                    -- PHASE 2: OVERKILL - Multiple shots per zombie
+                                    -- PHASE 2: INTELLIGENT OVERKILL - Multiple shots per zombie
                                     for shotIndex = 1, overkillShots do
                                         local character = player.Character
                                         if character then
                                             local camera = workspace.CurrentCamera
                                             if camera then
                                                 local origin = camera.CFrame.Position
+                                                
+                                                -- 🧠 PREDICTIVE TARGETING: Predict where zombie will be
                                                 local targetPos = target.head.Position
+                                                local isBoss = target.model.Name == "GoblinKing" or target.model.Name == "CaptainBoom" or target.model.Name == "Fungarth"
+                                                
+                                                -- 🎯 INTELLIGENT TARGET PREDICTION
+                                                if isBoss then
+                                                    -- Boss prediction: More aggressive prediction
+                                                    local predictionTime = 0.2 + (math.random() * 0.1) -- 200-300ms
+                                                    targetPos = targetPos + (Vector3.new(math.random(-5, 5), 0, math.random(-5, 5)) * predictionTime)
+                                                elseif target.distance < 30 then
+                                                    -- Close threat: Immediate prediction
+                                                    local predictionTime = 0.05 + (math.random() * 0.05) -- 50-100ms
+                                                    targetPos = targetPos + (Vector3.new(math.random(-2, 2), 0, math.random(-2, 2)) * predictionTime)
+                                                else
+                                                    -- Normal prediction: Standard prediction
+                                                    local predictionTime = 0.1 + (math.random() * 0.05) -- 100-150ms
+                                                    targetPos = targetPos + (Vector3.new(math.random(-1, 1), 0, math.random(-1, 1)) * predictionTime)
+                                                end
+                                                
                                                 local direction = (targetPos - origin).Unit
                                                 local distance = (targetPos - origin).Magnitude
                                                 
@@ -371,9 +424,25 @@ CombatTab:CreateToggle({
                                                             shotsFired = shotsFired + 1
                                                             performanceStats.shotsSuccessful = performanceStats.shotsSuccessful + 1
                                                             
-                                                            -- 🚀 ULTRA-FAST SPACING FOR MASSIVE MULTIPLICATION
+                                                            -- 🚀 REVOLUTIONARY ADAPTIVE SPACING
                                                             if shotIndex < overkillShots then
-                                                                local spacingDelay = 0.00001 + (math.random() * 0.00004) -- 0.01-0.05ms spacing
+                                                                local spacingDelay
+                                                                
+                                                                -- 🧠 INTELLIGENT SPACING BASED ON THREAT LEVEL
+                                                                if closeThreats > 10 then
+                                                                    -- EMERGENCY MODE: Ultra-fast spacing
+                                                                    spacingDelay = 0.000001 + (math.random() * 0.000004) -- 0.001-0.005ms
+                                                                elseif bossThreats > 0 then
+                                                                    -- BOSS MODE: Very fast spacing
+                                                                    spacingDelay = 0.000005 + (math.random() * 0.00001) -- 0.005-0.015ms
+                                                                elseif isBoss then
+                                                                    -- BOSS TARGET: Fast spacing
+                                                                    spacingDelay = 0.00001 + (math.random() * 0.00002) -- 0.01-0.03ms
+                                                                else
+                                                                    -- NORMAL: Standard fast spacing
+                                                                    spacingDelay = 0.00001 + (math.random() * 0.00004) -- 0.01-0.05ms
+                                                                end
+                                                                
                                                                 task.wait(spacingDelay)
                                                             end
                                                         else
@@ -385,9 +454,25 @@ CombatTab:CreateToggle({
                                         end
                                     end
                                     
-                                    -- 🚀 SIMULTANEOUS TARGET SPACING - Minimal delay between zombies
+                                    -- 🚀 REVOLUTIONARY ADAPTIVE TARGET SPACING
                                     if targetIndex < simultaneousKills then
-                                        local targetSpacing = 0.00001 + (math.random() * 0.00004) -- 0.01-0.05ms between zombies
+                                        local targetSpacing
+                                        
+                                        -- 🧠 INTELLIGENT TARGET SPACING BASED ON THREAT LEVEL
+                                        if closeThreats > 10 then
+                                            -- EMERGENCY MODE: Ultra-fast target switching
+                                            targetSpacing = 0.000001 + (math.random() * 0.000004) -- 0.001-0.005ms
+                                        elseif bossThreats > 0 then
+                                            -- BOSS MODE: Very fast target switching
+                                            targetSpacing = 0.000005 + (math.random() * 0.00001) -- 0.005-0.015ms
+                                        elseif target.distance < 30 then
+                                            -- CLOSE THREAT: Fast target switching
+                                            targetSpacing = 0.00001 + (math.random() * 0.00002) -- 0.01-0.03ms
+                                        else
+                                            -- NORMAL: Standard fast target switching
+                                            targetSpacing = 0.00001 + (math.random() * 0.00004) -- 0.01-0.05ms
+                                        end
+                                        
                                         task.wait(targetSpacing)
                                     end
                                 end
