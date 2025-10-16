@@ -214,11 +214,20 @@ local function getKnightMareDelay(base)
     local sessionDuration = currentTime - sessionStartTime
     
     -- SESSION RESET: Completely new behavioral profile every session
-    if sessionDuration < 5 then -- First 5 seconds of new session
-        -- Apply session-specific behavioral modifiers
+    if sessionDuration < 10 then -- First 10 seconds of new session (extended)
+        -- Apply session-specific behavioral modifiers with enhanced variance
         local sessionModifier = (sessionId % 100) / 100 -- 0-0.99 based on session ID
-        behaviorProfile.focusLevel = behaviorProfile.focusLevel + (sessionModifier - 0.5) * 0.2
-        behaviorProfile.fatigueLevel = behaviorProfile.fatigueLevel + (sessionModifier - 0.5) * 0.1
+        local sessionVariance = (sessionId % 50) / 100 -- Additional 0-0.5 variance
+        behaviorProfile.focusLevel = behaviorProfile.focusLevel + (sessionModifier - 0.5) * 0.3 + (sessionVariance - 0.25) * 0.2
+        behaviorProfile.fatigueLevel = behaviorProfile.fatigueLevel + (sessionModifier - 0.5) * 0.15 + (sessionVariance - 0.25) * 0.1
+        
+        -- Add session-specific timing quirks
+        if sessionDuration < 3 then
+            -- Apply additional session-specific behavioral quirks in first 3 seconds
+            local quirkModifier = (sessionId % 20) / 100 -- 0-0.2 quirk variance
+            behaviorProfile.focusLevel = behaviorProfile.focusLevel + (math.random() - 0.5) * quirkModifier
+            behaviorProfile.fatigueLevel = behaviorProfile.fatigueLevel + (math.random() - 0.5) * quirkModifier * 0.5
+        end
     end
     
     -- ENHANCED FOCUS DRIFT: More varied and unpredictable
@@ -282,32 +291,42 @@ local function getKnightMareDelay(base)
     -- ENHANCED SESSION VARIANCE: Each session plays completely differently
     local baseVariance = behaviorProfile.consistencyProfile
     local sessionVariance = ((sessionId % 40) / 100) -- 0-0.4 session-specific variance
-    local reactionVariance = baseVariance + (math.random() * baseVariance) + sessionVariance -- 10-120% variance
+    local antiDetectionVariance = ((sessionId % 30) / 100) -- Additional 0-0.3 anti-detection variance
+    local reactionVariance = baseVariance + (math.random() * baseVariance) + sessionVariance + antiDetectionVariance -- 10-150% variance
     
     -- CALCULATE BASE REACTION TIME
     local reactionTime = math.max(base, adaptiveDelay) * playerStyle
     
     -- ENHANCED MICRO-VARIATIONS: Hand tremor, mouse slip, distraction (with session variance)
     -- These are completely random and unpredictable with session-specific patterns
-    local baseMicroVariation = (math.random() * 0.10 - 0.04) -- -40ms to +60ms
-    local sessionMicroModifier = 1 + ((sessionId % 25) / 100) -- 1.0-1.25 session-specific micro variance
-    local microVariation = baseMicroVariation * sessionMicroModifier
+    local baseMicroVariation = (math.random() * 0.15 - 0.07) -- -70ms to +80ms (increased range)
+    local sessionMicroModifier = 1 + ((sessionId % 35) / 100) -- 1.0-1.35 session-specific micro variance (increased)
+    local antiDetectionMicroModifier = 1 + ((sessionId % 20) / 100) -- Additional 1.0-1.2 anti-detection modifier
+    local microVariation = baseMicroVariation * sessionMicroModifier * antiDetectionMicroModifier
     
     -- ENHANCED MACRO-VARIANCE: Occasional significantly different timing (with session variance)
     -- Simulates hesitation, double-take, distraction bursts
-    local macroChance = 0.15 + ((sessionId % 10) / 100) -- 15-25% chance based on session
+    local macroChance = 0.20 + ((sessionId % 15) / 100) -- 20-35% chance based on session (increased)
     if math.random() < macroChance then
-        local baseMacroVariation = math.random() * 0.15 -- +0-150ms extra
-        local sessionMacroModifier = 1 + ((sessionId % 20) / 100) -- Session-specific macro variance
-        microVariation = microVariation + (baseMacroVariation * sessionMacroModifier)
+        local baseMacroVariation = math.random() * 0.20 -- +0-200ms extra (increased)
+        local sessionMacroModifier = 1 + ((sessionId % 25) / 100) -- Session-specific macro variance (increased)
+        local antiDetectionMacroModifier = 1 + ((sessionId % 15) / 100) -- Additional anti-detection macro modifier
+        microVariation = microVariation + (baseMacroVariation * sessionMacroModifier * antiDetectionMacroModifier)
     end
     
     -- SESSION-SPECIFIC TIMING QUIRKS: Each session has unique timing patterns
-    local sessionQuirk = (sessionId % 5) / 100 -- 0-0.05 session-specific quirk
-    microVariation = microVariation + (math.random() * sessionQuirk)
+    local sessionQuirk = (sessionId % 8) / 100 -- 0-0.08 session-specific quirk (increased)
+    local antiDetectionQuirk = (sessionId % 6) / 100 -- Additional 0-0.06 anti-detection quirk
+    microVariation = microVariation + (math.random() * sessionQuirk) + (math.random() * antiDetectionQuirk)
     
     -- FINAL DELAY CALCULATION
     local finalDelay = reactionTime + (reactionTime * reactionVariance) + microVariation
+    
+    -- ENHANCED NATURAL VARIANCE: Add even more unpredictable timing
+    local naturalVariance = (math.random() - 0.5) * 0.6 -- ±30% natural variance (increased)
+    local sessionNaturalVariance = ((sessionId % 40) - 20) / 100 -- Session-specific natural variance (increased)
+    local antiDetectionNaturalVariance = ((sessionId % 25) - 12.5) / 100 -- Additional anti-detection natural variance
+    finalDelay = finalDelay * (1 + naturalVariance + sessionNaturalVariance + antiDetectionNaturalVariance)
     
     -- ADAPTIVE MINIMUM BASED ON CONTEXT
     -- Low effectiveness or high risk = slower minimum
@@ -711,6 +730,8 @@ CombatTab:CreateToggle({
                                 end
                             end
                             
+                            -- 🎯 CONSTANT KILLING: Total threats for scaling calculations
+                            local totalThreats = #validTargets
                             
                             -- 🎯 DYNAMIC PERFECT DEFENSE: Scales with effectiveness level
                             if #validTargets > 0 then
@@ -752,7 +773,6 @@ CombatTab:CreateToggle({
                                 
                                 -- 🧠 SIMPLE BUT EFFECTIVE SHOT DISTRIBUTION (Working Version)
                                 local shotsFired = 0
-                                local totalThreats = #validTargets
                                 
                                 -- CRITICAL ZONE LOGIC: Shoot ALL threats in critical zone first!
                                 local criticalThreats = 0
