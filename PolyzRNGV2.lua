@@ -92,10 +92,10 @@ local function getEquippedWeaponName()
     local playersFolder = workspace:FindFirstChild("Players")
     if playersFolder then
         local model = playersFolder:FindFirstChild(player.Name)
-    if model then
-        for _, child in ipairs(model:GetChildren()) do
-            if child:IsA("Model") then
-                return child.Name
+        if model then
+            for _, child in ipairs(model:GetChildren()) do
+                if child:IsA("Model") then
+                    return child.Name
                 end
             end
         end
@@ -163,6 +163,13 @@ end)
 
 CombatTab:CreateSection("⚔️ Perfect Defense System")
 
+-- 🎯 PERFECT DEFENSE SYSTEM - Zero Detection | Maximum Efficiency
+local autoKill = false
+local shootDelay = 0.25 -- HUMAN REACTION TIME default (perfectly natural)
+local lastShot = 0
+local shotCount = 0
+local maxShootDistance = 250 -- Match game's 250 stud limit (line 12153)
+
 -- 🎯 INTELLIGENT EFFECTIVENESS SYSTEM
 local effectivenessLevel = 50 -- Default to balanced (0-100%)
 local function updateEffectiveness(level)
@@ -210,13 +217,6 @@ end
 
 -- Initialize with balanced default
 updateEffectiveness(50)
-
--- 🎯 PERFECT DEFENSE SYSTEM - Zero Detection | Maximum Efficiency
-local autoKill = false
-local shootDelay = 0.25 -- HUMAN REACTION TIME default (perfectly natural)
-local lastShot = 0
-local shotCount = 0
-local maxShootDistance = 250 -- Match game's 250 stud limit (line 12153)
 
 -- 🛡️ KNIGHTMARE SYNCHRONICITY SYSTEM - Advanced Detection Evasion
 -- Synchronized with place file detection patterns at lines 12162-12195
@@ -604,8 +604,8 @@ local function getKnightMareShotPosition(targetHead, targetModel)
                                     end
                                 end
                             end
-                end
-            end
+                        end
+                    end
             
             -- If nothing visible, return nil (skip this target)
             return nil
@@ -938,8 +938,8 @@ CombatTab:CreateToggle({
                                 
                                 -- If no shot fired, all targets blocked (legitimate game behavior)
                                 ::continue::
-                                        end
-                                    end
+                                end
+                            end
                     end)
                     
                     -- 🧠 ULTRA-INTELLIGENT ADAPTIVE DELAY
@@ -995,8 +995,8 @@ CombatTab:CreateToggle({
                                     cycleDelay = cycleDelay + (0.3 + math.random() * 0.3) -- Check surroundings (300-600ms)
                                 else
                                     cycleDelay = cycleDelay + (0.5 + math.random() * 0.5) -- Brief distraction (500-1000ms)
+                                end
                             end
-                        end
                         end
                     end
                     
@@ -1183,8 +1183,8 @@ MiscTab:CreateButton({
                         fireproximityprompt(descendant, 0)
                         activated = activated + 1
                         task.wait(0.1) -- Small delay between purchases
-            end  
-        end
+                    end
+                end
             end
         end)
         
@@ -1220,8 +1220,8 @@ MiscTab:CreateButton({
                         fireproximityprompt(descendant, 0)
                         enhanced = enhanced + 1
                         task.wait(0.15) -- Small delay between enhancements
-            end  
-        end
+                    end
+                end
             end
         end)
         
