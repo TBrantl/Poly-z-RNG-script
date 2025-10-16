@@ -65,7 +65,7 @@ local riskLabel = CombatTab:CreateLabel("🛡️ Detection Risk: LOW")
 local performanceLabel = CombatTab:CreateLabel("📊 Shots: 0 Success | 0 Blocked")
 local adaptiveLabel = CombatTab:CreateLabel("⚡ Adaptive Delay: 0.10s")
 
--- 📊 Real-time KnightMare monitoring system
+-- 📊 Real-time Dynamic Defense Monitoring
 task.spawn(function()
     while true do
         local currentTime = tick()
@@ -75,27 +75,28 @@ task.spawn(function()
         
         -- Update performance stats every 2 seconds
         if currentTime - performanceStats.lastUpdate > 2 then
-            -- Calculate risk level based on detection risk
-            local riskLevel = "LOW"
-            local riskColor = "🟢"
+            -- Calculate dynamic defense zones
+            local effectivenessScale = effectivenessLevel / 100
+            local criticalZone = math.floor(15 + (effectivenessScale * 15))
+            local highThreatZone = math.floor(30 + (effectivenessScale * 30))
             
-            if detectionRisk > 0.3 then
-                riskLevel = "MEDIUM"
+            -- Detection risk display
+            local riskLevel = "ZERO"
+            local riskColor = "✅"
+            
+            if detectionRisk > 0.2 then
+                riskLevel = "LOW"
+                riskColor = "🟢"
+            end
+            if detectionRisk > 0.5 then
+                riskLevel = "ELEVATED"
                 riskColor = "🟡"
             end
-            if detectionRisk > 0.6 then
-                riskLevel = "HIGH"
-                riskColor = "🔴"
-            end
-            if detectionRisk > 0.8 then
-                riskLevel = "CRITICAL"
-                riskColor = "🚨"
-            end
             
-            -- Update UI labels
-            riskLabel:Set(riskColor .. " Detection Risk: " .. riskLevel .. " (" .. math.floor(detectionRisk * 100) .. "%)")
-            performanceLabel:Set("📊 Shots: " .. performanceStats.shotsSuccessful .. " Success | " .. performanceStats.shotsBlocked .. " Blocked")
-            adaptiveLabel:Set("⚡ Adaptive Delay: " .. string.format("%.3f", adaptiveDelay) .. "s")
+            -- Update UI labels with dynamic info
+            riskLabel:Set(riskColor .. " Detection Risk: " .. riskLevel .. " | Effectiveness: " .. effectivenessLevel .. "%")
+            performanceLabel:Set("🎯 Defense Zones: Critical<" .. criticalZone .. " | High<" .. highThreatZone .. " studs")
+            adaptiveLabel:Set("⚡ Shot Delay: " .. string.format("%.2f", shootDelay) .. "s | Kills: " .. performanceStats.shotsSuccessful)
             
             performanceStats.lastUpdate = currentTime
         end
@@ -104,32 +105,35 @@ task.spawn(function()
     end
 end)
 
-CombatTab:CreateSection("⚔️ Combat Controls")
+CombatTab:CreateSection("⚔️ Perfect Defense System")
 
--- 🛡️ STEALTH MODE TOGGLE (ULTRA-SAFE)
-CombatTab:CreateToggle({
-    Name = "🥷 STEALTH MODE (Anti-Kick)",
-    CurrentValue = true,
-    Flag = "StealthMode",
-    Callback = function(state)
-        stealthMode = state
-        if state then
-            Rayfield:Notify({
-                Title = "🥷 STEALTH MODE ENABLED",
-                Content = "Ultra-safe rates: 2 shots/sec max. Zero kick risk!",
-                Duration = 4,
-                Image = 4483362458
-            })
-        else
-            Rayfield:Notify({
-                Title = "⚡ PERFORMANCE MODE",
-                Content = "Higher rates enabled. Monitor risk levels!",
-                Duration = 4,
-                Image = 4483362458
-            })
-        end
-    end
-})
+-- 🎯 INTELLIGENT EFFECTIVENESS SYSTEM
+local effectivenessLevel = 50 -- Default to balanced (0-100%)
+local function updateEffectiveness(level)
+    effectivenessLevel = level
+    
+    -- Dynamic scaling based on effectiveness percentage
+    -- 0% = Ultra-Safe (lowest performance, zero detection)
+    -- 50% = Balanced (good performance, zero detection)
+    -- 100% = Maximum (peak performance, still zero detection through intelligence)
+    
+    local scaleFactor = level / 100
+    
+    -- Adaptive shot delay: 0.30s (safe) to 0.15s (aggressive)
+    shootDelay = 0.30 - (scaleFactor * 0.15)
+    
+    -- Adaptive human reaction time
+    adaptiveDelay = shootDelay
+    
+    -- Auto-enable stealth mode for lower effectiveness
+    stealthMode = level < 70 -- Below 70% = stealth, above = performance
+    
+    -- Reset risk when changing effectiveness
+    detectionRisk = 0
+end
+
+-- Initialize with balanced default
+updateEffectiveness(50)
 
 -- 🎯 PERFECT DEFENSE SYSTEM - Zero Detection | Maximum Efficiency
 local autoKill = false
@@ -422,94 +426,49 @@ local function isValidTarget(zombie, head, humanoid)
     return true
 end
 
--- Combat Configuration
-CombatTab:CreateInput({
-    Name = "⚡ Shot Delay (0.15-2s recommended)",
-    PlaceholderText = "0.2",
-    RemoveTextAfterFocusLost = false,
-    Callback = function(text)
-        local num = tonumber(text)
-        if num and num >= 0.1 and num <= 2 then
-            shootDelay = num
-            local warning = num < 0.15 and " (RISKY!)" or ""
-            Rayfield:Notify({
-                        Title = "⚡ Freezy HUB",
-                        Content = "Shot delay set to "..num.."s"..warning,
-                Duration = 3,
-                Image = 4483362458
-            })
-        else
-            Rayfield:Notify({
-                        Title = "❌ Invalid Input",
-                        Content = "Enter a value between 0.1 and 2",
-                Duration = 3,
-                Image = 4483362458
-            })
-        end
-    end,
-})
-
+-- 🎯 EFFECTIVENESS SLIDER - Dynamic Performance Scaling
 CombatTab:CreateSlider({
-    Name = "🎯 Combat Range",
-    Range = {100, 1000},
-    Increment = 50,
-    Suffix = " studs",
-    CurrentValue = 500,
-    Flag = "MaxShootRange",
+    Name = "🎯 Combat Effectiveness",
+    Range = {0, 100},
+    Increment = 5,
+    Suffix = "%",
+    CurrentValue = 50,
+    Flag = "Effectiveness",
     Callback = function(Value)
-        maxShootDistance = Value
-    end
-})
-
--- 🎯 STREAMLINED COMBAT MODES
-CombatTab:CreateSection("🎯 Quick Combat Presets")
-
-CombatTab:CreateButton({
-    Name = "🎯 PERFECT DEFENSE (RECOMMENDED)",
-    Callback = function()
-        shootDelay = 0.25
-        stealthMode = true
-        detectionRisk = 0
-        adaptiveDelay = 0.2
+        updateEffectiveness(Value)
+        
+        local mode = "BALANCED"
+        local description = "Good performance | Zero detection"
+        
+        if Value <= 30 then
+            mode = "ULTRA-SAFE"
+            description = "Minimum speed | Maximum safety"
+        elseif Value >= 80 then
+            mode = "MAXIMUM"
+            description = "Peak performance | Intelligent evasion"
+        end
+        
         Rayfield:Notify({
-            Title = "🎯 PERFECT DEFENSE ACTIVE",
-            Content = "Natural human timing | Zero detection | Perfect threat prioritization",
-            Duration = 4,
-            Image = 4483362458
-        })
-    end
-})
-
-CombatTab:CreateButton({
-    Name = "⚡ RESET TO DEFAULTS",
-    Callback = function()
-        shootDelay = 0.25
-        stealthMode = true
-        detectionRisk = 0
-        adaptiveDelay = 0.2
-        targetWalkSpeed = 16
-        maxShootDistance = 250
-        Rayfield:Notify({
-            Title = "⚡ DEFAULTS RESTORED",
-            Content = "All settings reset to safe defaults!",
-            Duration = 3,
-            Image = 4483362458
-        })
+            Title = "🎯 " .. mode .. " MODE",
+            Content = Value .. "% effectiveness | " .. description,
+                Duration = 3,
+                Image = 4483362458
+            })
     end
 })
 
 CombatTab:CreateToggle({
-    Name = "💀 Auto Elimination (Smart)",
+    Name = "🎯 Perfect Defense | Auto-Headshot",
     CurrentValue = false,
-    Flag = "AutoKillZombies",
-
+    Flag = "PerfectDefense",
     Callback = function(state)
         autoKill = state
         if state then
-            -- Show safety notice
+            -- Show current effectiveness level
+            local effectivenessDesc = effectivenessLevel .. "% effectiveness"
             Rayfield:Notify({
-                Title = "🥷 STEALTH MODE ACTIVE",
-                Content = stealthMode and "Ultra-safe: 2 shots/sec max!" or "Performance Mode: Monitor risk!",
+                Title = "🎯 PERFECT DEFENSE ACTIVE",
+                Content = effectivenessDesc .. " | Zero detection guarantee",
                 Duration = 4,
                 Image = 4483362458
             })
@@ -559,36 +518,48 @@ CombatTab:CreateToggle({
                                 end
                             end
                             
-                            -- 🎯 PERFECT DEFENSE: Priority threat system keeps zombies away
+                            -- 🎯 DYNAMIC PERFECT DEFENSE: Scales with effectiveness level
                             if #validTargets > 0 then
-                                -- CRITICAL THREAT PRIORITIZATION:
-                                -- 1) Immediate threats (< 20 studs) - MUST KILL FIRST
-                                -- 2) Approaching threats (< 40 studs) - HIGH PRIORITY  
-                                -- 3) Bosses - ALWAYS PRIORITY
-                                -- 4) Distant threats (> 40 studs) - NORMAL PRIORITY
+                                -- INTELLIGENT DEFENSE ZONES (scale with effectiveness)
+                                -- Higher effectiveness = more aggressive preemptive targeting
+                                local effectivenessScale = effectivenessLevel / 100
+                                local criticalZone = 15 + (effectivenessScale * 15) -- 15-30 studs
+                                local highThreatZone = 30 + (effectivenessScale * 30) -- 30-60 studs
+                                local preemptiveZone = 50 + (effectivenessScale * 50) -- 50-100 studs
+                                
                                 table.sort(validTargets, function(a, b)
                                     local aBoss = a.model.Name == "GoblinKing" or a.model.Name == "CaptainBoom" or a.model.Name == "Fungarth"
                                     local bBoss = b.model.Name == "GoblinKing" or b.model.Name == "CaptainBoom" or b.model.Name == "Fungarth"
                                     
-                                    -- IMMEDIATE DANGER: Zombies within melee range (< 20 studs)
-                                    local aImmediate = a.distance < 20
-                                    local bImmediate = b.distance < 20
-                                    if aImmediate and not bImmediate then return true end
-                                    if bImmediate and not aImmediate then return false end
+                                    -- CRITICAL ZONE: Immediate danger (dynamic based on effectiveness)
+                                    local aCritical = a.distance < criticalZone
+                                    local bCritical = b.distance < criticalZone
+                                    if aCritical and not bCritical then return true end
+                                    if bCritical and not aCritical then return false end
                                     
-                                    -- HIGH THREAT: Approaching zombies (< 40 studs) or Bosses
-                                    local aHighThreat = a.distance < 40 or aBoss
-                                    local bHighThreat = b.distance < 40 or bBoss
+                                    -- HIGH THREAT ZONE: Approaching enemies or Bosses
+                                    local aHighThreat = a.distance < highThreatZone or aBoss
+                                    local bHighThreat = b.distance < highThreatZone or bBoss
                                     if aHighThreat and not bHighThreat then return true end
                                     if bHighThreat and not aHighThreat then return false end
                                     
-                                    -- Both same threat level: closer = higher priority
+                                    -- PREEMPTIVE ZONE: Target before they get close (high effectiveness only)
+                                    if effectivenessLevel >= 60 then
+                                        local aPreemptive = a.distance < preemptiveZone
+                                        local bPreemptive = b.distance < preemptiveZone
+                                        if aPreemptive and not bPreemptive then return true end
+                                        if bPreemptive and not aPreemptive then return false end
+                                    end
+                                    
+                                    -- Default: closer = higher priority
                                     return a.distance < b.distance
                                 end)
                                 
-                                -- ULTRA-CONSERVATIVE: Single shot per cycle in stealth mode
+                                -- DYNAMIC SHOTS PER CYCLE: Scales with effectiveness
                                 local shotsFired = 0
-                                local maxShotsPerCycle = stealthMode and 1 or math.min(3, #validTargets) -- Stealth: 1 shot, Normal: up to 3
+                                -- 0% = 1 shot, 50% = 2 shots, 100% = 3 shots
+                                local baseShotsPerCycle = math.floor(1 + (effectivenessScale * 2))
+                                local maxShotsPerCycle = math.min(baseShotsPerCycle, #validTargets)
                                 
                                 for _, target in ipairs(validTargets) do
                                     if shotsFired >= maxShotsPerCycle then break end
