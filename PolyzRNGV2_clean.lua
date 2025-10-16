@@ -93,6 +93,7 @@ local maxShootDistance = 150 -- Default safe range
 local adaptiveDelay = 0.1 -- Default safe adaptive speed
 local stealthMode = true -- Default safe mode
 local detectionRisk = 0 -- ZERO DETECTION RISK
+local effectivenessLevel = 50 -- Default effectiveness level (0-100%)
 
 -- Combat Tab
 local CombatTab = Window:CreateTab("⚔️ Warfare", "Sword")
@@ -257,7 +258,7 @@ CombatTab:CreateToggle({
                                 -- 🛡️ END-OF-ROUND SKIP CHANCE: Sometimes skip shooting when few targets
                                 if isEndOfRound and math.random() < 0.1 then -- 10% chance to skip at end of round (was 30%)
                                     print("[DEBUG] Skipping shot at end of round to avoid detection")
-                                    -- Skip to cycle delay instead of goto
+                                    -- Skip to cycle delay - no shooting this cycle
                                 else
                                     -- Sort by distance and threat level
                                     table.sort(validTargets, function(a, b)
