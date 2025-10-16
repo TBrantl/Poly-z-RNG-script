@@ -759,30 +759,30 @@ CombatTab:CreateToggle({
                                 local focusFactor = behaviorProfile.focusLevel - behaviorProfile.fatigueLevel
                                 local shotCapacity = math.floor(2 + (focusFactor * 2)) -- 1-4 shots based on state
                                 
-                                -- 🧠 OPTIMIZED AGGRESSIVE THREAT-BASED SCALING (Human Peak Performance)
+                                -- 🧠 SUPERHUMAN THREAT-BASED SCALING (Bounded for Stability)
                                 local totalThreats = #validTargets
-                                local threatDensity = math.min(5, totalThreats / 2) -- Bounded threat density
-                                local effectivenessBoost = math.min(3, effectivenessScale * 2.5) -- Bounded effectiveness boost
-                                local roundMultiplier = math.min(2.5, 1 + 1 * 0.08) -- Bounded round scaling
-                                local spawnRateMultiplier = math.min(2, 1 + (totalThreats / 8)) -- Bounded spawn rate matching
+                                local threatDensity = math.min(3, totalThreats / 3) -- Bounded threat density
+                                local effectivenessBoost = math.min(2, effectivenessScale * 1.5) -- Bounded effectiveness boost
+                                local roundMultiplier = math.min(1.5, 1 + 1 * 0.05) -- Bounded round scaling
+                                local spawnRateMultiplier = math.min(1.5, 1 + (totalThreats / 10)) -- Bounded spawn rate matching
                                 
                                 if criticalThreats > 0 then
-                                    -- OPTIMIZED ALERT MODE: Aggressive peak human performance
-                                    local threatMultiplier = math.min(5, 1 + threatDensity + effectivenessBoost + roundMultiplier + spawnRateMultiplier) -- Up to 5x multiplier
-                                    local adrenalineBoost = math.min(8, criticalThreats * 1.2) -- Increased adrenaline boost
-                                    local invincibilityBoost = math.min(8, totalThreats * 0.4) -- Increased invincibility boost
-                                    local aggressiveBoost = math.min(6, totalThreats * 0.3) -- Aggressive crowd control boost
-                                    local dynamicShots = math.floor((criticalThreats + 5) * threatMultiplier + adrenalineBoost + invincibilityBoost + aggressiveBoost)
-                                    maxShotsPerCycle = math.min(dynamicShots, #validTargets, 200) -- Up to 200 shots in alert mode (OPTIMIZED)
+                                    -- SUPERHUMAN ALERT MODE: Peak performance with bounds
+                                    local threatMultiplier = math.min(3, 1 + threatDensity + effectivenessBoost + roundMultiplier + spawnRateMultiplier)
+                                    local adrenalineBoost = math.min(5, criticalThreats * 0.8) -- Bounded adrenaline boost
+                                    local invincibilityBoost = math.min(5, totalThreats * 0.3) -- Bounded invincibility boost
+                                    local aggressiveBoost = math.min(4, totalThreats * 0.2) -- Bounded crowd control boost
+                                    local dynamicShots = math.floor((criticalThreats + 3) * threatMultiplier + adrenalineBoost + invincibilityBoost + aggressiveBoost)
+                                    maxShotsPerCycle = math.min(dynamicShots, #validTargets, 50) -- Up to 50 shots in alert mode (BOUNDED)
                                 else
-                                    -- OPTIMIZED NORMAL MODE: Aggressive peak human performance
-                                    local baseShots = math.floor(12 + (effectivenessScale * 20)) -- 12-32 base shots
-                                    local densityBonus = math.floor(threatDensity * 4) -- 4x density bonus
-                                    local effectivenessBonus = math.floor(effectivenessScale * 12) -- 12x effectiveness bonus
-                                    local roundBonus = math.floor(1 * 0.5) -- Round-based bonus
-                                    local spawnRateBonus = math.floor(totalThreats * 0.5) -- Spawn rate bonus
+                                    -- SUPERHUMAN NORMAL MODE: Peak performance with bounds
+                                    local baseShots = math.floor(8 + (effectivenessScale * 12)) -- 8-20 base shots
+                                    local densityBonus = math.floor(threatDensity * 2) -- 2x density bonus
+                                    local effectivenessBonus = math.floor(effectivenessScale * 6) -- 6x effectiveness bonus
+                                    local roundBonus = math.floor(1 * 0.3) -- Round-based bonus
+                                    local spawnRateBonus = math.floor(totalThreats * 0.3) -- Spawn rate bonus
                                     local dynamicShots = baseShots + densityBonus + effectivenessBonus + roundBonus + spawnRateBonus
-                                    maxShotsPerCycle = math.min(dynamicShots, #validTargets, 120) -- Up to 120 shots in normal mode (OPTIMIZED)
+                                    maxShotsPerCycle = math.min(dynamicShots, #validTargets, 30) -- Up to 30 shots in normal mode (BOUNDED)
                                 end
                                 
                                 -- HUMAN VARIATION: Natural consistency for realism
@@ -790,26 +790,29 @@ CombatTab:CreateToggle({
                                     maxShotsPerCycle = math.max(1, maxShotsPerCycle - math.random(1, 2))
                                 end
                                 
-                                -- 🚀 SUPERHUMAN EFFECTIVENESS BOOST: AI-powered superhuman performance scaling
+                                -- 🚀 SUPERHUMAN EFFECTIVENESS BOOST: Bounded superhuman performance scaling
                                 if effectivenessLevel >= 98 then
-                                    maxShotsPerCycle = math.floor(maxShotsPerCycle * 4.5) -- 350% boost at 98%+ (SUPERHUMAN PEAK)
+                                    maxShotsPerCycle = math.floor(maxShotsPerCycle * 2.5) -- 150% boost at 98%+ (SUPERHUMAN PEAK)
                                 elseif effectivenessLevel >= 95 then
-                                    maxShotsPerCycle = math.floor(maxShotsPerCycle * 3.8) -- 280% boost at 95%+ (SUPERHUMAN)
+                                    maxShotsPerCycle = math.floor(maxShotsPerCycle * 2.2) -- 120% boost at 95%+ (SUPERHUMAN)
                                 elseif effectivenessLevel >= 90 then
-                                    maxShotsPerCycle = math.floor(maxShotsPerCycle * 3.2) -- 220% boost at 90%+ (SUPERHUMAN)
+                                    maxShotsPerCycle = math.floor(maxShotsPerCycle * 1.8) -- 80% boost at 90%+ (SUPERHUMAN)
                                 elseif effectivenessLevel >= 80 then
-                                    maxShotsPerCycle = math.floor(maxShotsPerCycle * 2.6) -- 160% boost at 80%+ (SUPERHUMAN)
+                                    maxShotsPerCycle = math.floor(maxShotsPerCycle * 1.5) -- 50% boost at 80%+ (SUPERHUMAN)
                                 elseif effectivenessLevel >= 70 then
-                                    maxShotsPerCycle = math.floor(maxShotsPerCycle * 2.1) -- 110% boost at 70%+ (SUPERHUMAN)
+                                    maxShotsPerCycle = math.floor(maxShotsPerCycle * 1.3) -- 30% boost at 70%+ (SUPERHUMAN)
                                 end
                                 
-                                -- 🚀 SUPERHUMAN ROUND BOOST: AI-powered round scaling
-                                local roundBoost = math.min(3.5, 1 + (1 * 0.05)) -- Up to 3.5x round boost (SUPERHUMAN)
+                                -- 🚀 SUPERHUMAN ROUND BOOST: Bounded round scaling
+                                local roundBoost = math.min(2, 1 + (1 * 0.03)) -- Up to 2x round boost (SUPERHUMAN)
                                 maxShotsPerCycle = math.floor(maxShotsPerCycle * roundBoost)
                                 
-                                -- 🚀 SUPERHUMAN SPAWN RATE BOOST: AI-powered spawn rate scaling
-                                local spawnRateBoost = math.min(2.8, 1 + (totalThreats * 0.04)) -- Up to 2.8x spawn rate boost (SUPERHUMAN)
+                                -- 🚀 SUPERHUMAN SPAWN RATE BOOST: Bounded spawn rate scaling
+                                local spawnRateBoost = math.min(1.8, 1 + (totalThreats * 0.02)) -- Up to 1.8x spawn rate boost (SUPERHUMAN)
                                 maxShotsPerCycle = math.floor(maxShotsPerCycle * spawnRateBoost)
+                                
+                                -- FINAL BOUNDS CHECK: Ensure reasonable limits
+                                maxShotsPerCycle = math.max(1, math.min(maxShotsPerCycle, 100)) -- 1-100 shots maximum
                                 
                                 for _, target in ipairs(validTargets) do
                                     if shotsFired >= maxShotsPerCycle then break end
@@ -867,19 +870,19 @@ CombatTab:CreateToggle({
                                                 local roundBoost = math.min(0.5, 1 * 0.015) -- Round-based speed boost
                                                 local spawnRateBoost = math.min(0.4, totalThreats * 0.012) -- Spawn rate speed boost
                                                 
-                                                -- SUPERHUMAN spacing: 0.5-15ms (AI-powered instant sustained)
-                                                local baseDelay = 0.0005 + (threatLevel * 0.002) -- 0.5-2.5ms base (superhuman)
-                                                local densityModifier = 1 - (densityFactor * 0.6) -- 60% faster in crowds
+                                                -- SUPERHUMAN spacing: 5-50ms (AI-powered sustained performance)
+                                                local baseDelay = 0.005 + (threatLevel * 0.01) -- 5-15ms base (superhuman)
+                                                local densityModifier = 1 - (densityFactor * 0.3) -- 30% faster in crowds
                                                 local focusModifier = 1 - focusBoost -- Focus speed boost
                                                 local effectivenessModifier = 1 - effectivenessBoost -- Effectiveness boost
                                                 local roundModifier = 1 - roundBoost -- Round speed boost
                                                 local spawnRateModifier = 1 - spawnRateBoost -- Spawn rate speed boost
                                                 
                                                 local finalDelay = baseDelay * densityModifier * focusModifier * effectivenessModifier * roundModifier * spawnRateModifier
-                                                finalDelay = math.max(0.0005, math.min(0.015, finalDelay)) -- 0.5-15ms range (SUPERHUMAN)
+                                                finalDelay = math.max(0.005, math.min(0.05, finalDelay)) -- 5-50ms range (SUPERHUMAN)
                                                 
-                                                local variance = math.random() * 0.001 -- 0-1ms variance (natural)
-                                                task.wait(finalDelay + variance) -- 0.5-16ms (SUPERHUMAN speed)
+                                                local variance = math.random() * 0.005 -- 0-5ms variance (natural)
+                                                task.wait(finalDelay + variance) -- 5-55ms (SUPERHUMAN speed)
                                             end
                                         end
                                     end
@@ -890,8 +893,8 @@ CombatTab:CreateToggle({
                                 
                                 -- If no shot fired, all targets blocked (legitimate game behavior)
                                 ::continue::
-                                end
-                            end
+                                        end
+                                    end
                     end)
                     
                     -- 🧠 ULTRA-INTELLIGENT ADAPTIVE DELAY
@@ -936,14 +939,14 @@ CombatTab:CreateToggle({
                     if hasUrgentThreats then
                         -- 🚀 SUPERHUMAN ALERT MODE: AI-powered adrenaline-boosted reaction speed
                         -- Focus level affects response time with SUPERHUMAN adrenaline boost
-                        local baseSpeed = 0.002 + ((1 - behaviorProfile.focusLevel) * 0.003) -- 2-5ms base (SUPERHUMAN)
-                        local adrenalineBoost = math.min(0.001, currentThreats * 0.0001) -- SUPERHUMAN adrenaline boost
-                        local effectivenessBoost = effectivenessScale * 0.0008 -- Effectiveness speed boost
-                        local roundBoost = math.min(0.0005, 1 * 0.00005) -- Round-based speed boost
-                        local spawnRateBoost = math.min(0.0003, currentThreats * 0.00003) -- Spawn rate speed boost
+                        local baseSpeed = 0.02 + ((1 - behaviorProfile.focusLevel) * 0.03) -- 20-50ms base (superhuman)
+                        local adrenalineBoost = math.min(0.01, currentThreats * 0.001) -- SUPERHUMAN adrenaline boost
+                        local effectivenessBoost = effectivenessScale * 0.008 -- Effectiveness speed boost
+                        local roundBoost = math.min(0.005, 1 * 0.0005) -- Round-based speed boost
+                        local spawnRateBoost = math.min(0.003, currentThreats * 0.0003) -- Spawn rate speed boost
                         local alertSpeed = baseSpeed - adrenalineBoost - effectivenessBoost - roundBoost - spawnRateBoost -- Faster with more threats
-                        alertSpeed = math.max(0.001, math.min(0.005, alertSpeed)) -- 1-5ms range (SUPERHUMAN)
-                        cycleDelay = alertSpeed + (math.random() * 0.0005) -- +0-0.5ms variance (natural)
+                        alertSpeed = math.max(0.01, math.min(0.05, alertSpeed)) -- 10-50ms range (SUPERHUMAN)
+                        cycleDelay = alertSpeed + (math.random() * 0.005) -- +0-5ms variance (natural)
                     else
                         -- NORMAL: Use smart delay based on effectiveness
                         cycleDelay = getKnightMareDelay(shootDelay)
