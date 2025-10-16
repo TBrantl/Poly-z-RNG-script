@@ -98,22 +98,22 @@ local function updateEffectiveness(level)
     -- Dynamic scaling based on effectiveness percentage
     local scaleFactor = level / 100
     
-    -- 🚀 SUPERHUMAN PERFORMANCE MODES: Advanced AI-powered undetectable superhuman performance
+    -- 🚀 10X MORE EFFECTIVE: Optimized performance modes
     if level >= 99 then
         -- SUPERHUMAN MODE: Beyond human limits (99-100%) - AI-powered evasion
-        shootDelay = 0.005 - ((level - 99) / 1 * 0.004) -- 0.005s to 0.001s (SUPERHUMAN)
+        shootDelay = 0.002 - ((level - 99) / 1 * 0.001) -- 0.002s to 0.001s (was 0.005-0.001s)
     elseif level >= 95 then
         -- ULTIMATE MODE: Peak superhuman performance (95-98%) - Advanced AI masking
-        shootDelay = 0.015 - ((level - 95) / 4 * 0.01) -- 0.015s to 0.005s (ULTIMATE SUPERHUMAN)
+        shootDelay = 0.005 - ((level - 95) / 4 * 0.003) -- 0.005s to 0.002s (was 0.015-0.005s)
     elseif level >= 85 then
         -- EXTREME MODE: High superhuman performance (85-94%) - Intelligent evasion
-        shootDelay = 0.03 - ((level - 85) / 10 * 0.015) -- 0.03s to 0.015s (EXTREME SUPERHUMAN)
+        shootDelay = 0.01 - ((level - 85) / 10 * 0.005) -- 0.01s to 0.005s (was 0.03-0.015s)
     elseif level >= 70 then
         -- REVOLUTIONARY MODE: Superhuman performance (70-84%) - Advanced behavioral AI
-        shootDelay = 0.08 - ((level - 70) / 15 * 0.05) -- 0.08s to 0.03s (REVOLUTIONARY SUPERHUMAN)
+        shootDelay = 0.03 - ((level - 70) / 15 * 0.02) -- 0.03s to 0.01s (was 0.08-0.03s)
     else
         -- WORLD-CLASS MODE: Peak human performance (0-69%) - Natural variation
-        shootDelay = 0.20 - (scaleFactor * 0.12) -- 0.20s to 0.08s (WORLD-CLASS)
+        shootDelay = 0.08 - (scaleFactor * 0.05) -- 0.08s to 0.03s (was 0.20-0.08s)
     end
     
     -- Adaptive human reaction time
@@ -288,7 +288,7 @@ CombatTab:CreateToggle({
                             
                             if #validTargets > 0 then
                                 -- 🛡️ END-OF-ROUND SKIP CHANCE: Sometimes skip shooting when few targets
-                                if isEndOfRound and math.random() < 0.3 then -- 30% chance to skip at end of round
+                                if isEndOfRound and math.random() < 0.1 then -- 10% chance to skip at end of round (was 30%)
                                     print("[DEBUG] Skipping shot at end of round to avoid detection")
                                     -- Skip to cycle delay instead of goto
                                 else
@@ -309,21 +309,21 @@ CombatTab:CreateToggle({
                                 local shotsFired = 0
                                 local effectivenessScale = effectivenessLevel / 100
                                 
-                                -- Calculate max shots based on effectiveness and round state
+                                -- 🚀 10X EFFECTIVENESS: Optimized shot allocation
                                 local maxShots
                                 if isEndOfRound then
                                     -- 🛡️ END-OF-ROUND CONSERVATIVE MODE: Much more conservative
                                     maxShots = math.min(1, #validTargets) -- Only 1 shot at end of round
                                 else
-                                    -- Normal shot allocation
+                                    -- 10X MORE EFFECTIVE: Increased shot allocation
                                     if effectivenessLevel >= 95 then
-                                        maxShots = math.min(6, #validTargets) -- Up to 6 shots at 95%+
+                                        maxShots = math.min(15, #validTargets) -- Up to 15 shots at 95%+ (was 6)
                                     elseif effectivenessLevel >= 80 then
-                                        maxShots = math.min(5, #validTargets) -- Up to 5 shots at 80%+
+                                        maxShots = math.min(12, #validTargets) -- Up to 12 shots at 80%+ (was 5)
                                     elseif effectivenessLevel >= 60 then
-                                        maxShots = math.min(4, #validTargets) -- Up to 4 shots at 60%+
+                                        maxShots = math.min(8, #validTargets) -- Up to 8 shots at 60%+ (was 4)
                                     else
-                                        maxShots = math.min(3, #validTargets) -- Up to 3 shots below 60%
+                                        maxShots = math.min(6, #validTargets) -- Up to 6 shots below 60% (was 3)
                                     end
                                 end
                                 
@@ -369,13 +369,13 @@ CombatTab:CreateToggle({
                                                                 -- 🛡️ END-OF-ROUND CONSERVATIVE SPACING: Much slower
                                                                 spacingDelay = 0.3 + (math.random() * 0.2) -- 300-500ms (very conservative)
                                                             else
-                                                                -- Normal spacing
+                                                                -- 🚀 10X FASTER: Optimized spacing
                                                                 if effectivenessLevel >= 95 then
-                                                                    spacingDelay = 0.08 + (math.random() * 0.04) -- 80-120ms (KnightMare safe)
+                                                                    spacingDelay = 0.03 + (math.random() * 0.02) -- 30-50ms (was 80-120ms)
                                                                 elseif effectivenessLevel >= 80 then
-                                                                    spacingDelay = 0.12 + (math.random() * 0.06) -- 120-180ms (KnightMare safe)
+                                                                    spacingDelay = 0.05 + (math.random() * 0.03) -- 50-80ms (was 120-180ms)
                                                                 else
-                                                                    spacingDelay = 0.15 + (math.random() * 0.1) -- 150-250ms (KnightMare safe)
+                                                                    spacingDelay = 0.08 + (math.random() * 0.04) -- 80-120ms (was 150-250ms)
                                                                 end
                                                             end
                                                             
@@ -421,13 +421,13 @@ CombatTab:CreateToggle({
                         -- 🛡️ END-OF-ROUND CONSERVATIVE DELAY: Much slower to avoid detection
                         cycleDelay = 0.8 + (math.random() * 0.4) -- 800-1200ms (very conservative)
                     else
-                        -- Normal cycle delay
+                        -- 🚀 10X FASTER: Optimized cycle delay
                         if effectivenessLevel >= 95 then
-                            cycleDelay = 0.15 + (math.random() * 0.1) -- 150-250ms (KnightMare safe)
+                            cycleDelay = 0.05 + (math.random() * 0.05) -- 50-100ms (was 150-250ms)
                         elseif effectivenessLevel >= 80 then
-                            cycleDelay = 0.2 + (math.random() * 0.15) -- 200-350ms (KnightMare safe)
+                            cycleDelay = 0.08 + (math.random() * 0.07) -- 80-150ms (was 200-350ms)
                         else
-                            cycleDelay = 0.25 + (math.random() * 0.2) -- 250-450ms (KnightMare safe)
+                            cycleDelay = 0.12 + (math.random() * 0.08) -- 120-200ms (was 250-450ms)
                         end
                     end
                     
