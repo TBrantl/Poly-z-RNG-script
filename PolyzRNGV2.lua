@@ -603,8 +603,6 @@ CombatTab:CreateToggle({
                             local weapon = getEquippedWeaponName()
                             local validTargets = {}
                             
-                            -- Debug: Check if we have enemies
-                            print("[DEBUG] Found enemies:", #enemies:GetChildren())
                             
                             -- Collect ALL living enemies with distance info
                             local character = player.Character
@@ -635,8 +633,6 @@ CombatTab:CreateToggle({
                                 end
                             end
                             
-                            -- Debug: Check valid targets
-                            print("[DEBUG] Valid targets found:", #validTargets)
                             
                             -- 🎯 DYNAMIC PERFECT DEFENSE: Scales with effectiveness level
                             if #validTargets > 0 then
@@ -735,8 +731,6 @@ CombatTab:CreateToggle({
                                             shootRemote:FireServer(unpack(args))
                                         end)
                                         
-                                        -- Debug: Check if shot was successful
-                                        print("[DEBUG] Shot fired, success:", success)
                                         
                                         -- 📊 Record shot for adaptive learning
                                         recordShotSuccess(success)
@@ -765,7 +759,7 @@ CombatTab:CreateToggle({
                     end)
                     
                     -- 🧠 ULTRA-INTELLIGENT ADAPTIVE DELAY
-                    -- Check if there are critical threats nearby
+                    -- Check if there are critical threats nearby (more sensitive detection)
                     local hasUrgentThreats = false
                     local enemies = workspace:FindFirstChild("Enemies")
                     if enemies then
@@ -776,15 +770,16 @@ CombatTab:CreateToggle({
                                 if zombie:IsA("Model") and zombie:FindFirstChild("Head") then
                                     local distance = (zombie.Head.Position - root.Position).Magnitude
                                     local effectivenessScale = effectivenessLevel / 100
-                                    local urgentZone = 15 + (effectivenessScale * 15)
+                                    -- More sensitive urgent zone to prevent pausing when zombies are close
+                                    local urgentZone = 25 + (effectivenessScale * 25) -- 25-50 studs (increased from 15-30)
                                     if distance < urgentZone then
                                         hasUrgentThreats = true
                                         break
                                     end
                                 end
                             end
-                        end
-                    end
+                                    end
+                                end
                                 
                     -- 🧬 DYNAMIC CYCLE DELAY WITH BEHAVIORAL SIMULATION
                     local cycleDelay
@@ -798,17 +793,20 @@ CombatTab:CreateToggle({
                         -- NORMAL: Use smart delay based on effectiveness
                         cycleDelay = getKnightMareDelay(shootDelay)
                         
-                        -- 🧠 HUMAN PAUSE SIMULATION: Reduced for better crowd control
-                        -- Simulates looking around, checking UI, reloading mentally
-                        if math.random() < 0.04 then -- 4% chance per cycle (reduced from 8%)
-                            local pauseType = math.random()
-                            if pauseType < 0.4 then
-                                cycleDelay = cycleDelay + (0.2 + math.random() * 0.3) -- Quick glance (200-500ms)
-                            elseif pauseType < 0.7 then
-                                cycleDelay = cycleDelay + (0.5 + math.random() * 0.5) -- Check surroundings (500-1000ms)
-                            else
-                                cycleDelay = cycleDelay + (1.0 + math.random() * 0.8) -- Brief distraction (1.0-1.8s)
+                        -- 🧠 INTELLIGENT HUMAN PAUSE SIMULATION
+                        -- NEVER pause when urgent threats are present (survival instinct)
+                        if not hasUrgentThreats then
+                            -- Reduced pause chance when no urgent threats
+                            if math.random() < 0.02 then -- 2% chance per cycle (very reduced)
+                                local pauseType = math.random()
+                                if pauseType < 0.4 then
+                                    cycleDelay = cycleDelay + (0.1 + math.random() * 0.2) -- Quick glance (100-300ms)
+                                elseif pauseType < 0.7 then
+                                    cycleDelay = cycleDelay + (0.3 + math.random() * 0.3) -- Check surroundings (300-600ms)
+                                else
+                                    cycleDelay = cycleDelay + (0.5 + math.random() * 0.5) -- Brief distraction (500-1000ms)
                             end
+                        end
                         end
                     end
                     
