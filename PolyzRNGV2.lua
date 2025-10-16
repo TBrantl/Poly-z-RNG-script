@@ -747,7 +747,7 @@ CombatTab:CreateToggle({
                                 local highThreatZone = 30 + (effectivenessScale * 30) -- 30-60 studs
                                 local preemptiveZone = 50 + (effectivenessScale * 50) -- 50-100 studs
                                 
-                                -- 🎯 SIMPLE BUT EFFECTIVE TARGET SORTING (Working Version)
+                                -- 🎯 INTELLIGENT TARGET PRIORITIZATION - Smart Target Selection for Maximum Efficiency
                                 table.sort(validTargets, function(a, b)
                                     local aBoss = a.model.Name == "GoblinKing" or a.model.Name == "CaptainBoom" or a.model.Name == "Fungarth"
                                     local bBoss = b.model.Name == "GoblinKing" or b.model.Name == "CaptainBoom" or b.model.Name == "Fungarth"
@@ -758,14 +758,30 @@ CombatTab:CreateToggle({
                                     if aCritical and not bCritical then return true end
                                     if bCritical and not aCritical then return false end
                                     
-                                    -- HIGH THREAT ZONE: Approaching enemies or Bosses
-                                    local aHighThreat = a.distance < highThreatZone or aBoss
-                                    local bHighThreat = b.distance < highThreatZone or bBoss
+                                    -- BOSS PRIORITY: Always prioritize bosses for maximum efficiency
+                                    if aBoss and not bBoss then return true end
+                                    if bBoss and not aBoss then return false end
+                                    
+                                    -- HIGH THREAT ZONE: Approaching enemies
+                                    local aHighThreat = a.distance < highThreatZone
+                                    local bHighThreat = b.distance < highThreatZone
                                     if aHighThreat and not bHighThreat then return true end
                                     if bHighThreat and not aHighThreat then return false end
                                     
+                                    -- INTELLIGENT TARGETING: Prioritize targets that are moving towards player
+                                    local character = player.Character
+                                    local root = character and character:FindFirstChild("HumanoidRootPart")
+                                    if root then
+                                        local aVelocity = a.model:FindFirstChild("HumanoidRootPart") and a.model.HumanoidRootPart.Velocity.Magnitude or 0
+                                        local bVelocity = b.model:FindFirstChild("HumanoidRootPart") and b.model.HumanoidRootPart.Velocity.Magnitude or 0
+                                        
+                                        -- Prioritize moving targets (they're more dangerous)
+                                        if aVelocity > 5 and bVelocity <= 5 then return true end
+                                        if bVelocity > 5 and aVelocity <= 5 then return false end
+                                    end
+                                    
                                     -- PREEMPTIVE ZONE: Target before they get close (high effectiveness only)
-                                    if effectivenessLevel >= 60 then
+                                    if effectivenessLevel >= 70 then
                                         local aPreemptive = a.distance < preemptiveZone
                                         local bPreemptive = b.distance < preemptiveZone
                                         if aPreemptive and not bPreemptive then return true end
@@ -952,6 +968,16 @@ CombatTab:CreateToggle({
                                 
                     -- 🧬 DYNAMIC CYCLE DELAY WITH BEHAVIORAL SIMULATION
                     local cycleDelay
+                    
+                    -- Count total threats for cycle delay calculations
+                    local totalThreats = 0
+                    if enemies then
+                        for _, zombie in pairs(enemies:GetChildren()) do
+                            if zombie:IsA("Model") and zombie:FindFirstChild("Head") then
+                                totalThreats = totalThreats + 1
+                            end
+                        end
+                    end
                     
                     if hasUrgentThreats then
                         -- 🛡️ DETECTION-SAFE ALERT MODE: Human-like adrenaline-boosted reaction speed
