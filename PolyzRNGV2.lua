@@ -643,50 +643,28 @@ CombatTab:CreateToggle({
                                     end
                                 end
                                 
-                                -- 🧠 INTELLIGENT CROWD-ADAPTIVE ALLOCATION
-                                -- Varies based on player state, effectiveness, AND crowd density
+                                -- 🧠 INTELLIGENT ADAPTIVE ALLOCATION
+                                -- Varies based on player state, not just effectiveness
                                 local maxShotsPerCycle
                                 
-                                -- ANALYZE CROWD DENSITY (simple but effective)
-                                local totalZombies = #validTargets
-                                local zombiesInHighThreat = 0
-                                for _, t in ipairs(validTargets) do
-                                    if t.distance < highThreatZone then
-                                        zombiesInHighThreat = zombiesInHighThreat + 1
-                                    end
-                                end
-                                
-                                -- CROWD DETECTION: Simple thresholds for crowd management
-                                local isCrowd = totalZombies > 6 -- More than 6 zombies = crowd
-                                local isDenseCrowd = zombiesInHighThreat > 3 -- 3+ zombies in high threat zone
-                                
-                                -- FOCUS-BASED SHOT CAPACITY (enhanced for crowds)
+                                -- FOCUS-BASED SHOT CAPACITY
+                                -- Focused player = can track more targets
+                                -- Fatigued player = tracks fewer
                                 local focusFactor = behaviorProfile.focusLevel - behaviorProfile.fatigueLevel
-                                local baseShotCapacity = math.floor(2 + (focusFactor * 2)) -- 1-4 shots based on state
+                                local shotCapacity = math.floor(2 + (focusFactor * 2)) -- 1-4 shots based on state
                                 
-                                -- CROWD ADAPTATION: Increase shots when needed (human-like response)
                                 if criticalThreats > 0 then
-                                    -- CRITICAL MODE: Shoot ALL critical threats + extra for crowd control
-                                    local crowdBonus = isCrowd and 1 or 0 -- +1 shot for crowds
-                                    maxShotsPerCycle = math.min(criticalThreats + crowdBonus, baseShotCapacity + 1, 5)
-                                elseif isDenseCrowd then
-                                    -- DENSE CROWD MODE: More shots to thin the crowd
-                                    local crowdShots = math.floor(2 + (effectivenessScale * 2.5)) -- 2-4.5 shots for dense crowds
-                                    maxShotsPerCycle = math.min(crowdShots, baseShotCapacity + 1, 4)
-                                elseif isCrowd then
-                                    -- CROWD MODE: Moderate increase for crowd management
-                                    local crowdShots = math.floor(1.5 + (effectivenessScale * 2)) -- 1.5-3.5 shots for crowds
-                                    maxShotsPerCycle = math.min(crowdShots, baseShotCapacity, 3)
+                                    -- ALERT MODE: Adrenaline boost allows more shots
+                                    local panicBoost = math.min(1, criticalThreats / 3) -- Up to +1 shot
+                                    maxShotsPerCycle = math.min(criticalThreats, shotCapacity + math.floor(panicBoost), 4)
                                 else
-                                    -- NORMAL MODE: Standard effectiveness scaling
+                                    -- NORMAL MODE: Scale with effectiveness AND player state
                                     local baseShots = math.floor(1 + (effectivenessScale * 2))
-                                    maxShotsPerCycle = math.min(baseShots, baseShotCapacity, 3)
+                                    maxShotsPerCycle = math.min(baseShots, shotCapacity, 3)
                                 end
                                 
                                 -- RANDOM VARIATION: Sometimes shoot fewer (distraction, hesitation)
-                                -- BUT: Reduce variation when dealing with crowds (survival instinct)
-                                local variationChance = isCrowd and 0.10 or 0.20 -- 10% for crowds, 20% for normal
-                                if math.random() < variationChance then
+                                if math.random() < 0.20 then -- 20% chance
                                     maxShotsPerCycle = math.max(1, maxShotsPerCycle - 1)
                                 end
                                 
@@ -694,15 +672,8 @@ CombatTab:CreateToggle({
                                     if shotsFired >= maxShotsPerCycle then break end
                                     
                                     -- 🧬 HUMAN IMPERFECTION: Occasionally skip a target (distraction, hesitation)
-                                    -- BUT: Reduce skipping when dealing with crowds (survival instinct)
-                                    local baseSkipChance = (1 - behaviorProfile.focusLevel) * 0.15 + (behaviorProfile.fatigueLevel * 0.10)
-                                    local skipChance = isCrowd and (baseSkipChance * 0.5) or baseSkipChance -- 50% less skipping in crowds
-                                    
-                                    -- NEVER skip critical threats (survival instinct)
-                                    if target.distance < criticalZone then
-                                        skipChance = 0
-                                    end
-                                    
+                                    -- Lower focus or higher fatigue = more likely to "miss" targeting
+                                    local skipChance = (1 - behaviorProfile.focusLevel) * 0.15 + (behaviorProfile.fatigueLevel * 0.10)
                                     if math.random() < skipChance and shotsFired > 0 then
                                         -- Skip this target, move to next (human didn't notice it)
                                         continue
@@ -730,22 +701,13 @@ CombatTab:CreateToggle({
                                         if success then
                                             shotsFired = shotsFired + 1
                                             
-                                            -- 🎯 CROWD-ADAPTIVE MULTI-SHOT SPACING
+                                            -- 🎯 SMART MULTI-SHOT SPACING (human panic simulation)
                                             if shotsFired < maxShotsPerCycle then
-                                                -- ADAPTIVE SPACING: Faster when dealing with crowds
-                                                local baseDelay
-                                                if target.distance < criticalZone then
-                                                    baseDelay = 0.08 -- Critical threat (80ms)
-                                                elseif isDenseCrowd then
-                                                    baseDelay = 0.10 -- Dense crowd (100ms)
-                                                elseif isCrowd then
-                                                    baseDelay = 0.11 -- Crowd (110ms)
-                                                else
-                                                    baseDelay = 0.12 -- Normal (120ms)
-                                                end
-                                                
+                                                -- Critical threats = faster but still human-like
+                                                -- Human panic: 80-150ms between rapid shots
+                                                local urgentDelay = target.distance < criticalZone and 0.08 or 0.12
                                                 local variance = math.random() * 0.07 -- 0-70ms variance
-                                                task.wait(baseDelay + variance) -- 80-190ms range
+                                                task.wait(urgentDelay + variance) -- 80-150ms (human limit)
                                             end
                                         end
                                     end
@@ -781,48 +743,21 @@ CombatTab:CreateToggle({
                                     end
                                 end
                                 
-                    -- 🧬 CROWD-ADAPTIVE CYCLE DELAY
+                    -- 🧬 DYNAMIC CYCLE DELAY WITH BEHAVIORAL SIMULATION
                     local cycleDelay
                     
-                    -- CHECK FOR CROWD SITUATION (reuse crowd detection from above)
-                    local totalZombies = 0
-                    local closeZombies = 0
-                    local enemies_check = workspace:FindFirstChild("Enemies")
-                    if enemies_check then
-                        local char_check = player.Character
-                        local root_check = char_check and char_check:FindFirstChild("HumanoidRootPart")
-                        if root_check then
-                            for _, zom in pairs(enemies_check:GetChildren()) do
-                                if zom:IsA("Model") and zom:FindFirstChild("Head") then
-                                    totalZombies = totalZombies + 1
-                                    local dist = (zom.Head.Position - root_check.Position).Magnitude
-                                    if dist < highThreatZone then
-                                        closeZombies = closeZombies + 1
-                                    end
-                                end
-                            end
-                        end
-                    end
-                    
-                    local isCrowd = totalZombies > 6
-                    local isDenseCrowd = closeZombies > 3
-                    
-                    if hasUrgentThreats or isDenseCrowd then
-                        -- ALERT/CROWD MODE: Faster reaction for crowds
-                        local alertSpeed = 0.10 + ((1 - behaviorProfile.focusLevel) * 0.06) -- 100-160ms for crowds
-                        cycleDelay = alertSpeed + (math.random() * 0.04) -- +0-40ms variance
-                    elseif isCrowd then
-                        -- CROWD MODE: Moderate speed increase
-                        local crowdSpeed = 0.15 + (math.random() * 0.05) -- 150-200ms for crowds
-                        cycleDelay = crowdSpeed
+                    if hasUrgentThreats then
+                        -- ALERT MODE: Faster reaction like a focused human
+                        -- Focus level affects response time
+                        local alertSpeed = 0.12 + ((1 - behaviorProfile.focusLevel) * 0.08) -- 120-200ms
+                        cycleDelay = alertSpeed + (math.random() * 0.05) -- +0-50ms variance
                     else
                         -- NORMAL: Use smart delay based on effectiveness
                         cycleDelay = getKnightMareDelay(shootDelay)
                         
-                        -- 🧠 HUMAN PAUSE SIMULATION: Reduced during crowds
+                        -- 🧠 HUMAN PAUSE SIMULATION: Occasionally take a break
                         -- Simulates looking around, checking UI, reloading mentally
-                        local pauseChance = isCrowd and 0.04 or 0.08 -- 4% for crowds, 8% for normal
-                        if math.random() < pauseChance then
+                        if math.random() < 0.08 then -- 8% chance per cycle
                             local pauseType = math.random()
                             if pauseType < 0.4 then
                                 cycleDelay = cycleDelay + (0.3 + math.random() * 0.4) -- Quick glance (300-700ms)
