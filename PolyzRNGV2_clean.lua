@@ -85,52 +85,14 @@ end
 -- 🎯 PERFECT DEFENSE SYSTEM - Zero Detection | Maximum Efficiency
 local autoKill = false
 local autoSkip = false
-local shootDelay = 0.25 -- HUMAN REACTION TIME default (perfectly natural)
+-- 🚀 MAXIMUM EXPLOITATIVE PERFORMANCE - NO SCALING, JUST PURE POWER
+local shootDelay = 0.25 -- Default safe speed
 local lastShot = 0
 local shotCount = 0
-local maxShootDistance = 250 -- Match game's 250 stud limit
-
--- 🎯 INTELLIGENT EFFECTIVENESS SYSTEM
-local effectivenessLevel = 50 -- Default to balanced (0-100%)
-local function updateEffectiveness(level)
-    effectivenessLevel = level
-    
-    -- Dynamic scaling based on effectiveness percentage
-    local scaleFactor = level / 100
-    
-    -- 🚀 10X MORE EFFECTIVE: Optimized performance modes
-    if level >= 99 then
-        -- SUPERHUMAN MODE: Beyond human limits (99-100%) - AI-powered evasion
-        shootDelay = 0.002 - ((level - 99) / 1 * 0.001) -- 0.002s to 0.001s (was 0.005-0.001s)
-    elseif level >= 95 then
-        -- ULTIMATE MODE: Peak superhuman performance (95-98%) - Advanced AI masking
-        shootDelay = 0.005 - ((level - 95) / 4 * 0.003) -- 0.005s to 0.002s (was 0.015-0.005s)
-    elseif level >= 85 then
-        -- EXTREME MODE: High superhuman performance (85-94%) - Intelligent evasion
-        shootDelay = 0.01 - ((level - 85) / 10 * 0.005) -- 0.01s to 0.005s (was 0.03-0.015s)
-    elseif level >= 70 then
-        -- REVOLUTIONARY MODE: Superhuman performance (70-84%) - Advanced behavioral AI
-        shootDelay = 0.03 - ((level - 70) / 15 * 0.02) -- 0.03s to 0.01s (was 0.08-0.03s)
-    else
-        -- WORLD-CLASS MODE: Peak human performance (0-69%) - Natural variation
-        shootDelay = 0.08 - (scaleFactor * 0.05) -- 0.08s to 0.03s (was 0.20-0.08s)
-    end
-    
-    -- Adaptive human reaction time
-    adaptiveDelay = shootDelay
-    
-    -- Auto-enable stealth mode for lower effectiveness
-    stealthMode = level < 70 -- Below 70% = stealth, above = performance
-    
-    -- DYNAMIC RANGE SCALING: Higher effectiveness = longer range engagement
-    maxShootDistance = math.floor(150 + (scaleFactor * 100))
-    
-    -- Reset risk when changing effectiveness
-    detectionRisk = 0
-end
-
--- Initialize with balanced default
-updateEffectiveness(50)
+local maxShootDistance = 150 -- Default safe range
+local adaptiveDelay = 0.1 -- Default safe adaptive speed
+local stealthMode = true -- Default safe mode
+local detectionRisk = 0 -- ZERO DETECTION RISK
 
 -- Combat Tab
 local CombatTab = Window:CreateTab("⚔️ Warfare", "Sword")
@@ -173,7 +135,7 @@ task.spawn(function()
             end
             
             -- Update UI labels with dynamic info
-            riskLabel:Set(riskColor .. " Detection Risk: " .. riskLevel .. " | Effectiveness: " .. effectivenessLevel .. "%")
+            riskLabel:Set(riskColor .. " Detection Risk: " .. riskLevel .. " | Mode: " .. (stealthMode and "SAFE" or "MAXIMUM EXPLOITATIVE"))
             performanceLabel:Set("🎯 Defense Zones: Critical<" .. criticalZone .. " | High<" .. highThreatZone .. " studs")
             adaptiveLabel:Set("⚡ Shot Delay: " .. string.format("%.2f", shootDelay) .. "s | Kills: " .. performanceStats.shotsSuccessful)
             
@@ -186,34 +148,39 @@ end)
 
 CombatTab:CreateSection("⚔️ Perfect Defense System")
 
--- 🎯 EFFECTIVENESS SLIDER - Dynamic Performance Scaling
-CombatTab:CreateSlider({
-    Name = "🎯 Combat Effectiveness",
-    Range = {0, 100},
-    Increment = 5,
-    Suffix = "%",
-    CurrentValue = 50,
-    Flag = "Effectiveness",
-    Callback = function(Value)
-        updateEffectiveness(Value)
-        
-        local mode = "BALANCED"
-        local description = "Good performance | Zero detection"
-        
-        if Value <= 30 then
-            mode = "ULTRA-SAFE"
-            description = "Minimum speed | Maximum safety"
-        elseif Value >= 80 then
-            mode = "MAXIMUM"
-            description = "Peak performance | Intelligent evasion"
+-- 🚀 MAXIMUM EXPLOITATIVE TOGGLE - NO SCALING, JUST PURE POWER
+CombatTab:CreateToggle({
+    Name = "🚀 MAXIMUM EXPLOITATIVE MODE",
+    CurrentValue = false,
+    Flag = "MaxExploitative",
+    Callback = function(state)
+        if state then
+            -- MAXIMUM EXPLOITATIVE SETTINGS
+            shootDelay = 0.001 -- 1ms reaction time
+            maxShootDistance = 250 -- Full range
+            adaptiveDelay = 0.001 -- Maximum speed
+            stealthMode = false -- Maximum performance
+            
+            Rayfield:Notify({
+                Title = "🚀 MAXIMUM EXPLOITATIVE MODE ACTIVE",
+                Content = "1ms reaction time | 250 stud range | MAXIMUM POWER",
+                Duration = 4,
+                Image = 4483362458
+            })
+        else
+            -- SAFE MODE
+            shootDelay = 0.25 -- Safe reaction time
+            maxShootDistance = 150 -- Reduced range
+            adaptiveDelay = 0.1 -- Safe speed
+            stealthMode = true -- Safe mode
+            
+            Rayfield:Notify({
+                Title = "🛡️ SAFE MODE ACTIVE",
+                Content = "Conservative settings | Maximum safety",
+                Duration = 3,
+                Image = 4483362458
+            })
         end
-        
-        Rayfield:Notify({
-            Title = "🎯 " .. mode .. " MODE",
-            Content = Value .. "% effectiveness | " .. description,
-            Duration = 3,
-            Image = 4483362458
-        })
     end
 })
 
@@ -305,25 +272,18 @@ CombatTab:CreateToggle({
                                         return a.distance < b.distance
                                     end)
                                 
-                                -- 🚀 KNIGHTMARE-SYNCHRONIZED SHOT ALLOCATION
+                                -- 🚀 MAXIMUM EXPLOITATIVE SHOT ALLOCATION
                                 local shotsFired = 0
-                                local effectivenessScale = effectivenessLevel / 100
-                                
-                                -- 🚀 10X EFFECTIVENESS: Optimized shot allocation
                                 local maxShots
                                 if isEndOfRound then
                                     -- 🛡️ END-OF-ROUND CONSERVATIVE MODE: Much more conservative
                                     maxShots = math.min(1, #validTargets) -- Only 1 shot at end of round
                                 else
-                                    -- 10X MORE EFFECTIVE: Increased shot allocation
-                                    if effectivenessLevel >= 95 then
-                                        maxShots = math.min(15, #validTargets) -- Up to 15 shots at 95%+ (was 6)
-                                    elseif effectivenessLevel >= 80 then
-                                        maxShots = math.min(12, #validTargets) -- Up to 12 shots at 80%+ (was 5)
-                                    elseif effectivenessLevel >= 60 then
-                                        maxShots = math.min(8, #validTargets) -- Up to 8 shots at 60%+ (was 4)
+                                    -- MAXIMUM EXPLOITATIVE: Unlimited shots
+                                    if stealthMode then
+                                        maxShots = math.min(3, #validTargets) -- Safe mode: 3 shots
                                     else
-                                        maxShots = math.min(6, #validTargets) -- Up to 6 shots below 60% (was 3)
+                                        maxShots = math.min(50, #validTargets) -- MAXIMUM EXPLOITATIVE: 50 shots per cycle
                                     end
                                 end
                                 
@@ -362,26 +322,24 @@ CombatTab:CreateToggle({
                                                         performanceStats.shotsSuccessful = performanceStats.shotsSuccessful + 1
                                                         print("[DEBUG] Shot fired successfully! Total shots:", shotsFired)
                                                         
-                                                        -- 🛡️ KNIGHTMARE-SYNCHRONIZED MULTI-SHOT SPACING
+                                                        -- 🚀 MAXIMUM EXPLOITATIVE MULTI-SHOT SPACING
                                                         if shotsFired < maxShots then
                                                             local spacingDelay
                                                             if isEndOfRound then
                                                                 -- 🛡️ END-OF-ROUND CONSERVATIVE SPACING: Much slower
                                                                 spacingDelay = 0.3 + (math.random() * 0.2) -- 300-500ms (very conservative)
                                                             else
-                                                                -- 🚀 10X FASTER: Optimized spacing
-                                                                if effectivenessLevel >= 95 then
-                                                                    spacingDelay = 0.03 + (math.random() * 0.02) -- 30-50ms (was 80-120ms)
-                                                                elseif effectivenessLevel >= 80 then
-                                                                    spacingDelay = 0.05 + (math.random() * 0.03) -- 50-80ms (was 120-180ms)
+                                                                -- MAXIMUM EXPLOITATIVE: Ultra-fast spacing
+                                                                if stealthMode then
+                                                                    spacingDelay = 0.1 + (math.random() * 0.05) -- Safe mode: 100-150ms
                                                                 else
-                                                                    spacingDelay = 0.08 + (math.random() * 0.04) -- 80-120ms (was 150-250ms)
+                                                                    spacingDelay = 0.001 + (math.random() * 0.004) -- MAXIMUM: 1-5ms spacing
                                                                 end
                                                             end
                                                             
                                                             -- 🛡️ KNIGHTMARE HUMANIZATION: Add natural variation
-                                                            local humanVariation = (math.random() - 0.5) * 0.02 -- ±10ms variation
-                                                            spacingDelay = math.max(0.05, spacingDelay + humanVariation) -- Minimum 50ms
+                                                            local humanVariation = (math.random() - 0.5) * 0.001 -- ±0.5ms variation
+                                                            spacingDelay = math.max(0.001, spacingDelay + humanVariation) -- Minimum 1ms
                                                             
                                                             task.wait(spacingDelay)
                                                         end
@@ -421,13 +379,11 @@ CombatTab:CreateToggle({
                         -- 🛡️ END-OF-ROUND CONSERVATIVE DELAY: Much slower to avoid detection
                         cycleDelay = 0.8 + (math.random() * 0.4) -- 800-1200ms (very conservative)
                     else
-                        -- 🚀 10X FASTER: Optimized cycle delay
-                        if effectivenessLevel >= 95 then
-                            cycleDelay = 0.05 + (math.random() * 0.05) -- 50-100ms (was 150-250ms)
-                        elseif effectivenessLevel >= 80 then
-                            cycleDelay = 0.08 + (math.random() * 0.07) -- 80-150ms (was 200-350ms)
+                        -- 🚀 MAXIMUM EXPLOITATIVE: Ultra-fast cycle delay
+                        if stealthMode then
+                            cycleDelay = 0.2 + (math.random() * 0.1) -- Safe mode: 200-300ms
                         else
-                            cycleDelay = 0.12 + (math.random() * 0.08) -- 120-200ms (was 250-450ms)
+                            cycleDelay = 0.001 + (math.random() * 0.009) -- MAXIMUM: 1-10ms cycle
                         end
                     end
                     
