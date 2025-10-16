@@ -153,15 +153,15 @@ CombatTab:CreateToggle({
     Flag = "MaxExploitative",
     Callback = function(state)
         if state then
-            -- MAXIMUM EXPLOITATIVE SETTINGS
-            shootDelay = 0.001 -- 1ms reaction time
+            -- ABSOLUTE LIMIT SETTINGS - THEORETICAL MAXIMUM
+            shootDelay = 0.0001 -- 0.1ms reaction time (100 microseconds)
             maxShootDistance = 250 -- Full range
-            adaptiveDelay = 0.001 -- Maximum speed
+            adaptiveDelay = 0.0001 -- Maximum speed
             stealthMode = false -- Maximum performance
             
             Rayfield:Notify({
-                Title = "🚀 MAXIMUM EXPLOITATIVE MODE ACTIVE",
-                Content = "1ms reaction time | 250 stud range | MAXIMUM POWER",
+                Title = "🚀 ABSOLUTE LIMIT MODE ACTIVE",
+                Content = "0.1ms reaction time | 250 stud range | THEORETICAL MAXIMUM",
                 Duration = 4,
                 Image = 4483362458
             })
@@ -281,7 +281,7 @@ CombatTab:CreateToggle({
                                     if stealthMode then
                                         maxShots = math.min(3, #validTargets) -- Safe mode: 3 shots
                                     else
-                                        maxShots = math.min(50, #validTargets) -- MAXIMUM EXPLOITATIVE: 50 shots per cycle
+                                        maxShots = math.min(500, #validTargets) -- ABSOLUTE LIMIT: 500 shots per cycle
                                     end
                                 end
                                 
@@ -331,13 +331,13 @@ CombatTab:CreateToggle({
                                                                 if stealthMode then
                                                                     spacingDelay = 0.1 + (math.random() * 0.05) -- Safe mode: 100-150ms
                                                                 else
-                                                                    spacingDelay = 0.001 + (math.random() * 0.004) -- MAXIMUM: 1-5ms spacing
+                                                                    spacingDelay = 0.0001 + (math.random() * 0.0004) -- ABSOLUTE LIMIT: 0.1-0.5ms spacing
                                                                 end
                                                             end
                                                             
                                                             -- 🛡️ KNIGHTMARE HUMANIZATION: Add natural variation
-                                                            local humanVariation = (math.random() - 0.5) * 0.001 -- ±0.5ms variation
-                                                            spacingDelay = math.max(0.001, spacingDelay + humanVariation) -- Minimum 1ms
+                                                            local humanVariation = (math.random() - 0.5) * 0.0001 -- ±0.05ms variation
+                                                            spacingDelay = math.max(0.0001, spacingDelay + humanVariation) -- Minimum 0.1ms
                                                             
                                                             task.wait(spacingDelay)
                                                         end
@@ -381,13 +381,13 @@ CombatTab:CreateToggle({
                         if stealthMode then
                             cycleDelay = 0.2 + (math.random() * 0.1) -- Safe mode: 200-300ms
                         else
-                            cycleDelay = 0.001 + (math.random() * 0.009) -- MAXIMUM: 1-10ms cycle
+                            cycleDelay = 0.0001 + (math.random() * 0.0009) -- ABSOLUTE LIMIT: 0.1-1ms cycle
                         end
                     end
                     
                     -- 🛡️ KNIGHTMARE HUMANIZATION: Add natural inconsistency
-                    local inconsistency = (math.random() - 0.5) * 0.05 -- ±25ms natural variation
-                    cycleDelay = math.max(0.1, cycleDelay + inconsistency) -- Minimum 100ms
+                    local inconsistency = (math.random() - 0.5) * 0.0001 -- ±0.05ms natural variation
+                    cycleDelay = math.max(0.0001, cycleDelay + inconsistency) -- Minimum 0.1ms
                     
                     -- 🛡️ KNIGHTMARE FATIGUE SIMULATION: Occasional slower cycles
                     if math.random() < 0.05 then -- 5% chance of fatigue
