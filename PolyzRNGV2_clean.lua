@@ -289,10 +289,10 @@ CombatTab:CreateToggle({
                                 -- 🛡️ END-OF-ROUND SKIP CHANCE: Sometimes skip shooting when few targets
                                 if isEndOfRound and math.random() < 0.3 then -- 30% chance to skip at end of round
                                     print("[DEBUG] Skipping shot at end of round to avoid detection")
-                                    goto continue
-                                end
-                                -- Sort by distance and threat level
-                                table.sort(validTargets, function(a, b)
+                                    -- Skip to cycle delay instead of goto
+                                else
+                                    -- Sort by distance and threat level
+                                    table.sort(validTargets, function(a, b)
                                     local aBoss = a.model.Name == "GoblinKing" or a.model.Name == "CaptainBoom" or a.model.Name == "Fungarth"
                                     local bBoss = b.model.Name == "GoblinKing" or b.model.Name == "CaptainBoom" or b.model.Name == "Fungarth"
                                     
@@ -393,6 +393,7 @@ CombatTab:CreateToggle({
                                         end
                                     end
                                 end
+                                end -- End of else block for end-of-round skip
                             else
                                 print("[DEBUG] No valid targets found")
                             end
@@ -468,7 +469,6 @@ CombatTab:CreateToggle({
                     -- Update last shot time for rate limiting
                     lastShot = tick()
                     
-                    ::continue::
                     task.wait(cycleDelay)
                 end
             end)
