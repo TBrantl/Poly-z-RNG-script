@@ -119,8 +119,9 @@ local function updateEffectiveness(level)
     
     local scaleFactor = level / 100
     
-    -- Adaptive shot delay: 0.30s (safe) to 0.12s (ultra-aggressive at 100%)
-    shootDelay = 0.30 - (scaleFactor * 0.18)
+    -- Adaptive shot delay: 0.30s (safe) to 0.18s (skilled human at 100%)
+    -- CRITICAL: Never go below 0.18s - that's the absolute human limit
+    shootDelay = 0.30 - (scaleFactor * 0.12)
     
     -- Adaptive human reaction time
     adaptiveDelay = shootDelay
@@ -178,29 +179,31 @@ local function getKnightMareDelay(base)
     end
     
     -- PERFECT HUMAN SIMULATION - based on real player reaction times
-    -- Average human reaction: 200-300ms, good players: 150-250ms
-    if shotsLast1Sec > 3 then
-        detectionRisk = math.min(1, detectionRisk + 0.25)
-    elseif recentShots > 6 then
-        detectionRisk = math.min(1, detectionRisk + 0.12)
+    -- Average human reaction: 200-300ms, good players: 180-250ms, pros: 150-200ms
+    if shotsLast1Sec > 4 then
+        detectionRisk = math.min(1, detectionRisk + 0.20)
+    elseif recentShots > 8 then
+        detectionRisk = math.min(1, detectionRisk + 0.10)
     else
-        detectionRisk = math.max(0, detectionRisk - 0.04) -- Gradual recovery
+        detectionRisk = math.max(0, detectionRisk - 0.03) -- Gradual recovery
     end
     
     -- Human factor multiplier (stealth = cautious player)
-    local playerStyle = stealthMode and 2.2 or 1.3
+    local playerStyle = stealthMode and 2.2 or 1.5
     
-    -- Authentic human variance (real players are inconsistent)
-    local humanReactionVariance = stealthMode and (0.18 + math.random() * 0.22) or (0.10 + math.random() * 0.15)
-    local fatigueMultiplier = 1 + (detectionRisk * 2.5) -- Players slow down when tired
+    -- Authentic human variance (real players are very inconsistent)
+    -- Larger variance = more human-like, harder to detect patterns
+    local humanReactionVariance = stealthMode and (0.20 + math.random() * 0.30) or (0.15 + math.random() * 0.25)
+    local fatigueMultiplier = 1 + (detectionRisk * 2.0) -- Players slow down when tired
     local reactionTime = math.max(base, adaptiveDelay) * fatigueMultiplier * playerStyle
     
-    -- Micro-variations (hand tremor simulation, 20-80ms)
-    local microVariation = (math.random() * 0.06 - 0.02) -- -20ms to +40ms random
+    -- Micro-variations (hand tremor simulation, inconsistent timing)
+    local microVariation = (math.random() * 0.08 - 0.03) -- -30ms to +50ms random
     local finalDelay = reactionTime + (reactionTime * humanReactionVariance) + microVariation
     
-    -- Natural human limits (200ms minimum reaction time in stealth, 120ms performance)
-    local humanMinimum = stealthMode and 0.20 or 0.12
+    -- Natural human limits (200ms minimum in stealth, 180ms in performance)
+    -- NEVER go below 180ms - that's professional esports player limit
+    local humanMinimum = stealthMode and 0.20 or 0.18
     return math.max(humanMinimum, finalDelay)
 end
 
@@ -229,23 +232,26 @@ local function shouldAllowKnightMareShot()
         if timeDiff < 1 then shotsLast1Sec = shotsLast1Sec + 1 end
     end
     
-    -- PERFECT HUMAN LIMITS (based on real player capabilities)
-    -- Professional gamers: ~5 accurate shots/sec, Average: ~3 shots/sec
+    -- PERFECT HUMAN LIMITS (based on real professional players)
+    -- Pro gamers during intense moments: ~4-5 accurate shots/sec sustained
+    -- Average skilled: ~3 shots/sec, Casual: ~2 shots/sec
     if stealthMode then
         -- Cautious player behavior
-        if shotsLast1Sec >= 3 then return false end -- Max 3 shots per second (human limit)
+        if shotsLast1Sec >= 3 then return false end -- Max 3 shots per second
         if shotsLast2Sec >= 5 then return false end -- Max 5 shots per 2 seconds
-        if shotsLast5Sec >= 10 then return false end -- Max 10 shots per 5 seconds
-        if shotsLast10Sec >= 18 then return false end -- Max 18 shots per 10 seconds
+        if shotsLast5Sec >= 12 then return false end -- Max 12 shots per 5 seconds
+        if shotsLast10Sec >= 20 then return false end -- Max 20 shots per 10 seconds
     else
-        -- Aggressive player behavior (still human)
-        if shotsLast1Sec >= 5 then return false end -- Max 5 shots per second (pro limit)
-        if shotsLast2Sec >= 9 then return false end
-        if shotsLast5Sec >= 20 then return false end
+        -- Skilled player behavior (still realistic)
+        if shotsLast1Sec >= 4 then return false end -- Max 4 shots per second (skilled limit)
+        if shotsLast2Sec >= 7 then return false end -- Max 7 shots per 2 seconds
+        if shotsLast5Sec >= 16 then return false end -- Max 16 shots per 5 seconds
+        if shotsLast10Sec >= 28 then return false end -- Max 28 shots per 10 seconds
     end
     
     -- Human minimum reaction time between accurate shots
-    local humanReactionTime = stealthMode and 0.18 or 0.10
+    -- Professional players can sustain 180-200ms between shots during intense focus
+    local humanReactionTime = stealthMode and 0.20 or 0.18
     if currentTime - lastValidationTime < humanReactionTime then
         return false
     end
@@ -571,15 +577,15 @@ CombatTab:CreateToggle({
                                 end
                                 
                                 -- INTELLIGENT ALLOCATION:
-                                -- If zombies in critical zone, shoot ALL of them immediately
-                                -- Otherwise, scale with effectiveness
+                                -- If zombies in critical zone, prioritize them but stay human-realistic
+                                -- Professional gamers can track 3-4 targets rapidly
                                 local maxShotsPerCycle
                                 if criticalThreats > 0 then
-                                    -- EMERGENCY MODE: Shoot ALL critical threats
-                                    maxShotsPerCycle = math.min(criticalThreats + 2, #validTargets)
+                                    -- ALERT MODE: Focus on critical threats (human can track 3-4 rapidly)
+                                    maxShotsPerCycle = math.min(math.max(criticalThreats, 3), #validTargets, 4)
                                 else
-                                    -- NORMAL MODE: Scale with effectiveness (1-5 shots)
-                                    maxShotsPerCycle = math.min(math.floor(1 + (effectivenessScale * 4)), #validTargets)
+                                    -- NORMAL MODE: Scale with effectiveness (1-3 shots, human realistic)
+                                    maxShotsPerCycle = math.min(math.floor(1 + (effectivenessScale * 2)), #validTargets, 3)
                                 end
                                 
                                 for _, target in ipairs(validTargets) do
@@ -607,12 +613,13 @@ CombatTab:CreateToggle({
                                         if success then
                                             shotsFired = shotsFired + 1
                                             
-                                            -- 🚨 EMERGENCY RAPID-FIRE: Tiny delay for critical threats
-                                            if target.distance < criticalZone and shotsFired < maxShotsPerCycle then
-                                                task.wait(0.001) -- 1ms between critical threat shots (ULTRA FAST)
-                                            elseif shotsFired < maxShotsPerCycle then
-                                                -- Normal delay between non-critical shots
-                                                task.wait(0.01 + (math.random() * 0.02)) -- 10-30ms
+                                            -- 🎯 SMART MULTI-SHOT SPACING (human panic simulation)
+                                            if shotsFired < maxShotsPerCycle then
+                                                -- Critical threats = faster but still human-like
+                                                -- Human panic: 80-150ms between rapid shots
+                                                local urgentDelay = target.distance < criticalZone and 0.08 or 0.12
+                                                local variance = math.random() * 0.07 -- 0-70ms variance
+                                                task.wait(urgentDelay + variance) -- 80-150ms (human limit)
                                             end
                                         end
                                     end
@@ -649,12 +656,13 @@ CombatTab:CreateToggle({
                     end
                     
                     -- DYNAMIC CYCLE DELAY:
-                    -- Urgent threats = minimal delay (rapid response)
-                    -- No threats = normal delay (human timing)
+                    -- Urgent threats = faster but still human (alert player)
+                    -- No threats = normal delay (relaxed player)
                     local cycleDelay
                     if hasUrgentThreats then
-                        -- EMERGENCY: Very short delay when zombies are close
-                        cycleDelay = 0.05 + (math.random() * 0.03) -- 50-80ms
+                        -- ALERT MODE: Faster reaction like a focused human
+                        -- Professional gamers can sustain 100-120ms reaction during intense moments
+                        cycleDelay = 0.10 + (math.random() * 0.05) -- 100-150ms (alert human)
                     else
                         -- NORMAL: Use smart delay based on effectiveness
                         cycleDelay = getKnightMareDelay(shootDelay)
