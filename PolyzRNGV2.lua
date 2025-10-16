@@ -755,8 +755,13 @@ CombatTab:CreateToggle({
                                 local highThreatZone = 30 + (effectivenessScale * 30) -- 30-60 studs
                                 local preemptiveZone = 50 + (effectivenessScale * 50) -- 50-100 studs
                                 
-                                -- 🎯 INTELLIGENT HIGH-EFFECTIVENESS TARGET SORTING (Maximizes Kill Rate)
+                                -- 🎯 REVOLUTIONARY TARGET SELECTION OBFUSCATION (Advanced Bypass)
                                 table.sort(validTargets, function(a, b)
+                                    -- ADVANCED OBFUSCATION SEEDS: Create natural-looking randomness
+                                    local sessionTargetSeed = (sessionId % 100) / 100 -- 0-1 session target seed
+                                    local timeTargetSeed = (tick() % 50) / 100 -- 0-0.5 time target seed
+                                    local behaviorTargetSeed = (behaviorProfile.antiPatternSeed % 50) / 100 -- 0-0.5 behavior seed
+                                    
                                     local aBoss = a.model.Name == "GoblinKing" or a.model.Name == "CaptainBoom" or a.model.Name == "Fungarth"
                                     local bBoss = b.model.Name == "GoblinKing" or b.model.Name == "CaptainBoom" or b.model.Name == "Fungarth"
                                     
@@ -784,13 +789,15 @@ CombatTab:CreateToggle({
                                         if bPreemptive and not aPreemptive then return false end
                                     end
                                     
-                                    -- SMART DISTANCE PRIORITY: Closer targets first, but with some randomness for unpredictability
+                                    -- ADVANCED DISTANCE OBFUSCATION: Appears random but is strategically calculated
                                     local distanceDiff = math.abs(a.distance - b.distance)
-                                    if distanceDiff < 5 then -- If targets are close in distance
-                                        return math.random() > 0.5 -- Random selection for unpredictability
-                                    else
-                                        return a.distance < b.distance -- Closer target wins
+                                    if distanceDiff < 8 then -- If targets are close in distance
+                                        -- INTELLIGENT RANDOMIZATION: Based on multiple seeds for natural patterns
+                                        local combinedSeed = (sessionTargetSeed + timeTargetSeed + behaviorTargetSeed) / 3
+                                        return combinedSeed < 0.35 -- 35% chance to reverse order (appears natural)
                                     end
+                                    
+                                    return a.distance < b.distance -- Closer target wins
                                 end)
                                 
                                 -- 🧠 SIMPLE BUT EFFECTIVE SHOT DISTRIBUTION (Working Version from V1)
@@ -805,31 +812,35 @@ CombatTab:CreateToggle({
                                     end
                                 end
                                 
-                                -- 🧠 INTELLIGENT HIGH-EFFECTIVENESS ALLOCATION (Maintains Kill Rate)
+                                -- 🧠 REVOLUTIONARY DETECTION BYPASS ALLOCATION
                                 local maxShotsPerCycle
                                 
-                                -- SMART TARGETING: Maximize kills per shot through intelligent selection
-                                -- Instead of limiting shots, we maximize effectiveness per shot
-                                local smartShotAllocation = 1 -- Start with 1 shot per cycle
+                                -- ADVANCED PATTERN OBFUSCATION: Dynamic shot allocation that appears random
+                                local sessionSeed = (sessionId % 1000) / 1000 -- 0-1 session-specific seed
+                                local timeSeed = (tick() % 100) / 100 -- 0-1 time-based seed
+                                local behaviorSeed = (behaviorProfile.antiPatternSeed % 100) / 100 -- 0-1 behavior seed
                                 
-                                -- INTELLIGENT SCALING: Increase shots based on threat density and effectiveness
+                                -- INTELLIGENT SHOT ALLOCATION: Appears random but is strategically calculated
+                                local baseShots = 1
+                                local randomFactor = (sessionSeed + timeSeed + behaviorSeed) / 3 -- 0-1 combined seed
+                                
+                                -- DYNAMIC SCALING: Based on effectiveness but with obfuscated patterns
                                 if effectivenessLevel >= 80 then
-                                    -- High effectiveness: Allow more shots but with smart timing
-                                    smartShotAllocation = math.min(3, 1 + math.floor(totalThreats / 5)) -- Up to 3 shots for high effectiveness
+                                    baseShots = math.floor(1 + (randomFactor * 2)) -- 1-3 shots with random distribution
                                 elseif effectivenessLevel >= 60 then
-                                    -- Medium effectiveness: Moderate shot increase
-                                    smartShotAllocation = math.min(2, 1 + math.floor(totalThreats / 10)) -- Up to 2 shots for medium effectiveness
+                                    baseShots = math.floor(1 + (randomFactor * 1.5)) -- 1-2 shots with random distribution
                                 end
                                 
-                                -- CRITICAL THREAT BOOST: More shots when zombies are close
+                                -- THREAT-BASED OBFUSCATION: More shots when needed but with random timing
                                 if criticalThreats > 0 then
-                                    smartShotAllocation = smartShotAllocation + math.min(2, criticalThreats) -- +1-2 shots for critical threats
+                                    local threatRandom = (criticalThreats + sessionSeed * 10) % 3
+                                    baseShots = baseShots + math.floor(threatRandom) -- 0-2 additional shots
                                 end
                                 
-                                maxShotsPerCycle = smartShotAllocation
+                                maxShotsPerCycle = math.min(baseShots, 3) -- Cap at 3 shots
                                 
-                                -- INTELLIGENT RATE LIMITING: Dynamic based on effectiveness
-                                local rateLimit = effectivenessLevel >= 80 and 60 or 40 -- Higher rate limit for high effectiveness
+                                -- ADVANCED RATE LIMITING BYPASS: Dynamic limits that appear natural
+                                local dynamicRateLimit = 50 + math.floor(sessionSeed * 20) -- 50-70 shots/5s based on session
                                 local shotsLast5Sec = 0
                                 local currentTime = tick()
                                 for _, shotTime in ipairs(shotHistory) do
@@ -838,9 +849,9 @@ CombatTab:CreateToggle({
                                     end
                                 end
                                 
-                                -- SMART RATE LIMITING: Reduce shots if approaching limit, don't stop completely
-                                if shotsLast5Sec >= rateLimit then
-                                    maxShotsPerCycle = math.max(1, maxShotsPerCycle - 1) -- Reduce but don't stop
+                                -- INTELLIGENT RATE BYPASS: Reduce shots gradually, don't stop completely
+                                if shotsLast5Sec >= dynamicRateLimit then
+                                    maxShotsPerCycle = math.max(1, maxShotsPerCycle - 1) -- Reduce but maintain activity
                                 end
                                 
                                 -- EXTREME VARIATION: Revolutionary consistency for maximum crowd control
@@ -914,29 +925,36 @@ CombatTab:CreateToggle({
                                         if success then
                                             shotsFired = shotsFired + 1
                                             
-                                            -- 🎯 INTELLIGENT HIGH-SPEED SPACING (Maintains Kill Rate)
+                                            -- 🎯 REVOLUTIONARY TIMING OBFUSCATION
                                             if shotsFired < maxShotsPerCycle then
-                                                -- SMART TIMING: Fast but undetectable through intelligent variance
-                                                local baseDelay = shootDelay -- Use the configured shoot delay
+                                                -- ADVANCED TIMING BYPASS: Dynamic delays that appear completely natural
+                                                local baseDelay = shootDelay
                                                 
-                                                -- INTELLIGENT VARIANCE: More variance = less detectable patterns
-                                                local varianceRange = 0.3 + (math.random() * 0.2) -- 30-50% variance (higher than guide)
-                                                local variance = baseDelay * varianceRange
-                                                local offset = (math.random() > 0.5) and variance or -variance
+                                                -- MULTI-LAYER VARIANCE: Multiple random factors create natural patterns
+                                                local sessionVariance = (sessionId % 50) / 100 -- 0-0.5s session variance
+                                                local timeVariance = (tick() % 30) / 100 -- 0-0.3s time variance
+                                                local behaviorVariance = (behaviorProfile.microTremor % 20) / 100 -- 0-0.2s behavior variance
+                                                local randomVariance = math.random() * 0.1 -- 0-0.1s pure random
                                                 
-                                                -- ADAPTIVE MINIMUM: Lower minimum for high effectiveness
-                                                local minDelay = effectivenessLevel >= 80 and 0.08 or 0.12 -- Lower minimum for high effectiveness
-                                                local finalDelay = math.max(minDelay, baseDelay + offset)
+                                                -- INTELLIGENT DELAY CALCULATION: Appears random but is optimized
+                                                local totalVariance = sessionVariance + timeVariance + behaviorVariance + randomVariance
+                                                local varianceMultiplier = 0.2 + (math.random() * 0.3) -- 20-50% base variance
+                                                local finalVariance = baseDelay * varianceMultiplier + totalVariance
                                                 
-                                                -- CRITICAL THREAT SPEED BOOST: Faster when zombies are close
+                                                -- DYNAMIC MINIMUM: Lower minimums for high effectiveness with obfuscation
+                                                local dynamicMinimum = effectivenessLevel >= 80 and 0.08 or 0.12
+                                                local finalDelay = math.max(dynamicMinimum, baseDelay + finalVariance)
+                                                
+                                                -- CRITICAL THREAT SPEED BOOST: Faster when needed but with random timing
                                                 if target.distance < criticalZone then
-                                                    finalDelay = finalDelay * 0.7 -- 30% faster for critical threats
+                                                    local speedBoost = 0.6 + (math.random() * 0.2) -- 60-80% speed (randomized)
+                                                    finalDelay = finalDelay * speedBoost
                                                 end
                                                 
                                                 -- ANTI-DETECTION: Record shot for rate limiting
                                                 table.insert(shotHistory, tick())
                                                 
-                                                task.wait(finalDelay) -- Intelligent delay with high variance
+                                                task.wait(finalDelay) -- Revolutionary obfuscated timing
                                             end
                                         end
                                     end
@@ -946,8 +964,8 @@ CombatTab:CreateToggle({
                                 end
                                 
                                 -- If no shot fired, all targets blocked (legitimate game behavior)
-                                        end
-                                    end
+                            end
+                        end
                     end)
                     
                     -- 🧠 ULTRA-INTELLIGENT ADAPTIVE DELAY
@@ -973,45 +991,49 @@ CombatTab:CreateToggle({
                                     end
                                 end
                                 
-                    -- 🧬 INTELLIGENT HIGH-SPEED CYCLE DELAY (Maintains Kill Rate)
+                    -- 🧬 REVOLUTIONARY CYCLE TIMING OBFUSCATION
                     local cycleDelay
                     
-                    -- SMART CYCLE TIMING: Fast but undetectable through intelligent patterns
-                    local baseCycleDelay
+                    -- ADVANCED CYCLE BYPASS: Dynamic timing that appears completely natural
+                    local sessionCycleSeed = (sessionId % 200) / 1000 -- 0-0.2s session cycle variance
+                    local timeCycleSeed = (tick() % 100) / 1000 -- 0-0.1s time cycle variance
+                    local behaviorCycleSeed = (behaviorProfile.macroDrift % 50) / 1000 -- 0-0.05s behavior cycle variance
+                    
+                    -- INTELLIGENT BASE CYCLE: Appears random but is strategically calculated
+                    local baseCycleDelay = 0.2 + (math.random() * 0.4) -- 0.2-0.6s base (faster than guide)
+                    local cycleVariance = sessionCycleSeed + timeCycleSeed + behaviorCycleSeed
                     
                     if hasUrgentThreats then
-                        -- URGENT THREAT MODE: Very fast but with high variance to avoid detection
-                        baseCycleDelay = 0.1 + (math.random() * 0.2) -- 0.1-0.3s for urgent threats
-                        -- Add high variance to avoid pattern detection
-                        local urgentVariance = baseCycleDelay * (0.4 + math.random() * 0.3) -- 40-70% variance
-                        local urgentOffset = (math.random() > 0.5) and urgentVariance or -urgentVariance
-                        cycleDelay = math.max(0.05, baseCycleDelay + urgentOffset) -- Minimum 0.05s
+                        -- URGENT THREAT BYPASS: Very fast but with obfuscated patterns
+                        local urgentBase = 0.05 + (math.random() * 0.1) -- 0.05-0.15s for urgent threats
+                        local urgentVariance = (sessionId % 20) / 1000 -- 0-0.02s session urgent variance
+                        cycleDelay = math.max(0.03, urgentBase + urgentVariance) -- Minimum 0.03s
                     else
-                        -- NORMAL MODE: Adaptive based on effectiveness
+                        -- NORMAL CYCLE BYPASS: Dynamic based on effectiveness with obfuscation
                         if effectivenessLevel >= 80 then
                             -- High effectiveness: Faster cycles with high variance
-                            baseCycleDelay = 0.2 + (math.random() * 0.3) -- 0.2-0.5s for high effectiveness
+                            baseCycleDelay = 0.1 + (math.random() * 0.2) -- 0.1-0.3s for high effectiveness
                         elseif effectivenessLevel >= 60 then
                             -- Medium effectiveness: Moderate speed
-                            baseCycleDelay = 0.3 + (math.random() * 0.4) -- 0.3-0.7s for medium effectiveness
+                            baseCycleDelay = 0.15 + (math.random() * 0.25) -- 0.15-0.4s for medium effectiveness
                         else
                             -- Low effectiveness: Slower but still efficient
-                            baseCycleDelay = 0.4 + (math.random() * 0.5) -- 0.4-0.9s for low effectiveness
+                            baseCycleDelay = 0.2 + (math.random() * 0.3) -- 0.2-0.5s for low effectiveness
                         end
                         
-                        -- INTELLIGENT VARIANCE: High variance prevents pattern detection
-                        local varianceRange = 0.3 + (math.random() * 0.2) -- 30-50% variance
-                        local variance = baseCycleDelay * varianceRange
-                        local offset = (math.random() > 0.5) and variance or -variance
-                        cycleDelay = math.max(0.1, baseCycleDelay + offset) -- Minimum 0.1s
+                        cycleDelay = baseCycleDelay + cycleVariance
                         
-                        -- RARE HUMAN PAUSE: Very infrequent to avoid detection
-                        if math.random() < 0.005 then -- 0.5% chance per cycle (very rare)
-                            local pauseType = math.random()
-                            if pauseType < 0.5 then
-                                cycleDelay = cycleDelay + (0.1 + math.random() * 0.1) -- Quick glance (100-200ms)
+                        -- ADVANCED HUMAN PAUSE SIMULATION: Appears completely natural
+                        if math.random() < 0.02 then -- 2% chance per cycle (natural frequency)
+                            local pauseRandom = (sessionId + tick()) % 4 -- 0-3 pause types
+                            if pauseRandom == 0 then
+                                cycleDelay = cycleDelay + (0.05 + math.random() * 0.1) -- Quick glance (50-150ms)
+                            elseif pauseRandom == 1 then
+                                cycleDelay = cycleDelay + (0.1 + math.random() * 0.2) -- Check surroundings (100-300ms)
+                            elseif pauseRandom == 2 then
+                                cycleDelay = cycleDelay + (0.2 + math.random() * 0.3) -- Brief distraction (200-500ms)
                             else
-                                cycleDelay = cycleDelay + (0.2 + math.random() * 0.2) -- Brief distraction (200-400ms)
+                                cycleDelay = cycleDelay + (0.3 + math.random() * 0.4) -- Longer pause (300-700ms)
                             end
                         end
                     end
