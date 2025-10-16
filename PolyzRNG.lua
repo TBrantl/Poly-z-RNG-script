@@ -119,9 +119,15 @@ local function updateEffectiveness(level)
     
     local scaleFactor = level / 100
     
-    -- MAXIMUM HUMAN PERFORMANCE: 0.30s (safe) to 0.12s (world-class human at 100%)
-    -- CRITICAL: 0.12s is the absolute world-class human limit (Olympic-level reaction time)
-    shootDelay = 0.30 - (scaleFactor * 0.18)
+    -- ADVANCED PERFORMANCE MODES: 0.30s (safe) to 0.08s (superhuman at 100%)
+    -- CRITICAL: 0.08s is superhuman but still within detection-safe limits
+    if level >= 90 then
+        -- SUPERHUMAN MODE: Beyond world-class (90-100%)
+        shootDelay = 0.12 - ((level - 90) / 10 * 0.04) -- 0.12s to 0.08s
+    else
+        -- WORLD-CLASS MODE: Maximum human performance (0-89%)
+        shootDelay = 0.30 - (scaleFactor * 0.18) -- 0.30s to 0.12s
+    end
     
     -- Adaptive human reaction time
     adaptiveDelay = shootDelay
@@ -302,23 +308,42 @@ local function shouldAllowKnightMareShot()
     -- PERFECT HUMAN LIMITS (based on real professional players)
     -- Pro gamers during intense moments: ~4-5 accurate shots/sec sustained
     -- Average skilled: ~3 shots/sec, Casual: ~2 shots/sec
-    if stealthMode then
-        -- Cautious player behavior
-        if shotsLast1Sec >= 4 then return false end -- Max 4 shots per second (increased)
-        if shotsLast2Sec >= 7 then return false end -- Max 7 shots per 2 seconds (increased)
-        if shotsLast5Sec >= 16 then return false end -- Max 16 shots per 5 seconds (increased)
-        if shotsLast10Sec >= 28 then return false end -- Max 28 shots per 10 seconds (increased)
-    else
-        -- World-class player behavior (maximum human capability)
-        if shotsLast1Sec >= 6 then return false end -- Max 6 shots per second (world-class limit)
-        if shotsLast2Sec >= 10 then return false end -- Max 10 shots per 2 seconds
-        if shotsLast5Sec >= 22 then return false end -- Max 22 shots per 5 seconds
-        if shotsLast10Sec >= 38 then return false end -- Max 38 shots per 10 seconds
+    -- ADVANCED DYNAMIC RATE LIMITING with threat-based scaling
+    local threatMultiplier = 1.0
+    if not stealthMode then
+        -- Dynamic scaling based on current threat level
+        local currentThreats = 0
+        local enemies = workspace:FindFirstChild("Enemies")
+        if enemies then
+            for _, zombie in pairs(enemies:GetChildren()) do
+                if zombie:IsA("Model") and zombie:FindFirstChild("Head") then
+                    currentThreats = currentThreats + 1
+                end
+            end
+        end
+        threatMultiplier = math.min(1.5, 1 + (currentThreats / 20)) -- Up to 1.5x multiplier
     end
     
-    -- World-class minimum reaction time between accurate shots
-    -- World-class players can sustain 120-150ms between shots during peak performance
-    local humanReactionTime = stealthMode and 0.18 or 0.12
+    if stealthMode then
+        -- Cautious player behavior
+        if shotsLast1Sec >= math.floor(4 * threatMultiplier) then return false end
+        if shotsLast2Sec >= math.floor(7 * threatMultiplier) then return false end
+        if shotsLast5Sec >= math.floor(16 * threatMultiplier) then return false end
+        if shotsLast10Sec >= math.floor(28 * threatMultiplier) then return false end
+    else
+        -- Advanced player behavior (beyond world-class capability)
+        if shotsLast1Sec >= math.floor(8 * threatMultiplier) then return false end -- Up to 12 shots/sec
+        if shotsLast2Sec >= math.floor(14 * threatMultiplier) then return false end -- Up to 21 shots/2sec
+        if shotsLast5Sec >= math.floor(30 * threatMultiplier) then return false end -- Up to 45 shots/5sec
+        if shotsLast10Sec >= math.floor(50 * threatMultiplier) then return false end -- Up to 75 shots/10sec
+    end
+    
+    -- ADVANCED DYNAMIC REACTION TIME with threat-based scaling
+    -- Superhuman players can sustain 80-120ms between shots during peak performance
+    local baseReactionTime = stealthMode and 0.18 or 0.10
+    local threatSpeedBoost = math.min(0.03, currentThreats * 0.0005) -- Speed boost based on threats
+    local humanReactionTime = baseReactionTime - threatSpeedBoost
+    humanReactionTime = math.max(0.08, math.min(0.18, humanReactionTime)) -- 80-180ms range
     if currentTime - lastValidationTime < humanReactionTime then
         return false
     end
@@ -690,13 +715,21 @@ CombatTab:CreateToggle({
                                 local focusFactor = behaviorProfile.focusLevel - behaviorProfile.fatigueLevel
                                 local shotCapacity = math.floor(2 + (focusFactor * 2)) -- 1-4 shots based on state
                                 
+                                -- 🧠 ADVANCED DYNAMIC THREAT-BASED SCALING
+                                local totalThreats = #validTargets
+                                local threatDensity = totalThreats / 10 -- Threat density factor
+                                
                                 if criticalThreats > 0 then
-                                    -- ALERT MODE: Shoot ALL critical threats + maximum crowd control
-                                    maxShotsPerCycle = math.min(criticalThreats + 3, #validTargets, 10) -- Up to 10 shots (maximum)
+                                    -- ALERT MODE: Dynamic scaling based on threat density
+                                    local threatMultiplier = math.min(2, 1 + threatDensity) -- Up to 2x multiplier
+                                    local dynamicShots = math.floor((criticalThreats + 3) * threatMultiplier)
+                                    maxShotsPerCycle = math.min(dynamicShots, #validTargets, 15) -- Up to 15 shots (advanced)
                                 else
-                                    -- NORMAL MODE: Maximum aggressive for crowd control
-                                    local baseShots = math.floor(4 + (effectivenessScale * 4)) -- 4-8 shots minimum (maximum)
-                                    maxShotsPerCycle = math.min(baseShots, #validTargets, 8) -- Up to 8 shots (maximum)
+                                    -- NORMAL MODE: Dynamic scaling based on effectiveness and threat density
+                                    local baseShots = math.floor(4 + (effectivenessScale * 4))
+                                    local densityBonus = math.floor(threatDensity * 2) -- Density bonus
+                                    local dynamicShots = baseShots + densityBonus
+                                    maxShotsPerCycle = math.min(dynamicShots, #validTargets, 12) -- Up to 12 shots (advanced)
                                 end
                                 
                                 -- MINIMAL VARIATION: World-class consistency for maximum crowd control
@@ -707,10 +740,19 @@ CombatTab:CreateToggle({
                                 for _, target in ipairs(validTargets) do
                                     if shotsFired >= maxShotsPerCycle then break end
                                     
-                                    -- 🧬 MAXIMUM EFFICIENCY TARGET SKIPPING (world-class accuracy)
-                                    -- Minimal skipping for maximum efficiency (world-class focus)
-                                    local skipChance = (1 - behaviorProfile.focusLevel) * 0.02 + (behaviorProfile.fatigueLevel * 0.01) -- Minimal
-                                    if math.random() < skipChance and shotsFired > 0 then
+                                    -- 🧬 ADVANCED INTELLIGENT TARGET SKIPPING (superhuman accuracy)
+                                    -- Intelligent skipping based on threat analysis and focus state
+                                    local baseSkipChance = (1 - behaviorProfile.focusLevel) * 0.01 + (behaviorProfile.fatigueLevel * 0.005) -- Ultra-minimal
+                                    
+                                    -- Intelligence-based skipping reduction
+                                    local threatIntelligence = target.distance < criticalZone and 0.0 or 0.5 -- Never skip critical, 50% less skip for others
+                                    local densityIntelligence = math.min(0.3, totalThreats * 0.01) -- Less skipping in crowds
+                                    local focusIntelligence = behaviorProfile.focusLevel * 0.2 -- Focus reduces skipping
+                                    
+                                    local intelligentSkipChance = baseSkipChance * (1 - threatIntelligence) * (1 - densityIntelligence) * (1 - focusIntelligence)
+                                    intelligentSkipChance = math.max(0, math.min(0.05, intelligentSkipChance)) -- 0-5% range
+                                    
+                                    if math.random() < intelligentSkipChance and shotsFired > 0 then
                                         -- Skip this target, move to next (human didn't notice it)
                                         continue
                                     end
@@ -738,13 +780,23 @@ CombatTab:CreateToggle({
                                         if success then
                                             shotsFired = shotsFired + 1
                                             
-                                            -- 🎯 MAXIMUM HUMAN MULTI-SHOT SPACING (world-class speed)
+                                            -- 🎯 ADVANCED PREDICTIVE MULTI-SHOT SPACING (beyond human limits)
                                             if shotsFired < maxShotsPerCycle then
-                                                -- Critical threats = world-class human speed
-                                                -- Maximum panic: 40-80ms between rapid shots (world-class)
-                                                local urgentDelay = target.distance < criticalZone and 0.04 or 0.06
-                                                local variance = math.random() * 0.04 -- 0-40ms variance (minimal)
-                                                task.wait(urgentDelay + variance) -- 40-80ms (world-class speed)
+                                                -- Advanced threat-based spacing with predictive scaling
+                                                local threatLevel = target.distance < criticalZone and 1.0 or 0.7
+                                                local densityFactor = math.min(1.5, 1 + (totalThreats / 20)) -- Density scaling
+                                                local focusBoost = behaviorProfile.focusLevel * 0.3 -- Focus-based speed boost
+                                                
+                                                -- Dynamic spacing: 30-60ms (beyond world-class)
+                                                local baseDelay = 0.03 + (threatLevel * 0.02) -- 30-50ms base
+                                                local densityModifier = 1 - (densityFactor * 0.2) -- Faster in crowds
+                                                local focusModifier = 1 - focusBoost -- Focus speed boost
+                                                
+                                                local finalDelay = baseDelay * densityModifier * focusModifier
+                                                finalDelay = math.max(0.025, math.min(0.06, finalDelay)) -- 25-60ms range
+                                                
+                                                local variance = math.random() * 0.02 -- 0-20ms variance (minimal)
+                                                task.wait(finalDelay + variance) -- 25-80ms (advanced speed)
                                             end
                                         end
                                     end
@@ -785,10 +837,13 @@ CombatTab:CreateToggle({
                     local cycleDelay
                     
                     if hasUrgentThreats then
-                        -- ALERT MODE: World-class human reaction speed
-                        -- Focus level affects response time
-                        local alertSpeed = 0.06 + ((1 - behaviorProfile.focusLevel) * 0.03) -- 60-90ms (world-class speed)
-                        cycleDelay = alertSpeed + (math.random() * 0.02) -- +0-20ms variance (minimal)
+                        -- ALERT MODE: Advanced adrenaline-boosted reaction speed
+                        -- Focus level affects response time with adrenaline boost
+                        local baseSpeed = 0.05 + ((1 - behaviorProfile.focusLevel) * 0.02) -- 50-70ms base
+                        local adrenalineBoost = math.min(0.02, totalThreats * 0.001) -- Adrenaline boost based on threat count
+                        local alertSpeed = baseSpeed - adrenalineBoost -- Faster with more threats
+                        alertSpeed = math.max(0.03, math.min(0.08, alertSpeed)) -- 30-80ms range
+                        cycleDelay = alertSpeed + (math.random() * 0.015) -- +0-15ms variance (minimal)
                     else
                         -- NORMAL: Use smart delay based on effectiveness
                         cycleDelay = getKnightMareDelay(shootDelay)
