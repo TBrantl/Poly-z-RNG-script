@@ -643,58 +643,20 @@ CombatTab:CreateToggle({
                                     end
                                 end
                                 
-                                -- 🧠 INTELLIGENT SWARM-ADAPTIVE ALLOCATION
-                                -- Varies based on player state, effectiveness, AND zombie density
+                                -- 🧠 INTELLIGENT ADAPTIVE ALLOCATION
+                                -- Varies based on player state, not just effectiveness
                                 local maxShotsPerCycle
                                 
-                                -- ANALYZE ZOMBIE DENSITY FOR SWARM DETECTION
-                                local totalZombies = #validTargets
-                                local zombiesInHighThreat = 0
-                                local zombiesInPreemptive = 0
-                                
-                                for _, t in ipairs(validTargets) do
-                                    if t.distance < highThreatZone then
-                                        zombiesInHighThreat = zombiesInHighThreat + 1
-                                    end
-                                    if t.distance < preemptiveZone then
-                                        zombiesInPreemptive = zombiesInPreemptive + 1
-                                    end
-                                end
-                                
-                                -- SWARM DETECTION: High zombie density = overwhelming situation
-                                local isSwarm = totalZombies > 8 -- Heavy wave
-                                local isOverwhelmed = zombiesInHighThreat > 4 or criticalThreats > 2 -- Too many close
-                                local isHeavyWave = zombiesInPreemptive > 12 -- Massive incoming wave
-                                
-                                -- FOCUS-BASED SHOT CAPACITY (enhanced for swarms)
+                                -- FOCUS-BASED SHOT CAPACITY
+                                -- Focused player = can track more targets
+                                -- Fatigued player = tracks fewer
                                 local focusFactor = behaviorProfile.focusLevel - behaviorProfile.fatigueLevel
-                                local baseShotCapacity = math.floor(2 + (focusFactor * 2)) -- 1-4 shots based on state
+                                local shotCapacity = math.floor(2 + (focusFactor * 2)) -- 1-4 shots based on state
                                 
-                                -- ADRENALINE BOOST: Humans get hyper-focused during overwhelming situations
-                                if isOverwhelmed or isHeavyWave then
-                                    -- TEMPORARY FOCUS BOOST: Adrenaline kicks in
-                                    behaviorProfile.focusLevel = math.min(1, behaviorProfile.focusLevel + 0.15)
-                                    focusFactor = behaviorProfile.focusLevel - behaviorProfile.fatigueLevel
-                                    baseShotCapacity = math.floor(2 + (focusFactor * 2.5)) -- Up to 5 shots when panicking
-                                end
-                                
-                                if criticalThreats > 0 or isOverwhelmed then
-                                    -- PANIC/OVERWHELMED MODE: Shoot MORE to survive
-                                    -- Natural human response: spray at multiple threats rapidly
-                                    local panicMultiplier = isOverwhelmed and 1.8 or 1.3
-                                    local panicShots = math.floor(baseShotCapacity * panicMultiplier)
-                                    
-                                    -- CRITICAL: When multiple zombies in danger zone, shoot ALL of them
-                                    if criticalThreats >= 2 then
-                                        maxShotsPerCycle = math.min(criticalThreats + 2, #validTargets, 6) -- Up to 6 when panicking
-                                    else
-                                        maxShotsPerCycle = math.min(panicShots, #validTargets, 5)
-                                    end
-                                elseif isSwarm or isHeavyWave then
-                                    -- SWARM MODE: Many zombies but not critical yet
-                                    -- Scale up shots to handle the wave
-                                    local swarmShots = math.floor(2 + (effectivenessScale * 3)) -- 2-5 shots for swarms
-                                    maxShotsPerCycle = math.min(swarmShots, baseShotCapacity, 4)
+                                if criticalThreats > 0 then
+                                    -- ALERT MODE: Adrenaline boost allows more shots
+                                    local panicBoost = math.min(1, criticalThreats / 3) -- Up to +1 shot
+                                    maxShotsPerCycle = math.min(criticalThreats, shotCapacity + math.floor(panicBoost), 4)
                                 else
                                     -- NORMAL MODE: Scale with effectiveness AND player state
                                     local baseShots = math.floor(1 + (effectivenessScale * 2))
@@ -702,8 +664,7 @@ CombatTab:CreateToggle({
                                 end
                                 
                                 -- RANDOM VARIATION: Sometimes shoot fewer (distraction, hesitation)
-                                -- BUT: Don't reduce when overwhelmed (survival instinct)
-                                if not isOverwhelmed and not isHeavyWave and math.random() < 0.20 then -- 20% chance when calm
+                                if math.random() < 0.20 then -- 20% chance
                                     maxShotsPerCycle = math.max(1, maxShotsPerCycle - 1)
                                 end
                                 
@@ -711,62 +672,53 @@ CombatTab:CreateToggle({
                                     if shotsFired >= maxShotsPerCycle then break end
                                     
                                     -- 🧬 HUMAN IMPERFECTION: Occasionally skip a target (distraction, hesitation)
-                                    -- BUT: When overwhelmed, humans are hyper-focused (no skips)
-                                    local shouldSkip = false
-                                    if not isOverwhelmed and not isHeavyWave and not (target.distance < criticalZone) then
-                                        local skipChance = (1 - behaviorProfile.focusLevel) * 0.12 + (behaviorProfile.fatigueLevel * 0.08)
-                                        if math.random() < skipChance and shotsFired > 0 then
-                                            shouldSkip = true
-                                        end
+                                    -- Lower focus or higher fatigue = more likely to "miss" targeting
+                                    local skipChance = (1 - behaviorProfile.focusLevel) * 0.15 + (behaviorProfile.fatigueLevel * 0.10)
+                                    if math.random() < skipChance and shotsFired > 0 then
+                                        -- Skip this target, move to next (human didn't notice it)
+                                        continue
                                     end
                                     
-                                    if not shouldSkip then
-                                        -- 🎯 KNIGHTMARE-SYNCHRONIZED TARGETING
+                                    -- 🎯 KNIGHTMARE-SYNCHRONIZED TARGETING
                                     local isBoss = target.model.Name == "GoblinKing" or target.model.Name == "CaptainBoom" or target.model.Name == "Fungarth"
-                                        
-                                        -- 🛡️ Use KnightMare-synchronized raycast system
-                                        local hitPos, hitPart = getKnightMareShotPosition(target.head, target.model)
+                                    
+                                    -- 🛡️ Use KnightMare-synchronized raycast system
+                                    local hitPos, hitPart = getKnightMareShotPosition(target.head, target.model)
                                     
                                     if hitPos and hitPart then
-                                            -- 🎯 KNIGHTMARE FIRESERVER SYNCHRONICITY
-                                            -- Args match EXACTLY: (EnemyModel, HitPart, HitPosition, 0, WeaponName)
-                                            -- Synchronized with place file line 12178
+                                        -- 🎯 KNIGHTMARE FIRESERVER SYNCHRONICITY
+                                        -- Args match EXACTLY: (EnemyModel, HitPart, HitPosition, 0, WeaponName)
+                                        -- Synchronized with place file line 12178
                                         local args = {target.model, hitPart, hitPos, 0, weapon}
                                         
                                         local success = pcall(function()
                                             shootRemote:FireServer(unpack(args))
                                         end)
-                                            
-                                            -- 📊 Record shot for adaptive learning
-                                            recordShotSuccess(success)
+                                        
+                                        -- 📊 Record shot for adaptive learning
+                                        recordShotSuccess(success)
                                         
                                         if success then
                                             shotsFired = shotsFired + 1
                                             
-                                                -- 🎯 CONTEXT-AWARE MULTI-SHOT SPACING
-                                                if shotsFired < maxShotsPerCycle then
-                                                    -- PANIC SPRAY: When overwhelmed, humans shoot faster
-                                                    -- But still maintain minimum human limits (80ms)
-                                                    local baseDelay
-                                                    if isOverwhelmed then
-                                                        baseDelay = 0.08 -- Panic spray (80ms minimum)
-                                                    elseif target.distance < criticalZone then
-                                                        baseDelay = 0.10 -- Critical threat (100ms)
-                                                    else
-                                                        baseDelay = 0.12 -- Normal spacing (120ms)
-                                                    end
-                                                    
-                                                    local variance = math.random() * 0.06 -- 0-60ms variance
-                                                    task.wait(baseDelay + variance) -- 80-180ms range
+                                            -- 🎯 SMART MULTI-SHOT SPACING (human panic simulation)
+                                            if shotsFired < maxShotsPerCycle then
+                                                -- Critical threats = faster but still human-like
+                                                -- Human panic: 80-150ms between rapid shots
+                                                local urgentDelay = target.distance < criticalZone and 0.08 or 0.12
+                                                local variance = math.random() * 0.07 -- 0-70ms variance
+                                                task.wait(urgentDelay + variance) -- 80-150ms (human limit)
                                             end
                                         end
                                     end
-                                    end -- Close the "if not shouldSkip" block
-                                end -- Close the for loop
+                                    
+                                    -- 🧠 INTELLIGENT TARGET SKIP: Don't waste time on blocked targets
+                                    -- At high effectiveness, try more targets to find clear shots
+                                end
                                 
                                 -- If no shot fired, all targets blocked (legitimate game behavior)
-                            end
-                        end
+                                        end
+                                    end
                     end)
                     
                     -- 🧠 ULTRA-INTELLIGENT ADAPTIVE DELAY
@@ -791,47 +743,14 @@ CombatTab:CreateToggle({
                                     end
                                 end
                                 
-                    -- 🧬 DYNAMIC CYCLE DELAY WITH SWARM-AWARE INTELLIGENCE
+                    -- 🧬 DYNAMIC CYCLE DELAY WITH BEHAVIORAL SIMULATION
                     local cycleDelay
                     
-                    -- CHECK THREAT DENSITY FOR ADAPTIVE RESPONSE
-                    local totalEnemyCount = 0
-                    local closeEnemyCount = 0
-                    local enemies_check = workspace:FindFirstChild("Enemies")
-                    if enemies_check then
-                        local char_check = player.Character
-                        local root_check = char_check and char_check:FindFirstChild("HumanoidRootPart")
-                        if root_check then
-                            for _, zom in pairs(enemies_check:GetChildren()) do
-                                if zom:IsA("Model") and zom:FindFirstChild("Head") then
-                                    totalEnemyCount = totalEnemyCount + 1
-                                    local dist = (zom.Head.Position - root_check.Position).Magnitude
-                                    if dist < highThreatZone then
-                                        closeEnemyCount = closeEnemyCount + 1
-                                    end
-                                end
-                            end
-                        end
-                    end
-                    
-                    -- INTELLIGENT RESPONSE SCALING
-                    local isSwarm = totalEnemyCount > 10 -- Heavy wave
-                    local isOverrun = closeEnemyCount > 5 -- Too many close
-                    
-                    if hasUrgentThreats or isOverrun then
-                        -- PANIC MODE: Faster cycles when overwhelmed (natural human response)
-                        -- Human adrenaline response: 100-150ms sustained during panic
-                        local panicSpeed = 0.10 + ((1 - behaviorProfile.focusLevel) * 0.05) -- 100-150ms
-                        cycleDelay = panicSpeed + (math.random() * 0.03) -- +0-30ms variance
-                        
-                        -- ADRENALINE BOOST: Temporarily increase focus when panicking
-                        behaviorProfile.focusLevel = math.min(1, behaviorProfile.focusLevel + 0.1)
-                        
-                    elseif isSwarm then
-                        -- HIGH ALERT: Many zombies but not critical yet
-                        -- Focused human stays alert: 150-200ms
-                        local alertSpeed = 0.15 + (math.random() * 0.05)
-                        cycleDelay = alertSpeed
+                    if hasUrgentThreats then
+                        -- ALERT MODE: Faster reaction like a focused human
+                        -- Focus level affects response time
+                        local alertSpeed = 0.12 + ((1 - behaviorProfile.focusLevel) * 0.08) -- 120-200ms
+                        cycleDelay = alertSpeed + (math.random() * 0.05) -- +0-50ms variance
                     else
                         -- NORMAL: Use smart delay based on effectiveness
                         cycleDelay = getKnightMareDelay(shootDelay)
