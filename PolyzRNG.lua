@@ -177,16 +177,21 @@ local shotHistory = {} -- Track shot timing patterns
 local detectionRisk = 0 -- Dynamic risk assessment
 local adaptiveDelay = 0.1 -- Starts conservative, adapts based on success
 
--- 🧠 REVOLUTIONARY ADAPTIVE INTELLIGENCE SYSTEM
+-- 🧠 REVOLUTIONARY ADAPTIVE INTELLIGENCE SYSTEM WITH SESSION RESET
 local stealthMode = true -- Ultra-safe by default
 local sessionStartTime = tick()
+local sessionId = math.random(1000000, 9999999) -- Unique session identifier
 local behaviorProfile = {
-    focusLevel = 0.5, -- 0 = distracted, 1 = hyper-focused
-    fatigueLevel = 0, -- 0 = fresh, 1 = exhausted
-    consistencyProfile = math.random() * 0.3 + 0.1, -- Each session has unique consistency (10-40%)
-    skillDrift = 0, -- Simulates getting better/worse over time
-    lastFocusChange = tick(),
-    lastFatigueChange = tick(),
+    focusLevel = 0.3 + (math.random() * 0.4), -- 0.3-0.7 random start (30-70%)
+    fatigueLevel = math.random() * 0.2, -- 0-0.2 random start (0-20%)
+    consistencyProfile = math.random() * 0.4 + 0.1, -- Each session has unique consistency (10-50%)
+    skillDrift = (math.random() - 0.5) * 0.3, -- Random skill drift (-15% to +15%)
+    lastFocusChange = tick() + math.random(-10, 10), -- Random start time
+    lastFatigueChange = tick() + math.random(-10, 10), -- Random start time
+    sessionId = sessionId, -- Track session uniqueness
+    playStyle = math.random(1, 4), -- 1=Aggressive, 2=Defensive, 3=Balanced, 4=Erratic
+    reactionBias = (math.random() - 0.5) * 0.4, -- -20% to +20% reaction bias
+    accuracyBias = (math.random() - 0.5) * 0.3, -- -15% to +15% accuracy bias
 }
 
 local function getKnightMareDelay(base)
@@ -204,15 +209,26 @@ local function getKnightMareDelay(base)
         end
     end
     
-    -- 🧬 EVOLUTIONARY BEHAVIOR SIMULATION - Infinitely Adaptive
-    -- Update behavioral profile dynamically
+    -- 🧬 EVOLUTIONARY BEHAVIOR SIMULATION - Infinitely Adaptive with Session Reset
+    -- Update behavioral profile dynamically with enhanced variance
     local sessionDuration = currentTime - sessionStartTime
     
-    -- FOCUS DRIFT: Humans naturally lose/gain focus over time
-    if currentTime - behaviorProfile.lastFocusChange > math.random(10, 30) then
-        local focusChange = (math.random() - 0.5) * 0.15 -- ±7.5% focus drift
-        behaviorProfile.focusLevel = math.max(0.3, math.min(1, behaviorProfile.focusLevel + focusChange))
-        behaviorProfile.lastFocusChange = currentTime
+    -- SESSION RESET: Completely new behavioral profile every session
+    if sessionDuration < 5 then -- First 5 seconds of new session
+        -- Apply session-specific behavioral modifiers
+        local sessionModifier = (sessionId % 100) / 100 -- 0-0.99 based on session ID
+        behaviorProfile.focusLevel = behaviorProfile.focusLevel + (sessionModifier - 0.5) * 0.2
+        behaviorProfile.fatigueLevel = behaviorProfile.fatigueLevel + (sessionModifier - 0.5) * 0.1
+    end
+    
+    -- ENHANCED FOCUS DRIFT: More varied and unpredictable
+    if currentTime - behaviorProfile.lastFocusChange > math.random(8, 25) then
+        local baseFocusChange = (math.random() - 0.5) * 0.2 -- ±10% base drift
+        local playStyleModifier = behaviorProfile.playStyle == 4 and 0.3 or 0.1 -- Erratic style = more variance
+        local sessionVariance = (sessionId % 10) / 10 * 0.1 -- Session-specific variance
+        local focusChange = baseFocusChange + (math.random() - 0.5) * playStyleModifier + sessionVariance
+        behaviorProfile.focusLevel = math.max(0.2, math.min(0.9, behaviorProfile.focusLevel + focusChange))
+        behaviorProfile.lastFocusChange = currentTime + math.random(-2, 2) -- Random timing variance
     end
     
     -- FATIGUE ACCUMULATION: Humans get tired (or adrenaline kicks in)
@@ -235,42 +251,60 @@ local function getKnightMareDelay(base)
         detectionRisk = math.max(0, detectionRisk - 0.04) -- Recovery
     end
     
-    -- 🎯 MULTI-FACTOR HUMAN SIMULATION
-    -- Base player style (varies with stealth mode)
-    local basePlayerStyle = stealthMode and 2.2 or 1.5
+    -- 🎯 MULTI-FACTOR HUMAN SIMULATION WITH SESSION RESET
+    -- Base player style (varies with stealth mode and session)
+    local sessionStyleModifier = 1 + ((sessionId % 30) / 100) -- 1.0-1.3 session-specific style
+    local basePlayerStyle = (stealthMode and 2.2 or 1.5) * sessionStyleModifier
     
-    -- FOCUS MULTIPLIER: Focused = faster, distracted = slower
+    -- FOCUS MULTIPLIER: Focused = faster, distracted = slower (with session variance)
     local focusMultiplier = 1.3 - (behaviorProfile.focusLevel * 0.5) -- 0.8-1.3x
+    local sessionFocusModifier = 1 + behaviorProfile.reactionBias -- Session-specific focus bias
+    focusMultiplier = focusMultiplier * sessionFocusModifier
     
-    -- FATIGUE MULTIPLIER: Tired = slower reactions
+    -- FATIGUE MULTIPLIER: Tired = slower reactions (with session variance)
     local fatigueMultiplier = 1 + (behaviorProfile.fatigueLevel * 1.5) -- 1.0-2.05x
+    local sessionFatigueModifier = 1 + ((sessionId % 20) / 100) -- Session-specific fatigue
+    fatigueMultiplier = fatigueMultiplier * sessionFatigueModifier
     
-    -- RISK MULTIPLIER: High risk = more careful
+    -- RISK MULTIPLIER: High risk = more careful (with session variance)
     local riskMultiplier = 1 + (detectionRisk * 1.8) -- 1.0-2.8x
+    local sessionRiskModifier = 1 + ((sessionId % 15) / 100) -- Session-specific risk tolerance
+    riskMultiplier = riskMultiplier * sessionRiskModifier
     
-    -- SKILL DRIFT MULTIPLIER: Natural performance variation
+    -- SKILL DRIFT MULTIPLIER: Natural performance variation (with session variance)
     local skillMultiplier = 1 + behaviorProfile.skillDrift -- 0.9-1.1x
+    local sessionSkillModifier = 1 + behaviorProfile.accuracyBias -- Session-specific skill bias
+    skillMultiplier = skillMultiplier * sessionSkillModifier
     
     -- COMBINE ALL FACTORS (multiplicative for realism)
     local playerStyle = basePlayerStyle * focusMultiplier * fatigueMultiplier * riskMultiplier * skillMultiplier
     
-    -- UNIQUE SESSION VARIANCE: Each session plays differently
-    -- Uses the unique consistency profile generated at session start
+    -- ENHANCED SESSION VARIANCE: Each session plays completely differently
     local baseVariance = behaviorProfile.consistencyProfile
-    local reactionVariance = baseVariance + (math.random() * baseVariance) -- 10-80% variance
+    local sessionVariance = ((sessionId % 40) / 100) -- 0-0.4 session-specific variance
+    local reactionVariance = baseVariance + (math.random() * baseVariance) + sessionVariance -- 10-120% variance
     
     -- CALCULATE BASE REACTION TIME
     local reactionTime = math.max(base, adaptiveDelay) * playerStyle
     
-    -- MICRO-VARIATIONS: Hand tremor, mouse slip, distraction
-    -- These are completely random and unpredictable
-    local microVariation = (math.random() * 0.10 - 0.04) -- -40ms to +60ms
+    -- ENHANCED MICRO-VARIATIONS: Hand tremor, mouse slip, distraction (with session variance)
+    -- These are completely random and unpredictable with session-specific patterns
+    local baseMicroVariation = (math.random() * 0.10 - 0.04) -- -40ms to +60ms
+    local sessionMicroModifier = 1 + ((sessionId % 25) / 100) -- 1.0-1.25 session-specific micro variance
+    local microVariation = baseMicroVariation * sessionMicroModifier
     
-    -- MACRO-VARIANCE: Occasional significantly different timing
+    -- ENHANCED MACRO-VARIANCE: Occasional significantly different timing (with session variance)
     -- Simulates hesitation, double-take, distraction bursts
-    if math.random() < 0.15 then -- 15% chance of macro-variance
-        microVariation = microVariation + (math.random() * 0.15) -- +0-150ms extra
+    local macroChance = 0.15 + ((sessionId % 10) / 100) -- 15-25% chance based on session
+    if math.random() < macroChance then
+        local baseMacroVariation = math.random() * 0.15 -- +0-150ms extra
+        local sessionMacroModifier = 1 + ((sessionId % 20) / 100) -- Session-specific macro variance
+        microVariation = microVariation + (baseMacroVariation * sessionMacroModifier)
     end
+    
+    -- SESSION-SPECIFIC TIMING QUIRKS: Each session has unique timing patterns
+    local sessionQuirk = (sessionId % 5) / 100 -- 0-0.05 session-specific quirk
+    microVariation = microVariation + (math.random() * sessionQuirk)
     
     -- FINAL DELAY CALCULATION
     local finalDelay = reactionTime + (reactionTime * reactionVariance) + microVariation
@@ -618,12 +652,13 @@ CombatTab:CreateToggle({
     Callback = function(state)
         autoKill = state
         if state then
-            -- Show current effectiveness level
+            -- Show current effectiveness level with session info
             local effectivenessDesc = effectivenessLevel .. "% effectiveness"
+            local sessionInfo = "Session ID: " .. sessionId .. " | Play Style: " .. ({"Aggressive", "Defensive", "Balanced", "Erratic"})[behaviorProfile.playStyle]
             Rayfield:Notify({
                 Title = "🎯 PERFECT DEFENSE ACTIVE",
-                Content = effectivenessDesc .. " | Zero detection guarantee",
-                Duration = 4,
+                Content = effectivenessDesc .. " | " .. sessionInfo,
+                Duration = 6,
                 Image = 4483362458
             })
             
