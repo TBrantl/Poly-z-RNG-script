@@ -635,256 +635,83 @@ CombatTab:CreateToggle({
                                 local highThreatZone = 30 + (effectivenessScale * 30) -- 30-60 studs
                                 local preemptiveZone = 50 + (effectivenessScale * 50) -- 50-100 studs
                                 
-                                -- 🧠 ROBUST THREAT ASSESSMENT SYSTEM (Harvard-Level Implementation)
-                                -- Calculate threat levels with defensive programming and error handling
-                                for i, target in ipairs(validTargets) do
-                                    -- Initialize threat level with safe defaults
-                                    local threatLevel = 0
-                                    local movementTowardPlayer = 0
-                                    local timeToReach = 999
-                                    local speed = 0
-                                    
-                                    -- DEFENSIVE: Safely calculate movement data
-                                    pcall(function()
-                                        local humanoid = target.humanoid
-                                        if humanoid and humanoid.RootPart then
-                                            local velocity = humanoid.RootPart.Velocity or Vector3.new(0, 0, 0)
-                                            speed = math.max(velocity.Magnitude, 0) -- Ensure non-negative
-                                            
-                                            -- Calculate movement toward player with bounds checking
-                                            local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-                                            if root then
-                                                local directionToPlayer = (root.Position - target.head.Position).Unit
-                                                local movementDirection = velocity.Unit
-                                                movementTowardPlayer = math.max(-1, math.min(1, directionToPlayer:Dot(movementDirection))) -- Clamp to [-1, 1]
-                                            end
-                                            
-                                            -- Calculate time to reach with safe division
-                                            timeToReach = speed > 0.1 and (target.distance / speed) or 999
-                                        end
-                                    end)
-                                    
-                                    -- DEFENSIVE: Calculate threat level with bounds checking
-                                    -- Distance factor (closer = higher threat)
-                                    if target.distance < criticalZone then
-                                        threatLevel = threatLevel + 50
-                                    elseif target.distance < highThreatZone then
-                                        threatLevel = threatLevel + 30
-                                    elseif target.distance < preemptiveZone then
-                                        threatLevel = threatLevel + 15
-                                    end
-                                    
-                                    -- Movement factor (moving toward player = higher threat)
-                                    if movementTowardPlayer > 0.5 then
-                                        threatLevel = threatLevel + 25 -- Moving toward player
-                                    elseif movementTowardPlayer > 0 then
-                                        threatLevel = threatLevel + 10 -- Slightly toward player
-                                    end
-                                    
-                                    -- Speed factor (faster = higher threat)
-                                    if speed > 20 then
-                                        threatLevel = threatLevel + 15 -- Fast moving
-                                    elseif speed > 10 then
-                                        threatLevel = threatLevel + 8 -- Medium speed
-                                    end
-                                    
-                                    -- Time factor (arriving soon = higher threat)
-                                    if timeToReach < 2 then
-                                        threatLevel = threatLevel + 20 -- Arriving in 2 seconds
-                                    elseif timeToReach < 5 then
-                                        threatLevel = threatLevel + 10 -- Arriving in 5 seconds
-                                    end
-                                    
-                                    -- Boss factor (bosses = always high threat)
-                                    local isBoss = target.model.Name == "GoblinKing" or target.model.Name == "CaptainBoom" or target.model.Name == "Fungarth"
-                                    if isBoss then
-                                        threatLevel = threatLevel + 30 -- Boss priority
-                                    end
-                                    
-                                    -- BOUNDS CHECKING: Ensure threat level is within valid range
-                                    threatLevel = math.max(0, math.min(100, threatLevel))
-                                    
-                                    -- Store threat data with safe defaults
-                                    target.threatLevel = threatLevel
-                                    target.movementTowardPlayer = movementTowardPlayer
-                                    target.timeToReach = timeToReach
-                                    target.speed = speed
-                                end
-                                
-                                -- 🎯 ROBUST THREAT-BASED SORTING WITH DEFENSIVE COMPARISON
+                                -- 🎯 SIMPLE BUT EFFECTIVE TARGET SORTING (Working Version)
                                 table.sort(validTargets, function(a, b)
-                                    -- DEFENSIVE: Ensure both targets have valid data
-                                    local aThreat = a.threatLevel or 0
-                                    local bThreat = b.threatLevel or 0
-                                    local aTime = a.timeToReach or 999
-                                    local bTime = b.timeToReach or 999
-                                    local aMovement = a.movementTowardPlayer or 0
-                                    local bMovement = b.movementTowardPlayer or 0
-                                    local aDistance = a.distance or 999
-                                    local bDistance = b.distance or 999
+                                    local aBoss = a.model.Name == "GoblinKing" or a.model.Name == "CaptainBoom" or a.model.Name == "Fungarth"
+                                    local bBoss = b.model.Name == "GoblinKing" or b.model.Name == "CaptainBoom" or b.model.Name == "Fungarth"
                                     
-                                    -- Primary: Threat level (higher = more dangerous)
-                                    if aThreat ~= bThreat then
-                                        return aThreat > bThreat
+                                    -- CRITICAL ZONE: Immediate danger (dynamic based on effectiveness)
+                                    local aCritical = a.distance < criticalZone
+                                    local bCritical = b.distance < criticalZone
+                                    if aCritical and not bCritical then return true end
+                                    if bCritical and not aCritical then return false end
+                                    
+                                    -- HIGH THREAT ZONE: Approaching enemies or Bosses
+                                    local aHighThreat = a.distance < highThreatZone or aBoss
+                                    local bHighThreat = b.distance < highThreatZone or bBoss
+                                    if aHighThreat and not bHighThreat then return true end
+                                    if bHighThreat and not aHighThreat then return false end
+                                    
+                                    -- PREEMPTIVE ZONE: Target before they get close (high effectiveness only)
+                                    if effectivenessLevel >= 60 then
+                                        local aPreemptive = a.distance < preemptiveZone
+                                        local bPreemptive = b.distance < preemptiveZone
+                                        if aPreemptive and not bPreemptive then return true end
+                                        if bPreemptive and not aPreemptive then return false end
                                     end
                                     
-                                    -- Secondary: Time to reach player (sooner = more urgent)
-                                    if aTime ~= bTime then
-                                        return aTime < bTime
-                                    end
-                                    
-                                    -- Tertiary: Movement toward player (approaching = more urgent)
-                                    if aMovement ~= bMovement then
-                                        return aMovement > bMovement
-                                    end
-                                    
-                                    -- Final: Distance (closer = higher priority)
-                                    return aDistance < bDistance
+                                    -- Default: closer = higher priority
+                                    return a.distance < b.distance
                                 end)
                                 
-                                -- 🧠 ROBUST INTELLIGENT SHOT DISTRIBUTION (Harvard-Level Implementation)
+                                -- 🧠 SIMPLE BUT EFFECTIVE SHOT DISTRIBUTION (Working Version)
                                 local shotsFired = 0
                                 
-                                -- DEFENSIVE: Analyze threat distribution with safe calculations
+                                -- CRITICAL ZONE LOGIC: Shoot ALL threats in critical zone first!
                                 local criticalThreats = 0
-                                local highThreats = 0
-                                local totalThreatLevel = 0
-                                local validTargetCount = #validTargets
-                                
-                                -- SAFE ITERATION: Count threats with bounds checking
-                                for i = 1, validTargetCount do
-                                    local t = validTargets[i]
-                                    if t and t.distance and t.threatLevel then
-                                        if t.distance < criticalZone then
-                                            criticalThreats = criticalThreats + 1
-                                        end
-                                        if t.threatLevel > 70 then
-                                            highThreats = highThreats + 1
-                                        end
-                                        totalThreatLevel = totalThreatLevel + t.threatLevel
+                                for _, t in ipairs(validTargets) do
+                                    if t.distance < criticalZone then
+                                        criticalThreats = criticalThreats + 1
                                     end
                                 end
                                 
-                                -- DEFENSIVE: Calculate average threat level with safe division
-                                local averageThreatLevel = validTargetCount > 0 and (totalThreatLevel / validTargetCount) or 0
-                                averageThreatLevel = math.max(0, math.min(100, averageThreatLevel)) -- Bounds check
-                                
-                                -- 🧠 ROBUST INTELLIGENT ALLOCATION WITH BOUNDS CHECKING
+                                -- 🧠 SIMPLE ADAPTIVE ALLOCATION
                                 local maxShotsPerCycle
                                 
-                                -- DEFENSIVE: Calculate focus factor with bounds checking
-                                local focusLevel = behaviorProfile.focusLevel or 0.5
-                                local fatigueLevel = behaviorProfile.fatigueLevel or 0.0
-                                local focusFactor = math.max(-1, math.min(1, focusLevel - fatigueLevel)) -- Clamp to [-1, 1]
-                                local baseShotCapacity = math.floor(2 + (focusFactor * 2)) -- 1-4 shots based on state
-                                baseShotCapacity = math.max(1, math.min(4, baseShotCapacity)) -- Bounds check
+                                -- FOCUS-BASED SHOT CAPACITY
+                                local focusFactor = behaviorProfile.focusLevel - behaviorProfile.fatigueLevel
+                                local shotCapacity = math.floor(2 + (focusFactor * 2)) -- 1-4 shots based on state
                                 
-                                -- INTELLIGENT THREAT-BASED SCALING with safe calculations
                                 if criticalThreats > 0 then
-                                    -- CRITICAL MODE: Shoot ALL critical threats + intelligent bonus
-                                    local threatBonus = math.floor(averageThreatLevel / 20) -- +1 shot per 20 threat level
-                                    threatBonus = math.max(0, math.min(2, threatBonus)) -- Bounds check: 0-2 bonus
-                                    maxShotsPerCycle = math.min(criticalThreats + threatBonus, validTargetCount, 6) -- Up to 6 shots
-                                elseif highThreats > 2 then
-                                    -- HIGH THREAT MODE: Multiple high-threat zombies
-                                    local threatShots = math.floor(2 + (averageThreatLevel / 25)) -- Scale with threat
-                                    threatShots = math.max(2, math.min(5, threatShots)) -- Bounds check: 2-5 shots
-                                    maxShotsPerCycle = math.min(threatShots, baseShotCapacity + 1, validTargetCount, 5) -- Up to 5 shots
-                                elseif averageThreatLevel > 50 then
-                                    -- ELEVATED THREAT MODE: High average threat
-                                    local threatShots = math.floor(2 + (effectivenessScale * 2.5)) -- 2-4.5 shots
-                                    threatShots = math.max(2, math.min(4, threatShots)) -- Bounds check: 2-4 shots
-                                    maxShotsPerCycle = math.min(threatShots, baseShotCapacity, validTargetCount, 4) -- Up to 4 shots
+                                    -- ALERT MODE: Shoot ALL critical threats + more for crowd control
+                                    maxShotsPerCycle = math.min(criticalThreats + 1, #validTargets, 5) -- Up to 5 shots
                                 else
-                                    -- NORMAL MODE: Standard effectiveness scaling
+                                    -- NORMAL MODE: More aggressive for crowd control
                                     local baseShots = math.floor(2 + (effectivenessScale * 2)) -- 2-4 shots minimum
-                                    baseShots = math.max(2, math.min(4, baseShots)) -- Bounds check: 2-4 shots
-                                    maxShotsPerCycle = math.min(baseShots, validTargetCount, 3) -- Up to 3 shots
+                                    maxShotsPerCycle = math.min(baseShots, #validTargets, 4) -- Up to 4 shots
                                 end
                                 
-                                -- FINAL BOUNDS CHECK: Ensure reasonable shot count
-                                maxShotsPerCycle = math.max(1, math.min(6, maxShotsPerCycle))
-                                
-                                -- ADAPTIVE VARIATION: Less variation when threatened (survival instinct)
-                                local variationChance = averageThreatLevel > 60 and 0.05 or 0.10 -- 5% when threatened, 10% normal
-                                if math.random() < variationChance then
+                                -- REDUCE VARIATION: Less random reduction for better crowd control
+                                if math.random() < 0.10 then -- 10% chance (reduced from 20%)
                                     maxShotsPerCycle = math.max(1, maxShotsPerCycle - 1)
                                 end
                                 
                                 for _, target in ipairs(validTargets) do
                                     if shotsFired >= maxShotsPerCycle then break end
                                     
-                                    -- 🧬 INTELLIGENT TARGET SKIPPING (Harvard-Level Implementation)
-                                    -- Calculate base skip chance with defensive programming
-                                    local focusLevel = behaviorProfile.focusLevel or 0.5
-                                    local fatigueLevel = behaviorProfile.fatigueLevel or 0.0
-                                    local baseSkipChance = (1 - focusLevel) * 0.08 + (fatigueLevel * 0.05)
-                                    baseSkipChance = math.max(0, math.min(0.25, baseSkipChance)) -- Bounds check: 0-25%
-                                    
-                                    -- INTELLIGENT THREAT-BASED MODIFICATION
-                                    local targetThreat = target.threatLevel or 0
-                                    local threatModifier = 1.0
-                                    
-                                    -- Reduce skipping for high-threat targets (survival instinct)
-                                    if targetThreat > 70 then
-                                        threatModifier = 0.3 -- 70% less skipping for high threats
-                                    elseif targetThreat > 50 then
-                                        threatModifier = 0.6 -- 40% less skipping for medium threats
-                                    end
-                                    
-                                    -- NEVER skip critical threats (survival instinct)
-                                    if target.distance < criticalZone then
-                                        threatModifier = 0 -- Never skip critical threats
-                                    end
-                                    
-                                    local finalSkipChance = baseSkipChance * threatModifier
-                                    finalSkipChance = math.max(0, math.min(0.25, finalSkipChance)) -- Final bounds check
-                                    
-                                    if math.random() < finalSkipChance and shotsFired > 0 then
+                                    -- 🧬 HUMAN IMPERFECTION: Occasionally skip a target (distraction, hesitation)
+                                    -- BUT: Reduce skipping for better crowd control
+                                    local skipChance = (1 - behaviorProfile.focusLevel) * 0.08 + (behaviorProfile.fatigueLevel * 0.05) -- Reduced
+                                    if math.random() < skipChance and shotsFired > 0 then
                                         -- Skip this target, move to next (human didn't notice it)
                                         continue
                                     end
                                     
-                                    -- 🎯 ROBUST PREDICTIVE TARGETING SYSTEM (Harvard-Level Implementation)
+                                    -- 🎯 KNIGHTMARE-SYNCHRONIZED TARGETING
                                     local isBoss = target.model.Name == "GoblinKing" or target.model.Name == "CaptainBoom" or target.model.Name == "Fungarth"
                                     
-                                    -- DEFENSIVE: Calculate predictive position with error handling
-                                    local hitPos, hitPart = nil, nil
-                                    
-                                    -- Try predictive targeting first (for moving targets)
-                                    pcall(function()
-                                        local humanoid = target.humanoid
-                                        if humanoid and humanoid.RootPart and target.distance then
-                                            local velocity = humanoid.RootPart.Velocity or Vector3.new(0, 0, 0)
-                                            local speed = velocity.Magnitude
-                                            
-                                            -- Only use prediction for moving targets
-                                            if speed > 5 then -- Moving faster than 5 studs/sec
-                                                local bulletTravelTime = target.distance / 1000 -- Approximate bullet speed
-                                                bulletTravelTime = math.max(0.01, math.min(0.5, bulletTravelTime)) -- Bounds check: 10ms-500ms
-                                                
-                                                local predictedPosition = target.head.Position + (velocity * bulletTravelTime)
-                                                
-                                                -- Create temporary target for prediction
-                                                local predictedTarget = {
-                                                    head = {Position = predictedPosition},
-                                                    model = target.model,
-                                                    humanoid = target.humanoid
-                                                }
-                                                
-                                                -- Try predictive targeting
-                                                local predHitPos, predHitPart = getKnightMareShotPosition(predictedTarget.head, target.model)
-                                                if predHitPos and predHitPart then
-                                                    hitPos, hitPart = predHitPos, predHitPart
-                                                end
-                                            end
-                                        end
-                                    end)
-                                    
-                                    -- FALLBACK: Use current position if prediction failed or target is stationary
-                                    if not hitPos or not hitPart then
-                                        hitPos, hitPart = getKnightMareShotPosition(target.head, target.model)
-                                    end
+                                    -- 🛡️ Use KnightMare-synchronized raycast system
+                                    local hitPos, hitPart = getKnightMareShotPosition(target.head, target.model)
                                     
                                     if hitPos and hitPart then
                                         -- 🎯 KNIGHTMARE FIRESERVER SYNCHRONICITY
@@ -902,36 +729,13 @@ CombatTab:CreateToggle({
                                         if success then
                                             shotsFired = shotsFired + 1
                                             
-                                            -- 🎯 ROBUST ADAPTIVE MULTI-SHOT SPACING (Harvard-Level Implementation)
+                                            -- 🎯 SMART MULTI-SHOT SPACING (human panic simulation)
                                             if shotsFired < maxShotsPerCycle then
-                                                -- DEFENSIVE: Calculate adaptive timing with bounds checking
-                                                local targetThreat = target.threatLevel or 0
-                                                local baseDelay = 0.12 -- Default human timing
-                                                
-                                                -- INTELLIGENT THREAT-BASED TIMING
-                                                if targetThreat > 80 then
-                                                    -- EXTREME THREAT: Maximum human speed (80-120ms)
-                                                    baseDelay = 0.08 + (math.random() * 0.04)
-                                                elseif targetThreat > 60 then
-                                                    -- HIGH THREAT: Fast human response (100-140ms)
-                                                    baseDelay = 0.10 + (math.random() * 0.04)
-                                                elseif target.distance < criticalZone then
-                                                    -- CRITICAL DISTANCE: Urgent response (120-160ms)
-                                                    baseDelay = 0.12 + (math.random() * 0.04)
-                                                else
-                                                    -- NORMAL: Standard human timing (140-180ms)
-                                                    baseDelay = 0.14 + (math.random() * 0.04)
-                                                end
-                                                
-                                                -- BOUNDS CHECKING: Ensure human-like timing
-                                                baseDelay = math.max(0.08, math.min(0.20, baseDelay)) -- 80-200ms range
-                                                
-                                                -- Add micro-variations for human realism
-                                                local microVariation = (math.random() - 0.5) * 0.02 -- ±10ms
-                                                local finalDelay = baseDelay + microVariation
-                                                finalDelay = math.max(0.08, math.min(0.25, finalDelay)) -- Final bounds check
-                                                
-                                                task.wait(finalDelay)
+                                                -- Critical threats = faster but still human-like
+                                                -- Human panic: 80-150ms between rapid shots
+                                                local urgentDelay = target.distance < criticalZone and 0.08 or 0.12
+                                                local variance = math.random() * 0.07 -- 0-70ms variance
+                                                task.wait(urgentDelay + variance) -- 80-150ms (human limit)
                                             end
                                         end
                                     end
@@ -967,55 +771,21 @@ CombatTab:CreateToggle({
                                     end
                                 end
                                 
-                    -- 🧬 ROBUST INTELLIGENT CYCLE DELAY (Harvard-Level Implementation)
+                    -- 🧬 DYNAMIC CYCLE DELAY WITH BEHAVIORAL SIMULATION
                     local cycleDelay
                     
-                    -- DEFENSIVE: Calculate overall threat level for cycle timing
-                    local overallThreatLevel = 0
-                    local validTargetCount = #validTargets
-                    
-                    if validTargetCount > 0 then
-                        local totalThreat = 0
-                        for i = 1, validTargetCount do
-                            local t = validTargets[i]
-                            if t and t.threatLevel then
-                                totalThreat = totalThreat + t.threatLevel
-                            end
-                        end
-                        overallThreatLevel = totalThreat / validTargetCount
-                        overallThreatLevel = math.max(0, math.min(100, overallThreatLevel)) -- Bounds check
-                    end
-                    
-                    -- INTELLIGENT THREAT-BASED CYCLE TIMING
-                    if hasUrgentThreats or overallThreatLevel > 70 then
-                        -- ALERT/THREAT MODE: Faster reaction based on threat level
-                        local focusLevel = behaviorProfile.focusLevel or 0.5
-                        local threatSpeed = 0.08 + ((1 - focusLevel) * 0.04) -- 80-120ms
-                        
-                        if overallThreatLevel > 80 then
-                            threatSpeed = 0.06 + ((1 - focusLevel) * 0.03) -- 60-90ms for extreme threats
-                        end
-                        
-                        threatSpeed = math.max(0.06, math.min(0.15, threatSpeed)) -- Bounds check: 60-150ms
-                        cycleDelay = threatSpeed + (math.random() * 0.03) -- +0-30ms variance
-                        cycleDelay = math.max(0.06, math.min(0.20, cycleDelay)) -- Final bounds check
-                        
-                    elseif overallThreatLevel > 50 then
-                        -- ELEVATED THREAT MODE: Moderate speed increase
-                        local focusLevel = behaviorProfile.focusLevel or 0.5
-                        local elevatedSpeed = 0.12 + ((1 - focusLevel) * 0.05) -- 120-170ms
-                        elevatedSpeed = math.max(0.10, math.min(0.20, elevatedSpeed)) -- Bounds check: 100-200ms
-                        cycleDelay = elevatedSpeed + (math.random() * 0.04) -- +0-40ms variance
-                        cycleDelay = math.max(0.10, math.min(0.25, cycleDelay)) -- Final bounds check
-                        
+                    if hasUrgentThreats then
+                        -- ALERT MODE: Faster reaction like a focused human
+                        -- Focus level affects response time
+                        local alertSpeed = 0.10 + ((1 - behaviorProfile.focusLevel) * 0.06) -- 100-160ms (faster)
+                        cycleDelay = alertSpeed + (math.random() * 0.04) -- +0-40ms variance
                     else
                         -- NORMAL: Use smart delay based on effectiveness
                         cycleDelay = getKnightMareDelay(shootDelay)
                         
-                        -- 🧠 ADAPTIVE HUMAN PAUSE SIMULATION
-                        -- Less pausing when threatened (survival instinct)
-                        local pauseChance = overallThreatLevel > 40 and 0.02 or 0.04 -- 2% when threatened, 4% normal
-                        if math.random() < pauseChance then
+                        -- 🧠 HUMAN PAUSE SIMULATION: Reduced for better crowd control
+                        -- Simulates looking around, checking UI, reloading mentally
+                        if math.random() < 0.04 then -- 4% chance per cycle (reduced from 8%)
                             local pauseType = math.random()
                             if pauseType < 0.4 then
                                 cycleDelay = cycleDelay + (0.2 + math.random() * 0.3) -- Quick glance (200-500ms)
@@ -1026,9 +796,6 @@ CombatTab:CreateToggle({
                             end
                         end
                     end
-                    
-                    -- FINAL BOUNDS CHECK: Ensure reasonable cycle delay
-                    cycleDelay = math.max(0.06, math.min(3.0, cycleDelay)) -- 60ms minimum, 3s maximum
                     
                     task.wait(cycleDelay)
                 end
