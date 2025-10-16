@@ -851,6 +851,11 @@ CombatTab:CreateToggle({
                                 for _, target in ipairs(validTargets) do
                                     if shotsFired >= maxShotsPerCycle then break end
                                     
+                                    -- Debug: Show target processing
+                                    if tick() % 1 < 0.1 then -- Print every 1 second
+                                        print("[DEBUG] Processing target: " .. target.model.Name .. " at distance: " .. target.distance)
+                                    end
+                                    
                                     -- 🧬 CONSTANT KILLING TARGET SKIPPING (perfect sustained accuracy)
                                     -- CONSTANT KILLING intelligent skipping based on threat analysis and focus state
                                     local baseSkipChance = (1 - behaviorProfile.focusLevel) * 0.00001 + (behaviorProfile.fatigueLevel * 0.000005) -- CONSTANT KILLING minimal
@@ -969,6 +974,11 @@ CombatTab:CreateToggle({
                         local alertSpeed = baseSpeed - adrenalineBoost - effectivenessBoost - roundBoost - spawnRateBoost -- Faster with more threats
                         alertSpeed = math.max(0.00001, math.min(0.0002, alertSpeed)) -- 0.01-0.2ms range (CONSTANT KILLING)
                         cycleDelay = alertSpeed + (math.random() * 0.00001) -- +0-0.01ms variance (minimal)
+                        
+                        -- Debug: Show cycle delay
+                        if tick() % 2 < 0.1 then -- Print every 2 seconds
+                            print("[DEBUG] Cycle delay: " .. cycleDelay .. "s, Total threats: " .. totalThreats)
+                        end
                     else
                         -- NORMAL: Use smart delay based on effectiveness
                         cycleDelay = getKnightMareDelay(shootDelay)
