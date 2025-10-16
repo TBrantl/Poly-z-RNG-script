@@ -278,7 +278,19 @@ CombatTab:CreateToggle({
                             
                             -- 🎯 SUPERHUMAN TARGETING SYSTEM
                             print("[DEBUG] Valid targets found:", #validTargets)
+                            
+                            -- 🛡️ END-OF-ROUND DETECTION: Reduce activity when few targets remain
+                            local isEndOfRound = #validTargets <= 2
+                            if isEndOfRound then
+                                print("[DEBUG] End of round detected - reducing activity")
+                            end
+                            
                             if #validTargets > 0 then
+                                -- 🛡️ END-OF-ROUND SKIP CHANCE: Sometimes skip shooting when few targets
+                                if isEndOfRound and math.random() < 0.3 then -- 30% chance to skip at end of round
+                                    print("[DEBUG] Skipping shot at end of round to avoid detection")
+                                    goto continue
+                                end
                                 -- Sort by distance and threat level
                                 table.sort(validTargets, function(a, b)
                                     local aBoss = a.model.Name == "GoblinKing" or a.model.Name == "CaptainBoom" or a.model.Name == "Fungarth"
@@ -296,16 +308,22 @@ CombatTab:CreateToggle({
                                 local shotsFired = 0
                                 local effectivenessScale = effectivenessLevel / 100
                                 
-                                -- Calculate max shots based on effectiveness (simplified)
+                                -- Calculate max shots based on effectiveness and round state
                                 local maxShots
-                                if effectivenessLevel >= 95 then
-                                    maxShots = math.min(6, #validTargets) -- Up to 6 shots at 95%+
-                                elseif effectivenessLevel >= 80 then
-                                    maxShots = math.min(5, #validTargets) -- Up to 5 shots at 80%+
-                                elseif effectivenessLevel >= 60 then
-                                    maxShots = math.min(4, #validTargets) -- Up to 4 shots at 60%+
+                                if isEndOfRound then
+                                    -- 🛡️ END-OF-ROUND CONSERVATIVE MODE: Much more conservative
+                                    maxShots = math.min(1, #validTargets) -- Only 1 shot at end of round
                                 else
-                                    maxShots = math.min(3, #validTargets) -- Up to 3 shots below 60%
+                                    -- Normal shot allocation
+                                    if effectivenessLevel >= 95 then
+                                        maxShots = math.min(6, #validTargets) -- Up to 6 shots at 95%+
+                                    elseif effectivenessLevel >= 80 then
+                                        maxShots = math.min(5, #validTargets) -- Up to 5 shots at 80%+
+                                    elseif effectivenessLevel >= 60 then
+                                        maxShots = math.min(4, #validTargets) -- Up to 4 shots at 60%+
+                                    else
+                                        maxShots = math.min(3, #validTargets) -- Up to 3 shots below 60%
+                                    end
                                 end
                                 
                                 for i = 1, maxShots do
@@ -346,12 +364,18 @@ CombatTab:CreateToggle({
                                                         -- 🛡️ KNIGHTMARE-SYNCHRONIZED MULTI-SHOT SPACING
                                                         if shotsFired < maxShots then
                                                             local spacingDelay
-                                                            if effectivenessLevel >= 95 then
-                                                                spacingDelay = 0.08 + (math.random() * 0.04) -- 80-120ms (KnightMare safe)
-                                                            elseif effectivenessLevel >= 80 then
-                                                                spacingDelay = 0.12 + (math.random() * 0.06) -- 120-180ms (KnightMare safe)
+                                                            if isEndOfRound then
+                                                                -- 🛡️ END-OF-ROUND CONSERVATIVE SPACING: Much slower
+                                                                spacingDelay = 0.3 + (math.random() * 0.2) -- 300-500ms (very conservative)
                                                             else
-                                                                spacingDelay = 0.15 + (math.random() * 0.1) -- 150-250ms (KnightMare safe)
+                                                                -- Normal spacing
+                                                                if effectivenessLevel >= 95 then
+                                                                    spacingDelay = 0.08 + (math.random() * 0.04) -- 80-120ms (KnightMare safe)
+                                                                elseif effectivenessLevel >= 80 then
+                                                                    spacingDelay = 0.12 + (math.random() * 0.06) -- 120-180ms (KnightMare safe)
+                                                                else
+                                                                    spacingDelay = 0.15 + (math.random() * 0.1) -- 150-250ms (KnightMare safe)
+                                                                end
                                                             end
                                                             
                                                             -- 🛡️ KNIGHTMARE HUMANIZATION: Add natural variation
@@ -379,12 +403,30 @@ CombatTab:CreateToggle({
                     
                     -- 🛡️ KNIGHTMARE-SYNCHRONIZED CYCLE DELAY
                     local cycleDelay
-                    if effectivenessLevel >= 95 then
-                        cycleDelay = 0.15 + (math.random() * 0.1) -- 150-250ms (KnightMare safe)
-                    elseif effectivenessLevel >= 80 then
-                        cycleDelay = 0.2 + (math.random() * 0.15) -- 200-350ms (KnightMare safe)
+                    
+                    -- Check if we're at end of round (few targets)
+                    local currentThreats = 0
+                    if enemies then
+                        for _, zombie in pairs(enemies:GetChildren()) do
+                            if zombie:IsA("Model") and zombie:FindFirstChild("Head") then
+                                currentThreats = currentThreats + 1
+                            end
+                        end
+                    end
+                    local isEndOfRound = currentThreats <= 2
+                    
+                    if isEndOfRound then
+                        -- 🛡️ END-OF-ROUND CONSERVATIVE DELAY: Much slower to avoid detection
+                        cycleDelay = 0.8 + (math.random() * 0.4) -- 800-1200ms (very conservative)
                     else
-                        cycleDelay = 0.25 + (math.random() * 0.2) -- 250-450ms (KnightMare safe)
+                        -- Normal cycle delay
+                        if effectivenessLevel >= 95 then
+                            cycleDelay = 0.15 + (math.random() * 0.1) -- 150-250ms (KnightMare safe)
+                        elseif effectivenessLevel >= 80 then
+                            cycleDelay = 0.2 + (math.random() * 0.15) -- 200-350ms (KnightMare safe)
+                        else
+                            cycleDelay = 0.25 + (math.random() * 0.2) -- 250-450ms (KnightMare safe)
+                        end
                     end
                     
                     -- 🛡️ KNIGHTMARE HUMANIZATION: Add natural inconsistency
@@ -426,6 +468,7 @@ CombatTab:CreateToggle({
                     -- Update last shot time for rate limiting
                     lastShot = tick()
                     
+                    ::continue::
                     task.wait(cycleDelay)
                 end
             end)
