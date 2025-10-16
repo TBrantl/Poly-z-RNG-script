@@ -1318,38 +1318,75 @@ MiscTab:CreateButton({
             Image = 4483362458
         })
         
-        -- Wait a moment then destroy the GUI completely
+        -- Complete GUI destruction
         task.spawn(function()
-            task.wait(1.5)
+            task.wait(2)
             
-            -- More aggressive GUI cleanup
+            -- AGGRESSIVE COMPLETE GUI CLEANUP
             pcall(function()
-                -- Try multiple destruction methods
+                -- Destroy Rayfield library
                 if Rayfield then
+                    -- Destroy the main window
                     if Rayfield.Main then
                         Rayfield.Main:Destroy()
                     end
-                    if Rayfield.Enabled then
+                    
+                    -- Disable the UI
+                    if Rayfield.Enabled ~= nil then
                         Rayfield.Enabled = false
+                    end
+                    
+                    -- Call destroy method if exists
+                    if Rayfield.Destroy then
+                        Rayfield:Destroy()
                     end
                 end
                 
-                -- Find and destroy any remaining GUI elements
-                local playerGui = game.Players.LocalPlayer:FindFirstChild("PlayerGui")
+                -- Find and destroy ALL GUI elements in PlayerGui
+                local playerGui = player:FindFirstChild("PlayerGui")
                 if playerGui then
                     for _, gui in pairs(playerGui:GetChildren()) do
-                        if gui.Name:find("Rayfield") or gui.Name:find("Freezy") then
+                        -- Destroy anything related to Rayfield or Freezy
+                        if gui.Name:lower():find("rayfield") or 
+                           gui.Name:lower():find("freezy") or
+                           gui.Name:find("UI") or
+                           gui.ClassName == "ScreenGui" and gui:FindFirstChild("Main") then
+                            pcall(function()
                             gui:Destroy()
+                            end)
                         end
+                    end
+                end
+                
+                -- Also check CoreGui (some libraries put stuff there)
+                local coreGui = game:GetService("CoreGui")
+                for _, gui in pairs(coreGui:GetChildren()) do
+                    if gui.Name:lower():find("rayfield") or gui.Name:lower():find("freezy") then
+                        pcall(function()
+                            gui:Destroy()
+                        end)
                     end
                 end
             end)
             
-            -- Clean up global variables
+            -- Clean up all global variables
+            pcall(function()
             getgenv().FreezyHubLoaded = nil
+                getgenv().Rayfield = nil
+                _G.FreezyHub = nil
+                _G.Rayfield = nil
+            end)
             
-            -- Force garbage collection
+            -- Force garbage collection multiple times
+            for i = 1, 3 do
+                task.wait(0.1)
             game:GetService("RunService").Heartbeat:Wait()
+            end
+            
+            -- Final cleanup - destroy the script itself
+            pcall(function()
+                script:Destroy()
+            end)
         end)
     end
 })
