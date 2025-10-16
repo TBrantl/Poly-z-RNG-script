@@ -119,9 +119,9 @@ local function updateEffectiveness(level)
     
     local scaleFactor = level / 100
     
-    -- Enhanced shot delay: 0.30s (safe) to 0.16s (elite human at 100%)
-    -- CRITICAL: Never go below 0.16s - that's the absolute elite human limit
-    shootDelay = 0.30 - (scaleFactor * 0.14)
+    -- MAXIMUM HUMAN PERFORMANCE: 0.30s (safe) to 0.12s (world-class human at 100%)
+    -- CRITICAL: 0.12s is the absolute world-class human limit (Olympic-level reaction time)
+    shootDelay = 0.30 - (scaleFactor * 0.18)
     
     -- Adaptive human reaction time
     adaptiveDelay = shootDelay
@@ -304,21 +304,21 @@ local function shouldAllowKnightMareShot()
     -- Average skilled: ~3 shots/sec, Casual: ~2 shots/sec
     if stealthMode then
         -- Cautious player behavior
-        if shotsLast1Sec >= 3 then return false end -- Max 3 shots per second
-        if shotsLast2Sec >= 5 then return false end -- Max 5 shots per 2 seconds
-        if shotsLast5Sec >= 12 then return false end -- Max 12 shots per 5 seconds
-        if shotsLast10Sec >= 20 then return false end -- Max 20 shots per 10 seconds
+        if shotsLast1Sec >= 4 then return false end -- Max 4 shots per second (increased)
+        if shotsLast2Sec >= 7 then return false end -- Max 7 shots per 2 seconds (increased)
+        if shotsLast5Sec >= 16 then return false end -- Max 16 shots per 5 seconds (increased)
+        if shotsLast10Sec >= 28 then return false end -- Max 28 shots per 10 seconds (increased)
     else
-        -- Skilled player behavior (still realistic)
-        if shotsLast1Sec >= 4 then return false end -- Max 4 shots per second (skilled limit)
-        if shotsLast2Sec >= 7 then return false end -- Max 7 shots per 2 seconds
-        if shotsLast5Sec >= 16 then return false end -- Max 16 shots per 5 seconds
-        if shotsLast10Sec >= 28 then return false end -- Max 28 shots per 10 seconds
+        -- World-class player behavior (maximum human capability)
+        if shotsLast1Sec >= 6 then return false end -- Max 6 shots per second (world-class limit)
+        if shotsLast2Sec >= 10 then return false end -- Max 10 shots per 2 seconds
+        if shotsLast5Sec >= 22 then return false end -- Max 22 shots per 5 seconds
+        if shotsLast10Sec >= 38 then return false end -- Max 38 shots per 10 seconds
     end
     
-    -- Human minimum reaction time between accurate shots
-    -- Professional players can sustain 180-200ms between shots during intense focus
-    local humanReactionTime = stealthMode and 0.20 or 0.18
+    -- World-class minimum reaction time between accurate shots
+    -- World-class players can sustain 120-150ms between shots during peak performance
+    local humanReactionTime = stealthMode and 0.18 or 0.12
     if currentTime - lastValidationTime < humanReactionTime then
         return false
     end
@@ -691,25 +691,25 @@ CombatTab:CreateToggle({
                                 local shotCapacity = math.floor(2 + (focusFactor * 2)) -- 1-4 shots based on state
                                 
                                 if criticalThreats > 0 then
-                                    -- ALERT MODE: Shoot ALL critical threats + more for crowd control
-                                    maxShotsPerCycle = math.min(criticalThreats + 2, #validTargets, 7) -- Up to 7 shots (increased from 5)
+                                    -- ALERT MODE: Shoot ALL critical threats + maximum crowd control
+                                    maxShotsPerCycle = math.min(criticalThreats + 3, #validTargets, 10) -- Up to 10 shots (maximum)
                                 else
-                                    -- NORMAL MODE: More aggressive for crowd control
-                                    local baseShots = math.floor(3 + (effectivenessScale * 3)) -- 3-6 shots minimum (increased from 2-4)
-                                    maxShotsPerCycle = math.min(baseShots, #validTargets, 6) -- Up to 6 shots (increased from 4)
+                                    -- NORMAL MODE: Maximum aggressive for crowd control
+                                    local baseShots = math.floor(4 + (effectivenessScale * 4)) -- 4-8 shots minimum (maximum)
+                                    maxShotsPerCycle = math.min(baseShots, #validTargets, 8) -- Up to 8 shots (maximum)
                                 end
                                 
-                                -- REDUCE VARIATION: Less random reduction for better crowd control
-                                if math.random() < 0.10 then -- 10% chance (reduced from 20%)
+                                -- MINIMAL VARIATION: World-class consistency for maximum crowd control
+                                if math.random() < 0.05 then -- 5% chance (minimal variation)
                                     maxShotsPerCycle = math.max(1, maxShotsPerCycle - 1)
                                 end
                                 
                                 for _, target in ipairs(validTargets) do
                                     if shotsFired >= maxShotsPerCycle then break end
                                     
-                                    -- 🧬 OPTIMIZED TARGET SKIPPING (enhanced accuracy)
-                                    -- Reduced skipping for maximum efficiency
-                                    local skipChance = (1 - behaviorProfile.focusLevel) * 0.04 + (behaviorProfile.fatigueLevel * 0.03) -- Further reduced
+                                    -- 🧬 MAXIMUM EFFICIENCY TARGET SKIPPING (world-class accuracy)
+                                    -- Minimal skipping for maximum efficiency (world-class focus)
+                                    local skipChance = (1 - behaviorProfile.focusLevel) * 0.02 + (behaviorProfile.fatigueLevel * 0.01) -- Minimal
                                     if math.random() < skipChance and shotsFired > 0 then
                                         -- Skip this target, move to next (human didn't notice it)
                                         continue
@@ -738,13 +738,13 @@ CombatTab:CreateToggle({
                                         if success then
                                             shotsFired = shotsFired + 1
                                             
-                                            -- 🎯 OPTIMIZED MULTI-SHOT SPACING (enhanced speed)
+                                            -- 🎯 MAXIMUM HUMAN MULTI-SHOT SPACING (world-class speed)
                                             if shotsFired < maxShotsPerCycle then
-                                                -- Critical threats = maximum human speed
-                                                -- Enhanced panic: 60-120ms between rapid shots (faster)
-                                                local urgentDelay = target.distance < criticalZone and 0.06 or 0.08
-                                                local variance = math.random() * 0.06 -- 0-60ms variance (reduced)
-                                                task.wait(urgentDelay + variance) -- 60-120ms (enhanced speed)
+                                                -- Critical threats = world-class human speed
+                                                -- Maximum panic: 40-80ms between rapid shots (world-class)
+                                                local urgentDelay = target.distance < criticalZone and 0.04 or 0.06
+                                                local variance = math.random() * 0.04 -- 0-40ms variance (minimal)
+                                                task.wait(urgentDelay + variance) -- 40-80ms (world-class speed)
                                             end
                                         end
                                     end
@@ -785,10 +785,10 @@ CombatTab:CreateToggle({
                     local cycleDelay
                     
                     if hasUrgentThreats then
-                        -- ALERT MODE: Maximum human reaction speed
+                        -- ALERT MODE: World-class human reaction speed
                         -- Focus level affects response time
-                        local alertSpeed = 0.08 + ((1 - behaviorProfile.focusLevel) * 0.04) -- 80-120ms (enhanced speed)
-                        cycleDelay = alertSpeed + (math.random() * 0.03) -- +0-30ms variance (reduced)
+                        local alertSpeed = 0.06 + ((1 - behaviorProfile.focusLevel) * 0.03) -- 60-90ms (world-class speed)
+                        cycleDelay = alertSpeed + (math.random() * 0.02) -- +0-20ms variance (minimal)
                     else
                         -- NORMAL: Use smart delay based on effectiveness
                         cycleDelay = getKnightMareDelay(shootDelay)
