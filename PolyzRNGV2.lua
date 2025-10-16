@@ -4,8 +4,17 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
 
--- Load Rayfield UI Library
-local Rayfield = loadstring(game:HttpGet('https://limerbro.github.io/Roblox-Limer/rayfield.lua'))()
+-- Load Rayfield UI Library with error handling
+local Rayfield
+local success, error = pcall(function()
+    Rayfield = loadstring(game:HttpGet('https://limerbro.github.io/Roblox-Limer/rayfield.lua'))()
+end)
+
+if not success then
+    warn("[Freezy HUB] Failed to load Rayfield UI Library:", error)
+    -- Create a simple fallback UI or exit gracefully
+    return
+end
 
 -- Wait for Remotes safely
 local Remotes
@@ -108,38 +117,44 @@ local adaptiveLabel = CombatTab:CreateLabel("⚡ Adaptive Delay: 0.10s")
 
 -- 📊 Real-time Dynamic Defense Monitoring
 task.spawn(function()
+    -- Wait for all variables to be initialized
+    task.wait(1)
+    
     while true do
         local currentTime = tick()
         
-        -- Update weapon info
-        weaponLabel:Set("🔫 Equipped Weapon: " .. getEquippedWeaponName())
-        
-        -- Update performance stats every 2 seconds
-        if currentTime - performanceStats.lastUpdate > 2 then
-            -- Calculate dynamic defense zones
-            local effectivenessScale = effectivenessLevel / 100
-            local criticalZone = math.floor(15 + (effectivenessScale * 15))
-            local highThreatZone = math.floor(30 + (effectivenessScale * 30))
+        -- Safety check for variable initialization
+        if effectivenessLevel and detectionRisk and shootDelay then
+            -- Update weapon info
+            weaponLabel:Set("🔫 Equipped Weapon: " .. getEquippedWeaponName())
             
-            -- Detection risk display
-            local riskLevel = "ZERO"
-            local riskColor = "✅"
-            
-            if detectionRisk > 0.2 then
-                riskLevel = "LOW"
-                riskColor = "🟢"
+            -- Update performance stats every 2 seconds
+            if currentTime - performanceStats.lastUpdate > 2 then
+                -- Calculate dynamic defense zones
+                local effectivenessScale = effectivenessLevel / 100
+                local criticalZone = math.floor(15 + (effectivenessScale * 15))
+                local highThreatZone = math.floor(30 + (effectivenessScale * 30))
+                
+                -- Detection risk display
+                local riskLevel = "ZERO"
+                local riskColor = "✅"
+                
+                if detectionRisk > 0.2 then
+                    riskLevel = "LOW"
+                    riskColor = "🟢"
+                end
+                if detectionRisk > 0.5 then
+                    riskLevel = "ELEVATED"
+                    riskColor = "🟡"
+                end
+                
+                -- Update UI labels with dynamic info
+                riskLabel:Set(riskColor .. " Detection Risk: " .. riskLevel .. " | Effectiveness: " .. effectivenessLevel .. "%")
+                performanceLabel:Set("🎯 Defense Zones: Critical<" .. criticalZone .. " | High<" .. highThreatZone .. " studs")
+                adaptiveLabel:Set("⚡ Shot Delay: " .. string.format("%.2f", shootDelay) .. "s | Kills: " .. performanceStats.shotsSuccessful)
+                
+                performanceStats.lastUpdate = currentTime
             end
-            if detectionRisk > 0.5 then
-                riskLevel = "ELEVATED"
-                riskColor = "🟡"
-            end
-            
-            -- Update UI labels with dynamic info
-            riskLabel:Set(riskColor .. " Detection Risk: " .. riskLevel .. " | Effectiveness: " .. effectivenessLevel .. "%")
-            performanceLabel:Set("🎯 Defense Zones: Critical<" .. criticalZone .. " | High<" .. highThreatZone .. " studs")
-            adaptiveLabel:Set("⚡ Shot Delay: " .. string.format("%.2f", shootDelay) .. "s | Kills: " .. performanceStats.shotsSuccessful)
-            
-            performanceStats.lastUpdate = currentTime
         end
         
         task.wait(0.5) -- Update UI every 0.5 seconds
@@ -216,6 +231,7 @@ local lastValidationTime = 0
 local shotHistory = {} -- Track shot timing patterns
 local detectionRisk = 0 -- Dynamic risk assessment
 local adaptiveDelay = 0.1 -- Starts conservative, adapts based on success
+local currentRound = 1 -- Current round number
 
 -- 🧠 REVOLUTIONARY ADAPTIVE INTELLIGENCE SYSTEM
 local stealthMode = true -- Ultra-safe by default
