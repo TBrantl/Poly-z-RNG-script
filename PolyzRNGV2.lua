@@ -643,71 +643,65 @@ CombatTab:CreateToggle({
                                     end
                                 end
                                 
-                                -- 🧠 INTELLIGENT ADAPTIVE ALLOCATION
-                                -- Varies based on player state, not just effectiveness
+                                -- 🚀 ENHANCED SHOT ALLOCATION - 700 zombies/min target
                                 local maxShotsPerCycle
+                                local totalThreats = #validTargets
                                 
-                                -- FOCUS-BASED SHOT CAPACITY
-                                -- Focused player = can track more targets
-                                -- Fatigued player = tracks fewer
-                                local focusFactor = behaviorProfile.focusLevel - behaviorProfile.fatigueLevel
-                                local shotCapacity = math.floor(2 + (focusFactor * 2)) -- 1-4 shots based on state
+                                -- Calculate threat density for scaling
+                                local threatDensity = totalThreats / 10 -- Scale factor
                                 
                                 if criticalThreats > 0 then
-                                    -- ALERT MODE: Adrenaline boost allows more shots
-                                    local panicBoost = math.min(1, criticalThreats / 3) -- Up to +1 shot
-                                    maxShotsPerCycle = math.min(criticalThreats, shotCapacity + math.floor(panicBoost), 4)
+                                    -- 🔥 ALERT MODE: Kill ALL critical threats + nearby
+                                    local urgentShots = math.min(criticalThreats + 5, totalThreats)
+                                    maxShotsPerCycle = math.min(urgentShots, 15) -- Max 15 in danger
                                 else
-                                    -- NORMAL MODE: Scale with effectiveness AND player state
-                                    local baseShots = math.floor(1 + (effectivenessScale * 2))
-                                    maxShotsPerCycle = math.min(baseShots, shotCapacity, 3)
+                                    -- ⚡ NORMAL MODE: Aggressive but human-like
+                                    local baseShots = 3 + math.floor(effectivenessScale * 8) -- 3-11 shots
+                                    local densityBonus = math.floor(threatDensity * 2) -- More shots when many enemies
+                                    maxShotsPerCycle = math.min(baseShots + densityBonus, 12) -- Max 12 normally
                                 end
                                 
-                                -- RANDOM VARIATION: Sometimes shoot fewer (distraction, hesitation)
-                                if math.random() < 0.20 then -- 20% chance
+                                -- Small random variation for realism
+                                if math.random() < 0.15 then
                                     maxShotsPerCycle = math.max(1, maxShotsPerCycle - 1)
                                 end
                                 
                                 for _, target in ipairs(validTargets) do
                                     if shotsFired >= maxShotsPerCycle then break end
                                     
-                                    -- 🧬 HUMAN IMPERFECTION: Occasionally skip a target (distraction, hesitation)
-                                    -- Lower focus or higher fatigue = more likely to "miss" targeting
-                                    local skipChance = (1 - behaviorProfile.focusLevel) * 0.15 + (behaviorProfile.fatigueLevel * 0.10)
-                                    if math.random() < skipChance and shotsFired > 0 then
-                                        -- Skip this target, move to next (human didn't notice it)
-                                        continue
+                                    -- 🧬 HUMAN IMPERFECTION: Reduced skip chance for higher performance
+                                    local shouldShoot = true
+                                    if shotsFired > 0 and math.random() < 0.08 then -- Only 8% skip chance
+                                        shouldShoot = false
                                     end
                                     
-                                    -- 🎯 KNIGHTMARE-SYNCHRONIZED TARGETING
-                                    local isBoss = target.model.Name == "GoblinKing" or target.model.Name == "CaptainBoom" or target.model.Name == "Fungarth"
-                                    
+                                    if shouldShoot then
                                     -- 🛡️ Use KnightMare-synchronized raycast system
                                     local hitPos, hitPart = getKnightMareShotPosition(target.head, target.model)
                                     
                                     if hitPos and hitPart then
                                         -- 🎯 KNIGHTMARE FIRESERVER SYNCHRONICITY
-                                        -- Args match EXACTLY: (EnemyModel, HitPart, HitPosition, 0, WeaponName)
-                                        -- Synchronized with place file line 12178
                                         local args = {target.model, hitPart, hitPos, 0, weapon}
                                         
                                         local success = pcall(function()
                                             shootRemote:FireServer(unpack(args))
                                         end)
                                         
-                                        -- 📊 Record shot for adaptive learning
                                         recordShotSuccess(success)
                                         
                                         if success then
                                             shotsFired = shotsFired + 1
                                             
-                                            -- 🎯 SMART MULTI-SHOT SPACING (human panic simulation)
+                                                -- 🚀 FASTER MULTI-SHOT SPACING - 700 zombies/min
                                             if shotsFired < maxShotsPerCycle then
-                                                -- Critical threats = faster but still human-like
-                                                -- Human panic: 80-150ms between rapid shots
-                                                local urgentDelay = target.distance < criticalZone and 0.08 or 0.12
-                                                local variance = math.random() * 0.07 -- 0-70ms variance
-                                                task.wait(urgentDelay + variance) -- 80-150ms (human limit)
+                                                    if target.distance < criticalZone then
+                                                        -- Critical: 40-80ms (fast human panic)
+                                                        task.wait(0.04 + (math.random() * 0.04))
+                                                    else
+                                                        -- Normal: 60-120ms (skilled human)
+                                                        task.wait(0.06 + (math.random() * 0.06))
+                                                    end
+                                                end
                                             end
                                         end
                                     end
@@ -743,29 +737,19 @@ CombatTab:CreateToggle({
                                     end
                                 end
                                 
-                    -- 🧬 DYNAMIC CYCLE DELAY WITH BEHAVIORAL SIMULATION
+                    -- 🚀 FASTER CYCLE TIMING - 700 zombies/min target
                     local cycleDelay
                     
                     if hasUrgentThreats then
-                        -- ALERT MODE: Faster reaction like a focused human
-                        -- Focus level affects response time
-                        local alertSpeed = 0.12 + ((1 - behaviorProfile.focusLevel) * 0.08) -- 120-200ms
-                        cycleDelay = alertSpeed + (math.random() * 0.05) -- +0-50ms variance
+                        -- 🔥 ALERT MODE: Very fast reaction (skilled human panic)
+                        cycleDelay = 0.05 + (math.random() * 0.05) -- 50-100ms
                     else
-                        -- NORMAL: Use smart delay based on effectiveness
-                        cycleDelay = getKnightMareDelay(shootDelay)
+                        -- ⚡ NORMAL MODE: Fast but sustainable
+                        cycleDelay = 0.10 + (math.random() * 0.08) -- 100-180ms
                         
-                        -- 🧠 HUMAN PAUSE SIMULATION: Occasionally take a break
-                        -- Simulates looking around, checking UI, reloading mentally
-                        if math.random() < 0.08 then -- 8% chance per cycle
-                            local pauseType = math.random()
-                            if pauseType < 0.4 then
-                                cycleDelay = cycleDelay + (0.3 + math.random() * 0.4) -- Quick glance (300-700ms)
-                            elseif pauseType < 0.7 then
-                                cycleDelay = cycleDelay + (0.8 + math.random() * 0.7) -- Check surroundings (800-1500ms)
-                            else
-                                cycleDelay = cycleDelay + (1.5 + math.random() * 1.0) -- Brief distraction (1.5-2.5s)
-                            end
+                        -- 🧠 REDUCED PAUSE: Only occasional breaks for realism
+                        if math.random() < 0.05 then -- Only 5% chance
+                            cycleDelay = cycleDelay + (0.2 + math.random() * 0.3) -- Quick check (200-500ms)
                         end
                     end
                     
@@ -1247,7 +1231,7 @@ MiscTab:CreateButton({
             task.wait(1.5)
             
             -- More aggressive GUI cleanup
-            pcall(function()
+        pcall(function()
                 -- Try multiple destruction methods
                 if Rayfield then
                     if Rayfield.Main then
