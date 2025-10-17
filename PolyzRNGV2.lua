@@ -46,15 +46,29 @@
     
 --]]
 
+-- ============================================================================
+-- SCRIPT INITIALIZATION - DIAGNOSTIC MODE
+-- ============================================================================
+print(" ")
+print("╔════════════════════════════════════════════════════════════════════╗")
+print("║           FREEZY HUB - KRYPTONITE MODE INITIALIZING...            ║")
+print("╚════════════════════════════════════════════════════════════════════╝")
+print(" ")
+
+-- Wrap entire script in pcall for error catching
+local mainSuccess, mainError = pcall(function()
+
 -- Services
+print("[Freezy HUB] [1/6] Loading Roblox services...")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
+print("[Freezy HUB] [1/6] ✓ Services loaded successfully")
 
 -- Load Rayfield UI Library with error handling
-print("[Freezy HUB] Starting script...")
-print("[Freezy HUB] Loading Rayfield UI Library...")
+print("[Freezy HUB] [2/6] Loading Rayfield UI Library...")
+print("[Freezy HUB] [2/6] Attempting primary URL (sirius.menu)...")
 
 local Rayfield
 local success, err = pcall(function()
@@ -65,7 +79,8 @@ local success, err = pcall(function()
 end)
 
 if not success or not Rayfield then
-    warn("[Freezy HUB] Primary Rayfield URL failed, trying backup...")
+    print("[Freezy HUB] [2/6] ⚠ Primary URL failed, trying backup...")
+    print("[Freezy HUB] [2/6] Attempting backup URL (github)...")
     -- Try backup URL
     success, err = pcall(function()
         local rayfield_source = game:HttpGet('https://raw.githubusercontent.com/shlexware/Rayfield/main/source')
@@ -76,23 +91,26 @@ if not success or not Rayfield then
 end
 
 if not success or not Rayfield then
-    error("[Freezy HUB] CRITICAL: Failed to load Rayfield UI Library. Error: " .. tostring(err))
+    error("[Freezy HUB] ❌ CRITICAL: Failed to load Rayfield UI Library. Error: " .. tostring(err))
     return
 end
 
-print("[Freezy HUB] Rayfield loaded successfully!")
+print("[Freezy HUB] [2/6] ✓ Rayfield loaded successfully!")
 
 -- Wait for Remotes safely
+print("[Freezy HUB] [3/6] Waiting for game Remotes...")
 local Remotes
 task.spawn(function()
     Remotes = ReplicatedStorage:WaitForChild("Remotes", 10)
     if not Remotes then
-        warn("[Freezy HUB] Remotes folder not found - some features may not work")
+        warn("[Freezy HUB] [3/6] ⚠ Remotes folder not found - some features may not work")
+    else
+        print("[Freezy HUB] [3/6] ✓ Remotes loaded successfully")
     end
 end)
 
 -- 🛡️ KNIGHTMARE-SYNCHRONIZED UI CONFIGURATION
-print("[Freezy HUB] Creating window...")
+print("[Freezy HUB] [4/6] Creating GUI window...")
 
 local Window = Rayfield:CreateWindow({
     Name = "❄️ Freezy HUB ❄️ | POLY-Z | 🛡️ KnightMare Sync",
@@ -108,8 +126,8 @@ local Window = Rayfield:CreateWindow({
     }
 })
 
-print("[Freezy HUB] Window created successfully!")
-print("[Freezy HUB] Press 'K' to toggle the GUI")
+print("[Freezy HUB] [4/6] ✓ GUI window created successfully!")
+print("[Freezy HUB] [5/6] Loading combat systems...")
 
 -- 📊 KnightMare Performance Monitor
 local performanceStats = {
@@ -1737,22 +1755,27 @@ MiscTab:CreateButton({
 })
 
 -- Load config
+print("[Freezy HUB] [6/6] Loading saved configuration...")
 Rayfield:LoadConfiguration()
+print("[Freezy HUB] [6/6] ✓ Configuration loaded!")
 
 -- 🔥 SCRIPT LOADED SUCCESSFULLY
-print("[Freezy HUB] ========================================")
-print("[Freezy HUB] KRYPTONITE MODE LOADED SUCCESSFULLY! 🔥")
-print("[Freezy HUB] ========================================")
+print(" ")
+print("╔════════════════════════════════════════════════════════════════════╗")
+print("║         KRYPTONITE MODE LOADED SUCCESSFULLY! 🔥                   ║")
+print("╚════════════════════════════════════════════════════════════════════╝")
+print(" ")
 print("[Freezy HUB] Features:")
 print("[Freezy HUB]   • Normal Mode: Human-like performance (6-8 shots/cycle)")
 print("[Freezy HUB]   • Kryptonite Mode: Overpowered bursts (up to 50 shots/cycle)")
 print("[Freezy HUB]   • Target: 700+ zombies per minute")
-print("[Freezy HUB] ========================================")
+print(" ")
 print("[Freezy HUB] Controls:")
 print("[Freezy HUB]   • Press 'K' to toggle GUI")
 print("[Freezy HUB]   • Enable 'KRYPTONITE MODE' for overpowered performance")
 print("[Freezy HUB]   • Enable 'Perfect Defense' to start auto-headshot")
-print("[Freezy HUB] ========================================")
+print(" ")
+print("════════════════════════════════════════════════════════════════════")
 
 -- Initial notification
 Rayfield:Notify({
@@ -1761,3 +1784,24 @@ Rayfield:Notify({
     Duration = 7,
     Image = 4483362458
 })
+
+end) -- End of main pcall wrapper
+
+-- ============================================================================
+-- ERROR HANDLING
+-- ============================================================================
+if not mainSuccess then
+    print(" ")
+    print("╔════════════════════════════════════════════════════════════════════╗")
+    print("║                    ❌ SCRIPT ERROR DETECTED                       ║")
+    print("╚════════════════════════════════════════════════════════════════════╝")
+    print(" ")
+    print("[Freezy HUB] ERROR: " .. tostring(mainError))
+    print(" ")
+    print("[Freezy HUB] Please report this error with the message above to:")
+    print("[Freezy HUB] https://github.com/TBrantl/Poly-z-RNG-script/issues")
+    print(" ")
+    warn("[Freezy HUB] Script failed to load. Error: " .. tostring(mainError))
+else
+    print("[Freezy HUB] All systems operational! Enjoy! 🚀")
+end
