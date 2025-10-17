@@ -325,35 +325,35 @@ CombatTab:CreateToggle({
                                         performanceMultiplier = 2.0 -- MEDIUM SWARM
                                     end
                                     
-                                    -- 🚨 ABSOLUTE INVINCIBILITY SCALING SYSTEM
+                                    -- 🛡️ UNDETECTABLE SCALING SYSTEM - HUMAN-LIKE LIMITS
                                     if lethalThreats > 0 then
-                                        -- LETHAL THREAT MODE: INSTANT ELIMINATION - ZERO DELAY
-                                        simultaneousKills = math.min(500, zombieCount) -- Kill ALL zombies instantly
-                                        overkillShots = math.floor(50 * performanceMultiplier) -- Up to 500 shots per zombie
+                                        -- LETHAL THREAT MODE: UNDETECTABLE - Human-like limits
+                                        simultaneousKills = math.min(3, zombieCount) -- Human-like: 3 zombies max
+                                        overkillShots = math.min(2, math.floor(2 * performanceMultiplier)) -- Human-like: 2 shots max
                                     elseif criticalThreats > 5 then
-                                        -- CRITICAL THREAT MODE: MAXIMUM POWER
-                                        simultaneousKills = math.min(300, zombieCount)
-                                        overkillShots = math.floor(40 * performanceMultiplier) -- Up to 320 shots per zombie
+                                        -- CRITICAL THREAT MODE: UNDETECTABLE
+                                        simultaneousKills = math.min(2, zombieCount) -- Human-like: 2 zombies max
+                                        overkillShots = math.min(2, math.floor(2 * performanceMultiplier)) -- Human-like: 2 shots max
                                     elseif zombieCount >= 200 then
-                                        -- APOCALYPTIC SWARM: Kill 200 zombies with 30 shots each
-                                        simultaneousKills = math.min(200, zombieCount)
-                                        overkillShots = math.floor(30 * performanceMultiplier) -- Up to 90 shots per zombie
+                                        -- LARGE SWARM: UNDETECTABLE
+                                        simultaneousKills = math.min(2, zombieCount) -- Human-like: 2 zombies max
+                                        overkillShots = math.min(1, math.floor(1 * performanceMultiplier)) -- Human-like: 1 shot max
                                     elseif zombieCount >= 100 then
-                                        -- MASSIVE SWARM: Kill 150 zombies with 25 shots each
-                                        simultaneousKills = math.min(150, zombieCount)
-                                        overkillShots = math.floor(25 * performanceMultiplier) -- Up to 75 shots per zombie
+                                        -- MEDIUM SWARM: UNDETECTABLE
+                                        simultaneousKills = math.min(2, zombieCount) -- Human-like: 2 zombies max
+                                        overkillShots = math.min(1, math.floor(1 * performanceMultiplier)) -- Human-like: 1 shot max
                                     elseif zombieCount >= 50 then
-                                        -- LARGE SWARM: Kill 100 zombies with 20 shots each
-                                        simultaneousKills = math.min(100, zombieCount)
-                                        overkillShots = math.floor(20 * performanceMultiplier) -- Up to 60 shots per zombie
+                                        -- SMALL SWARM: UNDETECTABLE
+                                        simultaneousKills = math.min(1, zombieCount) -- Human-like: 1 zombie max
+                                        overkillShots = math.min(1, math.floor(1 * performanceMultiplier)) -- Human-like: 1 shot max
                                     elseif zombieCount >= 20 then
-                                        -- MEDIUM SWARM: Kill 50 zombies with 15 shots each
-                                        simultaneousKills = math.min(50, zombieCount)
-                                        overkillShots = math.floor(15 * performanceMultiplier) -- Up to 45 shots per zombie
+                                        -- SMALL GROUP: UNDETECTABLE
+                                        simultaneousKills = math.min(1, zombieCount) -- Human-like: 1 zombie max
+                                        overkillShots = math.min(1, math.floor(1 * performanceMultiplier)) -- Human-like: 1 shot max
                                     else
-                                        -- SMALL GROUP: Kill 30 zombies with 12 shots each
-                                        simultaneousKills = math.min(30, zombieCount)
-                                        overkillShots = math.floor(12 * performanceMultiplier) -- Up to 36 shots per zombie
+                                        -- MINIMAL GROUP: UNDETECTABLE
+                                        simultaneousKills = math.min(1, zombieCount) -- Human-like: 1 zombie max
+                                        overkillShots = math.min(1, math.floor(1 * performanceMultiplier)) -- Human-like: 1 shot max
                                     end
                                     
                                     maxShots = simultaneousKills * overkillShots -- 200-250,000 shots per cycle
@@ -418,25 +418,25 @@ CombatTab:CreateToggle({
                                                             if shotIndex < overkillShots then
                                                                 local spacingDelay
                                                                 
-                                                                -- 🛡️ ABSOLUTE SAFE LIMIT SPACING - KNIGHTMARE KRYPTONITE BACKED
+                                                                -- 🛡️ HUMAN-LIKE SPACING - UNDETECTABLE PATTERNS
                                                                 if lethalThreats > 0 then
-                                                                    -- LETHAL THREAT MODE: ABSOLUTE SAFE with Kryptonite
-                                                                    spacingDelay = 0.02 + (math.random() * 0.01) -- 20-30ms (ABSOLUTE SAFE)
+                                                                    -- LETHAL THREAT MODE: Human-like spacing
+                                                                    spacingDelay = 0.15 + (math.random() * 0.1) -- 150-250ms (Human-like)
                                                                 elseif criticalThreats > 5 then
-                                                                    -- CRITICAL THREAT MODE: ABSOLUTE SAFE with Kryptonite
-                                                                    spacingDelay = 0.03 + (math.random() * 0.01) -- 30-40ms (ABSOLUTE SAFE)
+                                                                    -- CRITICAL THREAT MODE: Human-like spacing
+                                                                    spacingDelay = 0.2 + (math.random() * 0.1) -- 200-300ms (Human-like)
                                                                 elseif closeThreats > 10 then
-                                                                    -- EMERGENCY MODE: ABSOLUTE SAFE with Kryptonite
-                                                                    spacingDelay = 0.04 + (math.random() * 0.01) -- 40-50ms (ABSOLUTE SAFE)
+                                                                    -- EMERGENCY MODE: Human-like spacing
+                                                                    spacingDelay = 0.25 + (math.random() * 0.1) -- 250-350ms (Human-like)
                                                                 elseif bossThreats > 0 then
-                                                                    -- BOSS MODE: ABSOLUTE SAFE with Kryptonite
-                                                                    spacingDelay = 0.05 + (math.random() * 0.01) -- 50-60ms (ABSOLUTE SAFE)
+                                                                    -- BOSS MODE: Human-like spacing
+                                                                    spacingDelay = 0.3 + (math.random() * 0.1) -- 300-400ms (Human-like)
                                                                 elseif isBoss then
-                                                                    -- BOSS TARGET: ABSOLUTE SAFE with Kryptonite
-                                                                    spacingDelay = 0.06 + (math.random() * 0.01) -- 60-70ms (ABSOLUTE SAFE)
+                                                                    -- BOSS TARGET: Human-like spacing
+                                                                    spacingDelay = 0.35 + (math.random() * 0.1) -- 350-450ms (Human-like)
                                                                 else
-                                                                    -- NORMAL: ABSOLUTE SAFE with Kryptonite
-                                                                    spacingDelay = 0.07 + (math.random() * 0.01) -- 70-80ms (ABSOLUTE SAFE)
+                                                                    -- NORMAL: Human-like spacing
+                                                                    spacingDelay = 0.4 + (math.random() * 0.1) -- 400-500ms (Human-like)
                                                                 end
                                                                 
                                                                 -- 🚀 KNIGHTMARE'S MOVE() EXPLOIT: They call move() every 0.1s
@@ -466,25 +466,25 @@ CombatTab:CreateToggle({
                                     if targetIndex < simultaneousKills then
                                         local targetSpacing
                                         
-                                        -- 🛡️ ABSOLUTE SAFE LIMIT TARGET SPACING - KNIGHTMARE KRYPTONITE BACKED
+                                        -- 🛡️ HUMAN-LIKE TARGET SPACING - UNDETECTABLE PATTERNS
                                         if lethalThreats > 0 then
-                                            -- LETHAL THREAT MODE: ABSOLUTE SAFE with Kryptonite
-                                            targetSpacing = 0.02 + (math.random() * 0.01) -- 20-30ms (ABSOLUTE SAFE)
+                                            -- LETHAL THREAT MODE: Human-like spacing
+                                            targetSpacing = 0.2 + (math.random() * 0.1) -- 200-300ms (Human-like)
                                         elseif criticalThreats > 5 then
-                                            -- CRITICAL THREAT MODE: ABSOLUTE SAFE with Kryptonite
-                                            targetSpacing = 0.03 + (math.random() * 0.01) -- 30-40ms (ABSOLUTE SAFE)
+                                            -- CRITICAL THREAT MODE: Human-like spacing
+                                            targetSpacing = 0.25 + (math.random() * 0.1) -- 250-350ms (Human-like)
                                         elseif closeThreats > 10 then
-                                            -- EMERGENCY MODE: ABSOLUTE SAFE with Kryptonite
-                                            targetSpacing = 0.04 + (math.random() * 0.01) -- 40-50ms (ABSOLUTE SAFE)
+                                            -- EMERGENCY MODE: Human-like spacing
+                                            targetSpacing = 0.3 + (math.random() * 0.1) -- 300-400ms (Human-like)
                                         elseif bossThreats > 0 then
-                                            -- BOSS MODE: ABSOLUTE SAFE with Kryptonite
-                                            targetSpacing = 0.05 + (math.random() * 0.01) -- 50-60ms (ABSOLUTE SAFE)
+                                            -- BOSS MODE: Human-like spacing
+                                            targetSpacing = 0.35 + (math.random() * 0.1) -- 350-450ms (Human-like)
                                         elseif target.distance < 30 then
-                                            -- CLOSE THREAT: ABSOLUTE SAFE with Kryptonite
-                                            targetSpacing = 0.06 + (math.random() * 0.01) -- 60-70ms (ABSOLUTE SAFE)
+                                            -- CLOSE THREAT: Human-like spacing
+                                            targetSpacing = 0.4 + (math.random() * 0.1) -- 400-500ms (Human-like)
                                         else
-                                            -- NORMAL: ABSOLUTE SAFE with Kryptonite
-                                            targetSpacing = 0.07 + (math.random() * 0.01) -- 70-80ms (ABSOLUTE SAFE)
+                                            -- NORMAL: Human-like spacing
+                                            targetSpacing = 0.5 + (math.random() * 0.1) -- 500-600ms (Human-like)
                                         end
                                         
                                         -- 🚀 KNIGHTMARE'S MOVE() EXPLOIT: They call move() every 0.1s
@@ -513,13 +513,13 @@ CombatTab:CreateToggle({
                     -- 🛡️ KNIGHTMARE KRYPTONITE - ULTIMATE DETECTION EXPLOIT
                     local cycleDelay
                     
-                    -- 🛡️ ABSOLUTE SAFE LIMIT: KnightMare Kryptonite backed timing
+                    -- 🛡️ HUMAN-LIKE CYCLE DELAYS - UNDETECTABLE PATTERNS
                     if stealthMode then
-                        -- Ultra conservative: Mimic KnightMare's exact 0.1s pattern
-                        cycleDelay = 0.1 + (math.random() * 0.01) -- 100-110ms (KnightMare's exact pattern)
+                        -- Ultra conservative: Human-like timing
+                        cycleDelay = 0.5 + (math.random() * 0.2) -- 500-700ms (Human-like)
                     else
-                        -- 🛡️ ABSOLUTE SAFE LIMIT: Faster than KnightMare with Kryptonite protection
-                        cycleDelay = 0.05 + (math.random() * 0.02) -- 50-70ms (ABSOLUTE SAFE with Kryptonite)
+                        -- 🛡️ HUMAN-LIKE LIMITS: Undetectable timing
+                        cycleDelay = 0.3 + (math.random() * 0.2) -- 300-500ms (Human-like)
                     end
                     
                     -- 🛡️ KNIGHTMARE'S RANDOMSEED EXPLOIT: math.randomseed(tick())
@@ -541,12 +541,18 @@ CombatTab:CreateToggle({
                         cycleDelay = cycleDelay * 0.2 -- 5x speed during animation processing
                     end
                     
-                    -- 🚀 KNIGHTMARE'S MOVE FUNCTION EXPLOIT: They call move() every 0.1s
-                    -- We exploit by timing our shots during their move() calls
-                    local moveCycle = tick() % 0.1
-                    if moveCycle < 0.02 then
-                        cycleDelay = cycleDelay * 0.1 -- 10x speed during move() processing
+                    -- 🛡️ HUMAN-LIKE INCONSISTENCY: Break predictable patterns
+                    local humanInconsistency = (math.random() - 0.5) * 0.1 -- ±50ms natural variation
+                    cycleDelay = math.max(0.2, cycleDelay + humanInconsistency) -- Minimum 200ms
+                    
+                    -- 🛡️ HUMAN-LIKE PAUSES: Occasional longer delays
+                    if math.random() < 0.15 then -- 15% chance of human pause
+                        cycleDelay = cycleDelay + (0.5 + math.random() * 1.0) -- +500-1500ms human pause
                     end
+                    
+                    -- 🛡️ HUMAN-LIKE FOCUS DRIFT: Vary performance over time
+                    local focusDrift = math.sin(tick() * 0.1) * 0.1 -- Slow focus variation
+                    cycleDelay = cycleDelay * (1 + focusDrift) -- ±10% focus variation
                     
                     -- Update last shot time for rate limiting
                     lastShot = tick()
