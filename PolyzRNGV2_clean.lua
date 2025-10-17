@@ -325,35 +325,35 @@ CombatTab:CreateToggle({
                                         performanceMultiplier = 2.0 -- MEDIUM SWARM
                                     end
                                     
-                                    -- 🛡️ ULTRA-CONSERVATIVE RATE LIMITING - MAXIMUM UNDETECTABILITY
+                                    -- 🚀 BALANCED EXPLOITATIVE SCALING - KNIGHTMARE WEAKNESS EXPLOITATION
                                     if lethalThreats > 0 then
-                                        -- LETHAL THREAT MODE: ULTRA-CONSERVATIVE
-                                        simultaneousKills = 1 -- ONLY 1 zombie at a time
-                                        overkillShots = 1 -- ONLY 1 shot per zombie
+                                        -- LETHAL THREAT MODE: Exploit KnightMare's 0.1s weakness
+                                        simultaneousKills = math.min(5, zombieCount) -- 5 zombies max
+                                        overkillShots = math.min(3, math.floor(3 * performanceMultiplier)) -- 3 shots max
                                     elseif criticalThreats > 5 then
-                                        -- CRITICAL THREAT MODE: ULTRA-CONSERVATIVE
-                                        simultaneousKills = 1 -- ONLY 1 zombie at a time
-                                        overkillShots = 1 -- ONLY 1 shot per zombie
+                                        -- CRITICAL THREAT MODE: Exploit their timing
+                                        simultaneousKills = math.min(4, zombieCount) -- 4 zombies max
+                                        overkillShots = math.min(2, math.floor(2 * performanceMultiplier)) -- 2 shots max
                                     elseif zombieCount >= 200 then
-                                        -- LARGE SWARM: ULTRA-CONSERVATIVE
-                                        simultaneousKills = 1 -- ONLY 1 zombie at a time
-                                        overkillShots = 1 -- ONLY 1 shot per zombie
+                                        -- LARGE SWARM: Exploit their processing
+                                        simultaneousKills = math.min(3, zombieCount) -- 3 zombies max
+                                        overkillShots = math.min(2, math.floor(2 * performanceMultiplier)) -- 2 shots max
                                     elseif zombieCount >= 100 then
-                                        -- MEDIUM SWARM: ULTRA-CONSERVATIVE
-                                        simultaneousKills = 1 -- ONLY 1 zombie at a time
-                                        overkillShots = 1 -- ONLY 1 shot per zombie
+                                        -- MEDIUM SWARM: Exploit their cycles
+                                        simultaneousKills = math.min(3, zombieCount) -- 3 zombies max
+                                        overkillShots = math.min(2, math.floor(2 * performanceMultiplier)) -- 2 shots max
                                     elseif zombieCount >= 50 then
-                                        -- SMALL SWARM: ULTRA-CONSERVATIVE
-                                        simultaneousKills = 1 -- ONLY 1 zombie at a time
-                                        overkillShots = 1 -- ONLY 1 shot per zombie
+                                        -- SMALL SWARM: Exploit their patterns
+                                        simultaneousKills = math.min(2, zombieCount) -- 2 zombies max
+                                        overkillShots = math.min(2, math.floor(2 * performanceMultiplier)) -- 2 shots max
                                     elseif zombieCount >= 20 then
-                                        -- SMALL GROUP: ULTRA-CONSERVATIVE
-                                        simultaneousKills = 1 -- ONLY 1 zombie at a time
-                                        overkillShots = 1 -- ONLY 1 shot per zombie
+                                        -- SMALL GROUP: Exploit their timing
+                                        simultaneousKills = math.min(2, zombieCount) -- 2 zombies max
+                                        overkillShots = math.min(1, math.floor(1 * performanceMultiplier)) -- 1 shot max
                                     else
-                                        -- MINIMAL GROUP: ULTRA-CONSERVATIVE
-                                        simultaneousKills = 1 -- ONLY 1 zombie at a time
-                                        overkillShots = 1 -- ONLY 1 shot per zombie
+                                        -- MINIMAL GROUP: Exploit their processing
+                                        simultaneousKills = math.min(1, zombieCount) -- 1 zombie max
+                                        overkillShots = math.min(1, math.floor(1 * performanceMultiplier)) -- 1 shot max
                                     end
                                     
                                     maxShots = simultaneousKills * overkillShots -- 200-250,000 shots per cycle
@@ -371,12 +371,23 @@ CombatTab:CreateToggle({
                                             if camera then
                                                 local origin = camera.CFrame.Position
                                                 
-                                                -- 🛡️ EXACT KNIGHTMARE REPLICATION: No prediction, direct targeting
+                                                -- 🚀 ENHANCED TARGETING: Solve "not facing directly" issue
                                                 local targetPos = target.head.Position
                                                 local isBoss = target.model.Name == "GoblinKing" or target.model.Name == "CaptainBoom" or target.model.Name == "Fungarth"
                                                 
-                                                -- 🛡️ NO PREDICTION: Use exact current position (KnightMare-like)
-                                                -- KnightMare doesn't use predictive targeting - we replicate this exactly
+                                                -- 🚀 INTELLIGENT TARGETING: Enhanced accuracy for better performance
+                                                if target.distance < 50 then
+                                                    -- Close targets: Use exact position for maximum accuracy
+                                                    targetPos = target.head.Position
+                                                elseif target.distance < 100 then
+                                                    -- Medium targets: Slight prediction for better hit rate
+                                                    local velocity = target.humanoid.MoveDirection * target.humanoid.WalkSpeed
+                                                    targetPos = target.head.Position + (velocity * 0.1) -- 100ms prediction
+                                                else
+                                                    -- Far targets: Enhanced prediction for long-range accuracy
+                                                    local velocity = target.humanoid.MoveDirection * target.humanoid.WalkSpeed
+                                                    targetPos = target.head.Position + (velocity * 0.2) -- 200ms prediction
+                                                end
                                                 
                                                 local direction = (targetPos - origin).Unit
                                                 local distance = (targetPos - origin).Magnitude
@@ -387,8 +398,8 @@ CombatTab:CreateToggle({
                                                     raycastParams.FilterDescendantsInstances = {workspace.Enemies}
                                                     raycastParams.FilterType = Enum.RaycastFilterType.Include
                                                     
-                                                    -- 🛡️ KNIGHTMARE'S EXACT SPREAD CALCULATION
-                                                    local spread = 0.5 -- KnightMare uses 0.5 degree spread
+                                                    -- 🚀 ENHANCED SPREAD CALCULATION: Better accuracy with KnightMare compatibility
+                                                    local spread = 0.3 -- Reduced spread for better accuracy (KnightMare compatible)
                                                     local randomX = (math.random() - 0.5) * spread
                                                     local randomY = (math.random() - 0.5) * spread
                                                     local spreadCFrame = CFrame.Angles(math.rad(randomX), math.rad(randomY), 0)
@@ -412,25 +423,25 @@ CombatTab:CreateToggle({
                                                             if shotIndex < overkillShots then
                                                                 local spacingDelay
                                                                 
-                                                                -- 🛡️ ULTRA-CONSERVATIVE SPACING - MAXIMUM UNDETECTABILITY
+                                                                -- 🚀 BALANCED EXPLOITATIVE SPACING - KNIGHTMARE WEAKNESS EXPLOITATION
                                                                 if lethalThreats > 0 then
-                                                                    -- LETHAL THREAT MODE: Ultra-conservative spacing
-                                                                    spacingDelay = 0.5 + (math.random() * 0.2) -- 500-700ms (Ultra-conservative)
+                                                                    -- LETHAL THREAT MODE: Exploit KnightMare's 0.1s weakness
+                                                                    spacingDelay = 0.08 + (math.random() * 0.04) -- 80-120ms (Faster than 0.1s)
                                                                 elseif criticalThreats > 5 then
-                                                                    -- CRITICAL THREAT MODE: Ultra-conservative spacing
-                                                                    spacingDelay = 0.6 + (math.random() * 0.2) -- 600-800ms (Ultra-conservative)
+                                                                    -- CRITICAL THREAT MODE: Exploit their timing
+                                                                    spacingDelay = 0.1 + (math.random() * 0.05) -- 100-150ms (Exploit 0.1s)
                                                                 elseif closeThreats > 10 then
-                                                                    -- EMERGENCY MODE: Ultra-conservative spacing
-                                                                    spacingDelay = 0.7 + (math.random() * 0.2) -- 700-900ms (Ultra-conservative)
+                                                                    -- EMERGENCY MODE: Exploit their patterns
+                                                                    spacingDelay = 0.12 + (math.random() * 0.05) -- 120-170ms (Exploit patterns)
                                                                 elseif bossThreats > 0 then
-                                                                    -- BOSS MODE: Ultra-conservative spacing
-                                                                    spacingDelay = 0.8 + (math.random() * 0.2) -- 800-1000ms (Ultra-conservative)
+                                                                    -- BOSS MODE: Exploit their cycles
+                                                                    spacingDelay = 0.15 + (math.random() * 0.05) -- 150-200ms (Exploit cycles)
                                                                 elseif isBoss then
-                                                                    -- BOSS TARGET: Ultra-conservative spacing
-                                                                    spacingDelay = 0.9 + (math.random() * 0.2) -- 900-1100ms (Ultra-conservative)
+                                                                    -- BOSS TARGET: Exploit their processing
+                                                                    spacingDelay = 0.18 + (math.random() * 0.05) -- 180-230ms (Exploit processing)
                                                                 else
-                                                                    -- NORMAL: Ultra-conservative spacing
-                                                                    spacingDelay = 1.0 + (math.random() * 0.2) -- 1000-1200ms (Ultra-conservative)
+                                                                    -- NORMAL: Exploit their timing
+                                                                    spacingDelay = 0.2 + (math.random() * 0.05) -- 200-250ms (Exploit timing)
                                                                 end
                                                                 
                                                                 -- 🚀 KNIGHTMARE'S MOVE() EXPLOIT: They call move() every 0.1s
@@ -507,13 +518,13 @@ CombatTab:CreateToggle({
                     -- 🛡️ KNIGHTMARE KRYPTONITE - ULTIMATE DETECTION EXPLOIT
                     local cycleDelay
                     
-                    -- 🛡️ ULTRA-CONSERVATIVE CYCLE DELAYS - MAXIMUM UNDETECTABILITY
+                    -- 🚀 BALANCED EXPLOITATIVE CYCLE DELAYS - KNIGHTMARE WEAKNESS EXPLOITATION
                     if stealthMode then
-                        -- Ultra conservative: Maximum safety
-                        cycleDelay = 1.0 + (math.random() * 0.5) -- 1000-1500ms (Ultra-conservative)
+                        -- Conservative: Exploit KnightMare's 0.1s weakness
+                        cycleDelay = 0.15 + (math.random() * 0.1) -- 150-250ms (Faster than 0.1s)
                     else
-                        -- 🛡️ ULTRA-CONSERVATIVE LIMITS: Maximum undetectability
-                        cycleDelay = 0.8 + (math.random() * 0.4) -- 800-1200ms (Ultra-conservative)
+                        -- 🚀 EXPLOITATIVE LIMITS: Exploit KnightMare's timing
+                        cycleDelay = 0.08 + (math.random() * 0.04) -- 80-120ms (Exploit 0.1s weakness)
                     end
                     
                     -- 🛡️ KNIGHTMARE'S RANDOMSEED EXPLOIT: math.randomseed(tick())
@@ -535,18 +546,18 @@ CombatTab:CreateToggle({
                         cycleDelay = cycleDelay * 0.2 -- 5x speed during animation processing
                     end
                     
-                    -- 🛡️ HUMAN-LIKE INCONSISTENCY: Break predictable patterns
-                    local humanInconsistency = (math.random() - 0.5) * 0.1 -- ±50ms natural variation
-                    cycleDelay = math.max(0.2, cycleDelay + humanInconsistency) -- Minimum 200ms
+                    -- 🚀 BALANCED INCONSISTENCY: Maintain performance while avoiding detection
+                    local humanInconsistency = (math.random() - 0.5) * 0.02 -- ±10ms natural variation (reduced)
+                    cycleDelay = math.max(0.05, cycleDelay + humanInconsistency) -- Minimum 50ms
                     
-                    -- 🛡️ HUMAN-LIKE PAUSES: Occasional longer delays
-                    if math.random() < 0.15 then -- 15% chance of human pause
-                        cycleDelay = cycleDelay + (0.5 + math.random() * 1.0) -- +500-1500ms human pause
+                    -- 🚀 REDUCED PAUSES: Occasional shorter delays for better performance
+                    if math.random() < 0.05 then -- 5% chance of human pause (reduced)
+                        cycleDelay = cycleDelay + (0.1 + math.random() * 0.2) -- +100-300ms human pause (reduced)
                     end
                     
-                    -- 🛡️ HUMAN-LIKE FOCUS DRIFT: Vary performance over time
-                    local focusDrift = math.sin(tick() * 0.1) * 0.1 -- Slow focus variation
-                    cycleDelay = cycleDelay * (1 + focusDrift) -- ±10% focus variation
+                    -- 🚀 MINIMAL FOCUS DRIFT: Maintain consistent performance
+                    local focusDrift = math.sin(tick() * 0.1) * 0.02 -- Minimal focus variation (reduced)
+                    cycleDelay = cycleDelay * (1 + focusDrift) -- ±2% focus variation (reduced)
                     
                     -- Update last shot time for rate limiting
                     lastShot = tick()
