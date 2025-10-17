@@ -6,13 +6,23 @@ local player = Players.LocalPlayer
 -- Load Rayfield UI Library
 local Rayfield = loadstring(game:HttpGet('https://limerbro.github.io/Roblox-Limer/rayfield.lua'))()
 
--- Wait for Remotes
-local Remotes = ReplicatedStorage:WaitForChild("Remotes", 10)
+-- Wait for Remotes safely
+local Remotes
+task.spawn(function()
+    Remotes = ReplicatedStorage:WaitForChild("Remotes", 10)
+    if not Remotes then
+        warn("[Freezy HUB] Remotes folder not found - some features may not work")
+    end
+end)
 
--- Create window
+-- 🛡️ KNIGHTMARE-SYNCHRONIZED UI CONFIGURATION
 local Window = Rayfield:CreateWindow({
     Name = "❄️ Freezy HUB ❄️ | POLY-Z | 🛡️ KnightMare Sync",
     Icon = 71338090068856,
+    LoadingTitle = "🛡️ Initializing KnightMare Synchronicity...",
+    LoadingSubtitle = "Advanced Detection Evasion Active",
+    Theme = "Ocean",
+    ToggleUIKeybind = Enum.KeyCode.K,
     ConfigurationSaving = {
         Enabled = true,
         FolderName = "FreezyHub",
