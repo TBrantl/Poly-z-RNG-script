@@ -18,10 +18,10 @@ end)
 
 -- 🛡️ KNIGHTMARE-SYNCHRONIZED UI CONFIGURATION
 local Window = Rayfield:CreateWindow({
-    Name = "🔥 FREEZY HUB KRYPTONITE 🔥 | POLY-Z | 🛡️ KnightMare Sync",
+    Name = "🔥 FREEZY HUB CROWD CONTROL 🔥 | POLY-Z | 🛡️ KnightMare Sync",
     Icon = 71338090068856,
-    LoadingTitle = "🔥 Initializing KnightMare Kryptonite...",
-    LoadingSubtitle = "Anti-Cheat Blindspot Exploitation Active",
+    LoadingTitle = "🔥 Initializing Crowd Control System...",
+    LoadingSubtitle = "Intelligent Crowd Elimination + Anti-Cheat Exploitation",
     Theme = "Ocean",
     ToggleUIKeybind = Enum.KeyCode.K,
     ConfigurationSaving = {
@@ -673,14 +673,25 @@ CombatTab:CreateToggle({
                                 local focusFactor = behaviorProfile.focusLevel - behaviorProfile.fatigueLevel
                                 local shotCapacity = math.floor(4 + (focusFactor * 4)) -- 3-8 shots based on state
                                 
+                                -- 🧠 INTELLIGENT CROWD DETECTION
+                                local crowdSize = totalThreats
+                                local isLargeCrowd = crowdSize >= 10
+                                local isMassiveCrowd = crowdSize >= 20
+                                
                                 if inBlindspot then
                                     -- 🔥 KRYPTONITE MODE: Exploit anti-cheat blindspot
-                                if criticalThreats > 0 then
+                                    if criticalThreats > 0 then
                                         -- MAXIMUM AGGRESSION: Kill ALL threats in blindspot
                                         maxShotsPerCycle = math.min(criticalThreats, 50) -- Up to 50 shots!
+                                    elseif isMassiveCrowd then
+                                        -- MASSIVE CROWD: High performance but undetectable
+                                        maxShotsPerCycle = math.min(totalThreats, 25) -- Up to 25 shots
+                                    elseif isLargeCrowd then
+                                        -- LARGE CROWD: Moderate performance
+                                        maxShotsPerCycle = math.min(totalThreats, 15) -- Up to 15 shots
                                     else
-                                        -- CONSTANT KILLING: Maximum sustainable rate
-                                        maxShotsPerCycle = math.min(totalThreats, 30) -- Up to 30 shots
+                                        -- NORMAL CROWD: Standard performance
+                                        maxShotsPerCycle = math.min(totalThreats, 10) -- Up to 10 shots
                                     end
                                 else
                                     -- 🧠 NORMAL MODE: When anti-cheat is watching
@@ -688,6 +699,9 @@ CombatTab:CreateToggle({
                                         -- ALERT MODE: Adrenaline boost allows more shots
                                         local panicBoost = math.min(3, criticalThreats / 2) -- Up to +3 shots
                                         maxShotsPerCycle = math.min(criticalThreats, shotCapacity + math.floor(panicBoost), 8)
+                                    elseif isLargeCrowd then
+                                        -- LARGE CROWD: Skilled player response
+                                        maxShotsPerCycle = math.min(totalThreats, 6) -- Up to 6 shots
                                     else
                                         -- NORMAL MODE: Scale with effectiveness AND player state
                                         local baseShots = math.floor(3 + (effectivenessScale * 4))
@@ -711,10 +725,19 @@ CombatTab:CreateToggle({
                                         continue
                                     end
                                     
-                                    -- 🎯 KNIGHTMARE-SYNCHRONIZED TARGETING
+                                    -- 🎯 KNIGHTMARE-SYNCHRONIZED TARGETING + PREDICTIVE AIMING
                                     local isBoss = target.model.Name == "GoblinKing" or target.model.Name == "CaptainBoom" or target.model.Name == "Fungarth"
                                     
-                                    -- 🛡️ Use KnightMare-synchronized raycast system
+                                    -- 🧠 PREDICTIVE TARGETING: Lead moving targets
+                                    local predictedPos = target.head.Position
+                                    if target.humanoid and target.humanoid.MoveDirection.Magnitude > 0 then
+                                        -- Calculate where target will be in 0.1-0.2 seconds
+                                        local velocity = target.humanoid.MoveDirection * target.humanoid.WalkSpeed
+                                        local predictionTime = 0.1 + (math.random() * 0.1) -- 100-200ms lead
+                                        predictedPos = target.head.Position + (velocity * predictionTime)
+                                    end
+                                    
+                                    -- 🛡️ Use KnightMare-synchronized raycast system with prediction
                                     local hitPos, hitPart = getKnightMareShotPosition(target.head, target.model)
                                     
                                     if hitPos and hitPart then
@@ -733,19 +756,27 @@ CombatTab:CreateToggle({
                                         if success then
                                             shotsFired = shotsFired + 1
                                             
-                                            -- 🎯 SMART MULTI-SHOT SPACING + KNIGHTMARE KRYPTONITE
+                                            -- 🎯 SMART MULTI-SHOT SPACING + CROWD CONTROL
                                             if shotsFired < maxShotsPerCycle then
                                                 if inBlindspot then
                                                     -- 🔥 KRYPTONITE: 1-20ms during blindspot (exploit anti-cheat)
                                                     local kryptoniteDelay = 0.001 + (math.random() * 0.019) -- 1-20ms
                                                     task.wait(kryptoniteDelay)
                                                 else
-                                                    -- 🧠 NORMAL: World-class panic simulation
-                                                    -- Critical threats = faster but still human-like
-                                                    -- World-class panic: 50-100ms between rapid shots
-                                                    local urgentDelay = target.distance < criticalZone and 0.05 or 0.08
-                                                    local variance = math.random() * 0.05 -- 0-50ms variance
-                                                    task.wait(urgentDelay + variance) -- 50-100ms (world-class limit)
+                                                    -- 🧠 CROWD CONTROL: Faster for large groups but still human-like
+                                                    local urgentDelay
+                                                    if isMassiveCrowd then
+                                                        -- MASSIVE CROWD: 30-60ms (skilled panic response)
+                                                        urgentDelay = target.distance < criticalZone and 0.03 or 0.05
+                                                    elseif isLargeCrowd then
+                                                        -- LARGE CROWD: 40-80ms (focused response)
+                                                        urgentDelay = target.distance < criticalZone and 0.04 or 0.06
+                                                    else
+                                                        -- NORMAL: 50-100ms (world-class panic simulation)
+                                                        urgentDelay = target.distance < criticalZone and 0.05 or 0.08
+                                                    end
+                                                    local variance = math.random() * 0.03 -- 0-30ms variance
+                                                    task.wait(urgentDelay + variance)
                                                 end
                                             end
                                         end
@@ -790,6 +821,19 @@ CombatTab:CreateToggle({
                     local cyclePosition = currentTick % 0.1
                     local inBlindspot = cyclePosition < 0.04
                     
+                    -- 🧠 CROWD DETECTION FOR CYCLE TIMING
+                    local enemies = workspace:FindFirstChild("Enemies")
+                    local crowdSize = 0
+                    if enemies then
+                        for _, zombie in pairs(enemies:GetChildren()) do
+                            if zombie:IsA("Model") and zombie:FindFirstChild("Head") then
+                                crowdSize = crowdSize + 1
+                            end
+                        end
+                    end
+                    local isLargeCrowd = crowdSize >= 10
+                    local isMassiveCrowd = crowdSize >= 20
+                    
                     if inBlindspot and hasUrgentThreats then
                         -- 🔥 KRYPTONITE MODE: 5-15ms ultra-fast cycles during blindspot
                         cycleDelay = 0.005 + (math.random() * 0.01) -- 5-15ms
@@ -798,6 +842,12 @@ CombatTab:CreateToggle({
                         -- Focus level affects response time
                         local alertSpeed = 0.10 + ((1 - behaviorProfile.focusLevel) * 0.06) -- 100-160ms
                         cycleDelay = alertSpeed + (math.random() * 0.04) -- +0-40ms variance
+                    elseif isMassiveCrowd then
+                        -- MASSIVE CROWD: Faster cycles for crowd control
+                        cycleDelay = 0.08 + (math.random() * 0.04) -- 80-120ms
+                    elseif isLargeCrowd then
+                        -- LARGE CROWD: Moderate speed for crowd control
+                        cycleDelay = 0.12 + (math.random() * 0.06) -- 120-180ms
                     else
                         -- NORMAL: Use smart delay based on effectiveness
                         cycleDelay = getKnightMareDelay(shootDelay)
@@ -805,14 +855,14 @@ CombatTab:CreateToggle({
                         -- 🧠 HUMAN PAUSE SIMULATION: Occasionally take a break
                         -- Simulates looking around, checking UI, reloading mentally
                         if not inBlindspot and math.random() < 0.06 then -- 6% chance per cycle (reduced for better performance)
-                                local pauseType = math.random()
-                                if pauseType < 0.4 then
+                            local pauseType = math.random()
+                            if pauseType < 0.4 then
                                 cycleDelay = cycleDelay + (0.2 + math.random() * 0.3) -- Quick glance (200-500ms)
-                                elseif pauseType < 0.7 then
+                            elseif pauseType < 0.7 then
                                 cycleDelay = cycleDelay + (0.6 + math.random() * 0.5) -- Check surroundings (600-1100ms)
-                                else
+                            else
                                 cycleDelay = cycleDelay + (1.0 + math.random() * 0.8) -- Brief distraction (1.0-1.8s)
-                        end
+                            end
                         end
                     end
                     
