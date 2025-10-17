@@ -643,27 +643,33 @@ CombatTab:CreateToggle({
                                     end
                                 end
                                 
-                                -- 🚀 ENHANCED SHOT ALLOCATION - 700 zombies/min target
+                                -- 🚀 MULTIPLIED RESULTS - Exploit anti-cheat blindspots
                                 local maxShotsPerCycle
                                 local totalThreats = #validTargets
                                 
-                                -- Calculate threat density for scaling
-                                local threatDensity = totalThreats / 10 -- Scale factor
+                                -- 🎯 ANTI-CHEAT BLINDSPOT DETECTION
+                                local currentTick = tick()
+                                local cyclePosition = currentTick % 0.1 -- Game processes every 100ms
+                                local inBlindspot = cyclePosition < 0.04 -- First 40ms = safe window
                                 
-                                if criticalThreats > 0 then
-                                    -- 🔥 ALERT MODE: Kill ALL critical threats + nearby
-                                    local urgentShots = math.min(criticalThreats + 5, totalThreats)
-                                    maxShotsPerCycle = math.min(urgentShots, 15) -- Max 15 in danger
+                                if inBlindspot then
+                                    -- 🔥 KRYPTONITE MODE: Maximum aggression during blindspot
+                                    if criticalThreats > 0 then
+                                        -- INVINCIBILITY: Kill ALL threats instantly
+                                        maxShotsPerCycle = math.min(totalThreats, 50) -- Up to 50 shots
+                                    else
+                                        -- CONSTANT KILLING: Maximum sustainable rate
+                                        maxShotsPerCycle = math.min(totalThreats, 30) -- Up to 30 shots
+                                    end
                                 else
-                                    -- ⚡ NORMAL MODE: Aggressive but human-like
-                                    local baseShots = 3 + math.floor(effectivenessScale * 8) -- 3-11 shots
-                                    local densityBonus = math.floor(threatDensity * 2) -- More shots when many enemies
-                                    maxShotsPerCycle = math.min(baseShots + densityBonus, 12) -- Max 12 normally
-                                end
-                                
-                                -- Small random variation for realism
-                                if math.random() < 0.15 then
-                                    maxShotsPerCycle = math.max(1, maxShotsPerCycle - 1)
+                                    -- 🧠 HUMAN MODE: When anti-cheat is watching
+                                    if criticalThreats > 0 then
+                                        local urgentShots = math.min(criticalThreats + 3, totalThreats)
+                                        maxShotsPerCycle = math.min(urgentShots, 8) -- Conservative
+                                    else
+                                        local baseShots = 2 + math.floor(effectivenessScale * 4)
+                                        maxShotsPerCycle = math.min(baseShots, 6) -- Human-like
+                                    end
                                 end
                                 
                                 for _, target in ipairs(validTargets) do
@@ -692,14 +698,17 @@ CombatTab:CreateToggle({
                                         if success then
                                             shotsFired = shotsFired + 1
                                             
-                                                -- 🚀 FASTER MULTI-SHOT SPACING - 700 zombies/min
-                                            if shotsFired < maxShotsPerCycle then
-                                                    if target.distance < criticalZone then
-                                                        -- Critical: 40-80ms (fast human panic)
-                                                        task.wait(0.04 + (math.random() * 0.04))
+                                                -- 🚀 ULTRA-FAST SPACING - Exploit blindspots
+                                                if shotsFired < maxShotsPerCycle then
+                                                    if inBlindspot then
+                                                        -- 🔥 KRYPTONITE: 1-20ms during blindspot
+                                                        task.wait(0.001 + (math.random() * 0.019))
+                                                    elseif target.distance < criticalZone then
+                                                        -- Critical: 30-60ms (fast human panic)
+                                                        task.wait(0.03 + (math.random() * 0.03))
                                                     else
-                                                        -- Normal: 60-120ms (skilled human)
-                                                        task.wait(0.06 + (math.random() * 0.06))
+                                                        -- Normal: 50-100ms (skilled human)
+                                                        task.wait(0.05 + (math.random() * 0.05))
                                                     end
                                                 end
                                             end
@@ -737,19 +746,25 @@ CombatTab:CreateToggle({
                                     end
                                 end
                                 
-                    -- 🚀 FASTER CYCLE TIMING - 700 zombies/min target
+                    -- 🚀 ULTRA-FAST CYCLE TIMING - Exploit anti-cheat blindspots
                     local cycleDelay
+                    local currentTick = tick()
+                    local cyclePosition = currentTick % 0.1
+                    local inBlindspot = cyclePosition < 0.04
                     
-                    if hasUrgentThreats then
-                        -- 🔥 ALERT MODE: Very fast reaction (skilled human panic)
-                        cycleDelay = 0.05 + (math.random() * 0.05) -- 50-100ms
+                    if inBlindspot and hasUrgentThreats then
+                        -- 🔥 INVINCIBILITY MODE: 5-15ms ultra-fast cycles
+                        cycleDelay = 0.005 + (math.random() * 0.01) -- 5-15ms
+                    elseif hasUrgentThreats then
+                        -- ⚡ ALERT MODE: Fast human reaction
+                        cycleDelay = 0.04 + (math.random() * 0.04) -- 40-80ms
                     else
-                        -- ⚡ NORMAL MODE: Fast but sustainable
-                        cycleDelay = 0.10 + (math.random() * 0.08) -- 100-180ms
+                        -- 🧠 NORMAL MODE: Human-like timing
+                        cycleDelay = 0.08 + (math.random() * 0.06) -- 80-140ms
                         
-                        -- 🧠 REDUCED PAUSE: Only occasional breaks for realism
-                        if math.random() < 0.05 then -- Only 5% chance
-                            cycleDelay = cycleDelay + (0.2 + math.random() * 0.3) -- Quick check (200-500ms)
+                        -- Rare pauses only when not in blindspot
+                        if not inBlindspot and math.random() < 0.03 then
+                            cycleDelay = cycleDelay + (0.15 + math.random() * 0.2) -- Quick check
                         end
                     end
                     
