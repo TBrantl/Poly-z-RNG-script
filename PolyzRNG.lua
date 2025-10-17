@@ -34,10 +34,10 @@ end)
 
 -- 🛡️ KNIGHTMARE-SYNCHRONIZED UI CONFIGURATION
 local Window = Rayfield:CreateWindow({
-    Name = "🎯 FREEZY HUB ENHANCED BOSS DESTROYER 🎯 | POLY-Z | 🛡️ KnightMare Sync",
+    Name = "🛡️ FREEZY HUB MULTI-LAYER SAFETY NET 🛡️ | POLY-Z | 🛡️ KnightMare Sync",
     Icon = 71338090068856,
-    LoadingTitle = "🎯 Initializing Enhanced Boss Destroyer...",
-    LoadingSubtitle = "Multi-Detection Boss Priority + 200 Shots/Boss + 3x Range + Guaranteed Elimination",
+    LoadingTitle = "🛡️ Initializing Multi-Layer Safety Net...",
+    LoadingSubtitle = "Boss Destroyer + 3-Layer Safety Net (20/10/5 studs) + Human-Like Panic Response + Outlier Elimination",
     Theme = "Ocean",
     ToggleUIKeybind = Enum.KeyCode.K,
     ConfigurationSaving = {
@@ -505,6 +505,11 @@ local function isValidTarget(zombie, head, humanoid)
         isBoss = isBossLike
     end
     
+    -- 🔍 DEBUG: Print boss detection info
+    if isBoss then
+        print("[BOSS DETECTED] " .. zombie.Name .. " - Health: " .. (humanoid and humanoid.Health or "N/A") .. " - MaxHealth: " .. (humanoid and humanoid.MaxHealth or "N/A"))
+    end
+    
     if isBoss then
         -- For bosses, only check if they exist - ignore health checks that might be wrong
         return true
@@ -655,6 +660,265 @@ CombatTab:CreateToggle({
                     end
                 end)
             
+            -- 🛡️ PARALLEL SAFETY NET: Human-like constant kill for outlier zombies
+            task.spawn(function()
+                while autoKill do
+                    pcall(function()
+                        -- 🔍 CLOSE-RANGE OUTLIER DETECTION: Catch zombies that slip through
+                        local enemies = workspace:FindFirstChild("Enemies")
+                        local shootRemote = Remotes and Remotes:FindFirstChild("ShootEnemy")
+                        local weapon = getEquippedWeaponName()
+                        
+                        if enemies and shootRemote then
+                            local character = player.Character
+                            local root = character and character:FindFirstChild("HumanoidRootPart")
+                            
+                            if root then
+                                -- 🎯 CLOSE-RANGE THREAT ZONE: 20 studs or less
+                                local closeRangeThreshold = 20
+                                
+                                for _, zombie in pairs(enemies:GetChildren()) do
+                                    if zombie:IsA("Model") then
+                                        local head = zombie:FindFirstChild("Head")
+                                        local humanoid = zombie:FindFirstChild("Humanoid")
+                                        
+                                        if head and humanoid and humanoid.Health > 0 then
+                                            local distance = (head.Position - root.Position).Magnitude
+                                            
+                                            -- 🚨 OUTLIER DETECTION: Zombie got too close!
+                                            if distance <= closeRangeThreshold then
+                                                local hitPos, hitPart = getKnightMareShotPosition(head, zombie)
+                                                if hitPos and hitPart then
+                                                    local args = {zombie, hitPart, hitPos, 0, weapon}
+                                                    
+                                                    -- 🎯 HUMAN-LIKE PANIC RESPONSE: Quick elimination
+                                                    local isBoss = zombie.Name == "GoblinKing" or zombie.Name == "CaptainBoom" or zombie.Name == "Fungarth"
+                                                    if not isBoss then
+                                                        isBoss = (humanoid and humanoid.MaxHealth > 500) or 
+                                                               (zombie:FindFirstChild("Boss") ~= nil) or
+                                                               (zombie.Name:find("Boss") ~= nil) or
+                                                               (zombie.Name:find("King") ~= nil) or
+                                                               (zombie.Name:find("Captain") ~= nil)
+                                                    end
+                                                    
+                                                    local panicShots = isBoss and 15 or 8 -- Panic shots for close threats
+                                                    
+                                                    -- 🚀 INSTANT PANIC ELIMINATION
+                                                    for i = 1, panicShots do
+                                                        task.spawn(function()
+                                                            shootRemote:FireServer(unpack(args))
+                                                        end)
+                                                    end
+                                                end
+                                            end
+                                        end
+                                    end
+                                end
+                            end
+                        end
+                        
+                        -- 🧠 HUMAN-LIKE PANIC TIMING: 50-100ms intervals (realistic panic response)
+                        task.wait(0.05 + (math.random() * 0.05)) -- 50-100ms
+                    end)
+                end
+            end)
+            
+            -- 🚨 ULTRA-CLOSE EMERGENCY SYSTEM: For zombies within 10 studs
+            task.spawn(function()
+                while autoKill do
+                    pcall(function()
+                        -- 🔥 EMERGENCY CLOSE-RANGE DETECTION: 10 studs or less
+                        local enemies = workspace:FindFirstChild("Enemies")
+                        local shootRemote = Remotes and Remotes:FindFirstChild("ShootEnemy")
+                        local weapon = getEquippedWeaponName()
+                        
+                        if enemies and shootRemote then
+                            local character = player.Character
+                            local root = character and character:FindFirstChild("HumanoidRootPart")
+                            
+                            if root then
+                                -- 🚨 EMERGENCY THREAT ZONE: 10 studs or less
+                                local emergencyThreshold = 10
+                                
+                                for _, zombie in pairs(enemies:GetChildren()) do
+                                    if zombie:IsA("Model") then
+                                        local head = zombie:FindFirstChild("Head")
+                                        local humanoid = zombie:FindFirstChild("Humanoid")
+                                        
+                                        if head and humanoid and humanoid.Health > 0 then
+                                            local distance = (head.Position - root.Position).Magnitude
+                                            
+                                            -- 🚨 EMERGENCY DETECTION: Zombie is dangerously close!
+                                            if distance <= emergencyThreshold then
+                                                local hitPos, hitPart = getKnightMareShotPosition(head, zombie)
+                                                if hitPos and hitPart then
+                                                    local args = {zombie, hitPart, hitPos, 0, weapon}
+                                                    
+                                                    -- 🚨 EMERGENCY PANIC RESPONSE: Maximum elimination
+                                                    local isBoss = zombie.Name == "GoblinKing" or zombie.Name == "CaptainBoom" or zombie.Name == "Fungarth"
+                                                    if not isBoss then
+                                                        isBoss = (humanoid and humanoid.MaxHealth > 500) or 
+                                                               (zombie:FindFirstChild("Boss") ~= nil) or
+                                                               (zombie.Name:find("Boss") ~= nil) or
+                                                               (zombie.Name:find("King") ~= nil) or
+                                                               (zombie.Name:find("Captain") ~= nil)
+                                                    end
+                                                    
+                                                    local emergencyShots = isBoss and 30 or 20 -- Emergency shots for ultra-close threats
+                                                    
+                                                    -- 🚀 INSTANT EMERGENCY ELIMINATION
+                                                    for i = 1, emergencyShots do
+                                                        task.spawn(function()
+                                                            shootRemote:FireServer(unpack(args))
+                                                        end)
+                                                    end
+                                                end
+                                            end
+                                        end
+                                    end
+                                end
+                            end
+                        end
+                        
+                        -- 🧠 EMERGENCY TIMING: 20-40ms intervals (ultra-fast emergency response)
+                        task.wait(0.02 + (math.random() * 0.02)) -- 20-40ms
+                    end)
+                end
+            end)
+            
+            -- 🚨 CRITICAL RANGE IMMEDIATE SYSTEM: For zombies within 5 studs
+            task.spawn(function()
+                while autoKill do
+                    pcall(function()
+                        -- 🔥 CRITICAL IMMEDIATE DETECTION: 5 studs or less
+                        local enemies = workspace:FindFirstChild("Enemies")
+                        local shootRemote = Remotes and Remotes:FindFirstChild("ShootEnemy")
+                            local weapon = getEquippedWeaponName()
+                        
+                        if enemies and shootRemote then
+                            local character = player.Character
+                            local root = character and character:FindFirstChild("HumanoidRootPart")
+                            
+                            if root then
+                                -- 🚨 CRITICAL THREAT ZONE: 5 studs or less
+                                local criticalThreshold = 5
+                                
+                                for _, zombie in pairs(enemies:GetChildren()) do
+                                    if zombie:IsA("Model") then
+                                        local head = zombie:FindFirstChild("Head")
+                                        local humanoid = zombie:FindFirstChild("Humanoid")
+                                        
+                                        if head and humanoid and humanoid.Health > 0 then
+                                            local distance = (head.Position - root.Position).Magnitude
+                                            
+                                            -- 🚨 CRITICAL DETECTION: Zombie is at point-blank range!
+                                            if distance <= criticalThreshold then
+                                                local hitPos, hitPart = getKnightMareShotPosition(head, zombie)
+                                                if hitPos and hitPart then
+                                                    local args = {zombie, hitPart, hitPos, 0, weapon}
+                                                    
+                                                    -- 🚨 CRITICAL IMMEDIATE RESPONSE: Maximum panic elimination
+                                                    local isBoss = zombie.Name == "GoblinKing" or zombie.Name == "CaptainBoom" or zombie.Name == "Fungarth"
+                                                    if not isBoss then
+                                                        isBoss = (humanoid and humanoid.MaxHealth > 500) or 
+                                                               (zombie:FindFirstChild("Boss") ~= nil) or
+                                                               (zombie.Name:find("Boss") ~= nil) or
+                                                               (zombie.Name:find("King") ~= nil) or
+                                                               (zombie.Name:find("Captain") ~= nil)
+                                                    end
+                                                    
+                                                    local criticalShots = isBoss and 50 or 35 -- Critical shots for point-blank threats
+                                                    
+                                                    -- 🚀 INSTANT CRITICAL ELIMINATION
+                                                    for i = 1, criticalShots do
+                                                        task.spawn(function()
+                                                            shootRemote:FireServer(unpack(args))
+                                                        end)
+                                                    end
+                                                end
+                                            end
+                                        end
+                                    end
+                                end
+                            end
+                        end
+                        
+                        -- 🧠 CRITICAL TIMING: 10-20ms intervals (immediate panic response)
+                        task.wait(0.01 + (math.random() * 0.01)) -- 10-20ms
+                    end)
+                end
+            end)
+            
+            -- 🎯 DEDICATED BOSS-ONLY TARGETING SYSTEM: Independent boss elimination
+            task.spawn(function()
+                while autoKill do
+                    pcall(function()
+                        -- 🔍 BOSS-ONLY DETECTION: Focus solely on bosses
+                        local enemies = workspace:FindFirstChild("Enemies")
+                        local shootRemote = Remotes and Remotes:FindFirstChild("ShootEnemy")
+                        local weapon = getEquippedWeaponName()
+                        
+                        if enemies and shootRemote then
+                            local character = player.Character
+                            local root = character and character:FindFirstChild("HumanoidRootPart")
+                            
+                            if root then
+                                -- 🎯 BOSS-ONLY SCAN: Look for any boss in the game
+                                for _, zombie in pairs(enemies:GetChildren()) do
+                                    if zombie:IsA("Model") then
+                                        local head = zombie:FindFirstChild("Head")
+                                        local humanoid = zombie:FindFirstChild("Humanoid")
+                                        
+                                        if head and humanoid then
+                                            -- 🎯 BOSS DETECTION: Check if this is a boss
+                                            local isBoss = zombie.Name == "GoblinKing" or zombie.Name == "CaptainBoom" or zombie.Name == "Fungarth"
+                                            
+                                            -- Additional boss detection
+                                            if not isBoss then
+                                                isBoss = (humanoid and humanoid.MaxHealth > 500) or 
+                                                       (zombie:FindFirstChild("Boss") ~= nil) or
+                                                       (zombie.Name:find("Boss") ~= nil) or
+                                                       (zombie.Name:find("King") ~= nil) or
+                                                       (zombie.Name:find("Captain") ~= nil)
+                                            end
+                                            
+                                            if isBoss then
+                                                local distance = (head.Position - root.Position).Magnitude
+                                                
+                                                -- 🎯 BOSS TARGETING: Shoot bosses regardless of distance
+                                                if distance <= 500 then -- Very large range for bosses
+                                                    local hitPos, hitPart = getKnightMareShotPosition(head, zombie)
+                                                    if hitPos and hitPart then
+                                                        local args = {zombie, hitPart, hitPos, 0, weapon}
+                                                        
+                                                        -- 🚀 BOSS ELIMINATION: Massive shot count
+                                                        local bossShots = 100 -- 100 shots per boss
+                                                        
+                                                        print("[BOSS TARGETING] Shooting " .. zombie.Name .. " with " .. bossShots .. " shots")
+                                                        
+                                                        -- 🚀 INSTANT BOSS ELIMINATION
+                                                        for i = 1, bossShots do
+                                                            task.spawn(function()
+                                                                shootRemote:FireServer(unpack(args))
+                                                            end)
+                                                        end
+                                                    else
+                                                        print("[BOSS TARGETING] Failed to get hit position for " .. zombie.Name)
+                                                    end
+                                                end
+                                            end
+                                        end
+                                    end
+                                end
+                            end
+                        end
+                        
+                        -- 🧠 BOSS-ONLY TIMING: Fast boss scanning
+                        task.wait(0.1) -- 100ms boss scanning
+                    end)
+                end
+            end)
+            
             task.spawn(function()
                 while autoKill do
                     pcall(function()
@@ -667,7 +931,7 @@ CombatTab:CreateToggle({
                         -- 🔧 DEFINE VARIABLES FIRST
                         local enemies = workspace:FindFirstChild("Enemies")
                         local shootRemote = Remotes and Remotes:FindFirstChild("ShootEnemy")
-                        local weapon = getEquippedWeaponName()
+                            local weapon = getEquippedWeaponName()
                         
                         if enemies and shootRemote then
                             -- 🔥 INSTANT SPAWN DETECTION & ELIMINATION
@@ -755,19 +1019,29 @@ CombatTab:CreateToggle({
                                             distance = effectiveRange - 1 -- Force within range
                                         end
                                     end
+                                    
+                                    if distance <= effectiveRange then
+                                        -- 🔍 DEBUG: Print target info
+                                        if isBoss then
+                                            print("[TARGET ADDED] BOSS: " .. zombie.Name .. " - Distance: " .. math.floor(distance) .. " - Range: " .. math.floor(effectiveRange))
+                                        end
                                         
-                                        if distance <= effectiveRange then
                                         table.insert(validTargets, {
                                             model = zombie,
                                             head = head,
                                             humanoid = humanoid,
                                             distance = distance
                                         })
+                                    else
+                                        if isBoss then
+                                            print("[TARGET SKIPPED] BOSS: " .. zombie.Name .. " - Distance: " .. math.floor(distance) .. " - Range: " .. math.floor(effectiveRange))
+                                        end
                                     end
                                 end
                             end
                             
                             -- 🎯 DYNAMIC PERFECT DEFENSE: Scales with effectiveness level
+                            print("[TARGETING] Found " .. #validTargets .. " valid targets")
                             if #validTargets > 0 then
                                 -- INTELLIGENT DEFENSE ZONES (scale with effectiveness)
                                 -- Higher effectiveness = more aggressive preemptive targeting
@@ -845,6 +1119,11 @@ CombatTab:CreateToggle({
                                 for _, t in ipairs(validTargets) do
                                     if t.distance < criticalZone then
                                         criticalThreats = criticalThreats + 1
+                                        -- 🔍 DEBUG: Print critical threat info
+                                        local isBoss = t.model.Name == "GoblinKing" or t.model.Name == "CaptainBoom" or t.model.Name == "Fungarth"
+                                        if isBoss then
+                                            print("[CRITICAL THREAT] BOSS: " .. t.model.Name .. " - Distance: " .. math.floor(t.distance) .. " - Zone: " .. math.floor(criticalZone))
+                                        end
                                     end
                                 end
                                 
@@ -901,6 +1180,11 @@ CombatTab:CreateToggle({
                                                        (target.model.Name:find("Boss") ~= nil) or
                                                        (target.model.Name:find("King") ~= nil) or
                                                        (target.model.Name:find("Captain") ~= nil)
+                                            end
+                                            
+                                            -- 🔍 DEBUG: Print shooting info
+                                            if isBoss then
+                                                print("[SHOOTING BOSS] " .. target.model.Name .. " - Distance: " .. math.floor(target.distance))
                                             end
                                             
                                             -- 🛡️ Use KnightMare-synchronized raycast system
