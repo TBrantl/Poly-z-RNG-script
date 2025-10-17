@@ -34,10 +34,10 @@ end)
 
 -- 🛡️ KNIGHTMARE-SYNCHRONIZED UI CONFIGURATION
 local Window = Rayfield:CreateWindow({
-    Name = "⚡ FREEZY HUB CONSTANT 200+ CONFIG ⚡ | POLY-Z | 🛡️ KnightMare Sync",
+    Name = "⚡ FREEZY HUB ULTRA-SMOOTH BOSS KILLER ⚡ | POLY-Z | 🛡️ KnightMare Sync",
     Icon = 71338090068856,
-    LoadingTitle = "⚡ Initializing Constant 200+ Configuration...",
-    LoadingSubtitle = "Always Maximum Performance + 2 Shots/Zombie + 1000 Checks/Sec + Fast Clearing",
+    LoadingTitle = "⚡ Initializing Ultra-Smooth Boss Killer...",
+    LoadingSubtitle = "Boss Priority + 25 Shots/Boss + 10,000 Checks/Sec + Ultra-Smooth Performance",
     Theme = "Ocean",
     ToggleUIKeybind = Enum.KeyCode.K,
     ConfigurationSaving = {
@@ -567,9 +567,9 @@ CombatTab:CreateToggle({
             })
             
                 -- 🔥 CONTINUOUS SPAWN MONITORING SYSTEM - MAXIMUM EFFECTIVENESS
-                task.spawn(function()
-                    while autoKill do
-                        pcall(function()
+            task.spawn(function()
+                while autoKill do
+                    pcall(function()
                             local enemies = workspace:FindFirstChild("Enemies")
                             if enemies then
                                 local currentTick = tick()
@@ -613,8 +613,11 @@ CombatTab:CreateToggle({
                                                 if hitPos and hitPart then
                                                     local args = {zombie, hitPart, hitPos, 0, weapon}
                                                     
-                                                    -- 🎯 STABLE NORMAL MODE: 3 shots per zombie
-                                                    for i = 1, 3 do
+                                                    -- ⚡ SMOOTH NORMAL MODE: Boss priority with adaptive shots
+                                                    local isBoss = zombie.Name == "GoblinKing" or zombie.Name == "CaptainBoom" or zombie.Name == "Fungarth"
+                                                    local shotsPerZombie = isBoss and 20 or 5 -- 20 shots for bosses, 5 for others
+                                                    
+                                                    for i = 1, shotsPerZombie do
                                                         task.spawn(function()
                                                             shootRemote:FireServer(unpack(args))
                                                         end)
@@ -626,17 +629,17 @@ CombatTab:CreateToggle({
                                 end
                             end
                         end)
-                        -- 🔥 CONSTANT 200+ ZOMBIE CONFIGURATION: Always maximum monitoring speed
-                        task.wait(0.001) -- 1ms constant monitoring (1000 checks/sec)
+                        -- ⚡ ULTRA-SMOOTH MONITORING: Maximum efficiency
+                        task.wait(0.0001) -- 0.1ms ultra-smooth monitoring (10,000 checks/sec)
                     end
                 end)
             
             task.spawn(function()
                 while autoKill do
                     pcall(function()
-                        -- 🛡️ KNIGHTMARE SYNCHRONICITY CHECK
+                        -- ⚡ OPTIMIZED SYNCHRONICITY CHECK
                         if not shouldAllowKnightMareShot() then
-                            task.wait(0.05) -- KnightMare-safe cooldown
+                            task.wait(0.01) -- Ultra-smooth cooldown
                             return
                         end
                         
@@ -665,8 +668,11 @@ CombatTab:CreateToggle({
                                                 if hitPos and hitPart then
                                                     local args = {zombie, hitPart, hitPos, 0, weapon}
                                                     
-                                                    -- 🔥 MASSIVE INSTANT FIRING: 200 shots per zombie
-                                                    for i = 1, 200 do
+                                                    -- ⚡ ULTRA-SMOOTH INSTANT FIRING: Optimized parallel execution with boss priority
+                                                    local isBoss = zombie.Name == "GoblinKing" or zombie.Name == "CaptainBoom" or zombie.Name == "Fungarth"
+                                                    local shotsPerZombie = isBoss and 100 or 50 -- 100 shots for bosses, 50 for others
+                                                    
+                                                    for i = 1, shotsPerZombie do
                                                         task.spawn(function()
                                                             shootRemote:FireServer(unpack(args))
                                                         end)
@@ -679,26 +685,32 @@ CombatTab:CreateToggle({
                             end
                         
                         -- Variables already defined above
-                        local validTargets = {}
-                        
-                        -- Collect ALL living enemies with distance info
-                        local character = player.Character
-                        local root = character and character:FindFirstChild("HumanoidRootPart")
-                        
-                        for _, zombie in pairs(enemies:GetChildren()) do
-                            if zombie:IsA("Model") then
-                                local head = zombie:FindFirstChild("Head")
-                                local humanoid = zombie:FindFirstChild("Humanoid")
-                                
-                                -- Enhanced validation with boss priority
-                                if isValidTarget(zombie, head, humanoid) then
-                                    local distance = root and (head.Position - root.Position).Magnitude or 999999
+                            local validTargets = {}
+                            
+                            -- Collect ALL living enemies with distance info
+                            local character = player.Character
+                            local root = character and character:FindFirstChild("HumanoidRootPart")
+                            
+                            for _, zombie in pairs(enemies:GetChildren()) do
+                                if zombie:IsA("Model") then
+                                    local head = zombie:FindFirstChild("Head")
+                                    local humanoid = zombie:FindFirstChild("Humanoid")
                                     
-                                    -- 🧠 INTELLIGENT EARLY WARNING FILTER
-                                    -- Only include targets within effective range (scales with effectiveness)
-                                    local effectiveRange = maxShootDistance
+                                    -- Enhanced validation with boss priority
+                                    if isValidTarget(zombie, head, humanoid) then
+                                        local distance = root and (head.Position - root.Position).Magnitude or 999999
+                                        
+                                        -- 🧠 INTELLIGENT EARLY WARNING FILTER
+                                        -- Only include targets within effective range (scales with effectiveness)
+                                        local effectiveRange = maxShootDistance
                                     
-                                    if distance <= effectiveRange then
+                                    -- 🎯 BOSS PRIORITY: Always include bosses regardless of distance
+                                    local isBoss = zombie.Name == "GoblinKing" or zombie.Name == "CaptainBoom" or zombie.Name == "Fungarth"
+                                    if isBoss then
+                                        effectiveRange = maxShootDistance * 2 -- Double range for bosses
+                                    end
+                                        
+                                        if distance <= effectiveRange then
                                         table.insert(validTargets, {
                                             model = zombie,
                                             head = head,
@@ -793,19 +805,19 @@ CombatTab:CreateToggle({
                                 local focusFactor = behaviorProfile.focusLevel - behaviorProfile.fatigueLevel
                                 local baseShotCapacity = math.floor(5 + (focusFactor * 5)) -- 4-10 shots base
                                 
-                                -- 🔥 CONSTANT 200+ ZOMBIE CONFIGURATION - Always maximum performance
+                                -- ⚡ ULTRA-SMOOTH PERFORMANCE - Optimized for maximum efficiency
                                 if inOptimalWindow then
-                                    maxShotsPerCycle = totalThreats * 3 -- 3 shots per zombie = FAST CROWD CLEARING
+                                    maxShotsPerCycle = totalThreats * 5 -- 5 shots per zombie = ULTRA-SMOOTH CLEARING
                                 elseif inPeakWindow then
-                                    maxShotsPerCycle = totalThreats * 2 -- 2 shots per zombie = RAPID CROWD CLEARING
+                                    maxShotsPerCycle = totalThreats * 4 -- 4 shots per zombie = SMOOTH CLEARING
                                 elseif inHyperBlindspot then
-                                    maxShotsPerCycle = totalThreats * 2 -- 2 shots per zombie = QUICK CROWD CLEARING
+                                    maxShotsPerCycle = totalThreats * 3 -- 3 shots per zombie = FAST CLEARING
                                 else
-                                    maxShotsPerCycle = totalThreats * 1 -- 1 shot per zombie = INSTANT CROWD CLEARING
+                                    maxShotsPerCycle = totalThreats * 2 -- 2 shots per zombie = EFFICIENT CLEARING
                                 end
                                 
-                                -- RANDOM VARIATION: Sometimes shoot fewer (distraction, hesitation)
-                                if math.random() < 0.20 then -- 20% chance
+                                -- ⚡ SMOOTH VARIATION: Reduced for better consistency
+                                if math.random() < 0.10 then -- 10% chance (reduced for smoother performance)
                                     maxShotsPerCycle = math.max(1, maxShotsPerCycle - 1)
                                 end
                                 
@@ -888,26 +900,26 @@ CombatTab:CreateToggle({
                                             local shotsPerZombie = 1
                                             
                                             if inOptimalWindow then
-                                                shotsPerZombie = 3 -- 3 shots per zombie = FAST CROWD CLEARING
+                                                shotsPerZombie = 8 -- 8 shots per zombie = ULTRA-SMOOTH ELIMINATION
                                             elseif inPeakWindow then
-                                                shotsPerZombie = 2 -- 2 shots per zombie = RAPID CROWD CLEARING
+                                                shotsPerZombie = 6 -- 6 shots per zombie = SMOOTH ELIMINATION
                                             elseif inHyperBlindspot then
-                                                shotsPerZombie = 2 -- 2 shots per zombie = QUICK CROWD CLEARING
+                                                shotsPerZombie = 5 -- 5 shots per zombie = FAST ELIMINATION
                                             elseif inUltraBlindspot then
-                                                shotsPerZombie = 1 -- 1 shot per zombie = INSTANT CROWD CLEARING
+                                                shotsPerZombie = 4 -- 4 shots per zombie = EFFICIENT ELIMINATION
                                             elseif inBlindspot then
-                                                shotsPerZombie = 1 -- 1 shot per zombie = INSTANT CROWD CLEARING
+                                                shotsPerZombie = 3 -- 3 shots per zombie = RELIABLE ELIMINATION
                                             else
-                                                -- Normal mode - adaptive shots
+                                                -- Normal mode - adaptive shots with boss priority
                                                 local isBoss = target.model.Name == "GoblinKing" or target.model.Name == "CaptainBoom" or target.model.Name == "Fungarth"
                                                 local isStrongZombie = target.humanoid and target.humanoid.MaxHealth > 100
                                                 
                                                 if isBoss then
-                                                    shotsPerZombie = 5 -- 5 shots for bosses in normal mode
+                                                    shotsPerZombie = 25 -- 25 shots for bosses (increased for reliability)
                                                 elseif isStrongZombie then
-                                                    shotsPerZombie = 3 -- 3 shots for strong zombies
+                                                    shotsPerZombie = 12 -- 12 shots for strong zombies
                                                 else
-                                                    shotsPerZombie = 2 -- 2 shots for normal zombies
+                                                    shotsPerZombie = 8 -- 8 shots for normal zombies
                                                 end
                                             end
                                             
@@ -939,22 +951,24 @@ CombatTab:CreateToggle({
                                         if success then
                                             shotsFired = shotsFired + shotsPerZombie
                                             
-                                            -- 🔥 CONSTANT FLOW KILLING - NO DELAYS IN BLINDSPOTS
+                                            -- ⚡ ULTRA-SMOOTH FLOW - Optimized timing for maximum efficiency
                                             if shotsFired < maxShotsPerCycle then
-                                                if inHyperBlindspot then
-                                                    -- 🔥 HYPER KRYPTONITE: NO DELAY - Constant flow
+                                                if inOptimalWindow then
+                                                    -- ⚡ OPTIMAL: Zero delay for maximum smoothness
                                                     -- No task.wait() - instant continuous firing
+                                                elseif inPeakWindow then
+                                                    task.wait(0.0001) -- 0.1ms ultra-smooth
+                                                elseif inHyperBlindspot then
+                                                    task.wait(0.0005) -- 0.5ms smooth
                                                 elseif inUltraBlindspot then
-                                                    -- 🔥 ULTRA KRYPTONITE: Minimal delay - Near constant flow
-                                                    task.wait(0.001) -- Only 1ms delay
+                                                    task.wait(0.001) -- 1ms fast
                                                 elseif inBlindspot then
-                                                    -- 🔥 KRYPTONITE: Very small delay - Fast flow
-                                                    task.wait(0.002) -- Only 2ms delay
+                                                    task.wait(0.002) -- 2ms efficient
                                                 else
-                                                    -- 🧠 NORMAL MODE: Human-like spacing (only when anti-cheat is watching)
-                                                    local urgentDelay = target.distance < criticalZone and 0.02 or 0.03
-                                                    local variance = math.random() * 0.02 -- 0-20ms variance
-                                                    task.wait(urgentDelay + variance) -- 20-50ms (reduced)
+                                                    -- ⚡ SMOOTH NORMAL MODE: Optimized spacing
+                                                    local urgentDelay = target.distance < criticalZone and 0.01 or 0.015
+                                                    local variance = math.random() * 0.01 -- 0-10ms variance (reduced)
+                                                    task.wait(urgentDelay + variance) -- 10-25ms (ultra-smooth)
                                                 end
                                             end
                                         end
@@ -1559,3 +1573,4 @@ MiscTab:CreateButton({
 Rayfield:LoadConfiguration()
 
 end) -- Close the global pcall
+
