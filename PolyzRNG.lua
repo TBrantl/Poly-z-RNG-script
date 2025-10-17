@@ -640,10 +640,14 @@ CombatTab:CreateToggle({
                             return
                         end
                         
+                        -- 🔧 DEFINE VARIABLES FIRST
+                        local enemies = workspace:FindFirstChild("Enemies")
+                        local shootRemote = Remotes and Remotes:FindFirstChild("ShootEnemy")
+                        local weapon = getEquippedWeaponName()
+                        
+                        if enemies and shootRemote then
                             -- 🔥 INSTANT SPAWN DETECTION & ELIMINATION
                             -- Check for newly spawned zombies and eliminate them immediately
-                        local enemies = workspace:FindFirstChild("Enemies")
-                            if enemies then
                                 local currentTick = tick()
                                 local cyclePosition = currentTick % 0.1
                                 local inBlindspot = cyclePosition < 0.055
@@ -674,38 +678,33 @@ CombatTab:CreateToggle({
                                 end
                             end
                         
-                        local enemies = workspace:FindFirstChild("Enemies")
-                        local shootRemote = Remotes and Remotes:FindFirstChild("ShootEnemy")
+                        -- Variables already defined above
+                        local validTargets = {}
                         
-                        if enemies and shootRemote then
-                            local weapon = getEquippedWeaponName()
-                            local validTargets = {}
-                            
-                            -- Collect ALL living enemies with distance info
-                            local character = player.Character
-                            local root = character and character:FindFirstChild("HumanoidRootPart")
-                            
-                            for _, zombie in pairs(enemies:GetChildren()) do
-                                if zombie:IsA("Model") then
-                                    local head = zombie:FindFirstChild("Head")
-                                    local humanoid = zombie:FindFirstChild("Humanoid")
+                        -- Collect ALL living enemies with distance info
+                        local character = player.Character
+                        local root = character and character:FindFirstChild("HumanoidRootPart")
+                        
+                        for _, zombie in pairs(enemies:GetChildren()) do
+                            if zombie:IsA("Model") then
+                                local head = zombie:FindFirstChild("Head")
+                                local humanoid = zombie:FindFirstChild("Humanoid")
+                                
+                                -- Enhanced validation with boss priority
+                                if isValidTarget(zombie, head, humanoid) then
+                                    local distance = root and (head.Position - root.Position).Magnitude or 999999
                                     
-                                    -- Enhanced validation with boss priority
-                                    if isValidTarget(zombie, head, humanoid) then
-                                        local distance = root and (head.Position - root.Position).Magnitude or 999999
-                                        
-                                        -- 🧠 INTELLIGENT EARLY WARNING FILTER
-                                        -- Only include targets within effective range (scales with effectiveness)
-                                        local effectiveRange = maxShootDistance
-                                        
-                                        if distance <= effectiveRange then
+                                    -- 🧠 INTELLIGENT EARLY WARNING FILTER
+                                    -- Only include targets within effective range (scales with effectiveness)
+                                    local effectiveRange = maxShootDistance
+                                    
+                                    if distance <= effectiveRange then
                                         table.insert(validTargets, {
                                             model = zombie,
                                             head = head,
                                             humanoid = humanoid,
                                             distance = distance
                                         })
-                                        end
                                     end
                                 end
                             end
