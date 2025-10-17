@@ -18,10 +18,10 @@ end)
 
 -- 🛡️ KNIGHTMARE-SYNCHRONIZED UI CONFIGURATION
 local Window = Rayfield:CreateWindow({
-    Name = "⚡ FREEZY HUB OPTIMIZED ELIMINATION ⚡ | POLY-Z | 🛡️ KnightMare Sync",
+    Name = "🛡️ FREEZY HUB STABLE ELIMINATION 🛡️ | POLY-Z | 🛡️ KnightMare Sync",
     Icon = 71338090068856,
-    LoadingTitle = "⚡ Initializing Optimized Elimination System...",
-    LoadingSubtitle = "100 Shots/Zombie + 50 Optimal + 1,000 Checks/Sec + Stable Performance",
+    LoadingTitle = "🛡️ Initializing Stable Elimination System...",
+    LoadingSubtitle = "20 Shots/Zombie + 10 Optimal + 100 Checks/Sec + No Freezing",
     Theme = "Ocean",
     ToggleUIKeybind = Enum.KeyCode.K,
     ConfigurationSaving = {
@@ -573,8 +573,8 @@ CombatTab:CreateToggle({
                                                 if hitPos and hitPart then
                                                     local args = {zombie, hitPart, hitPos, 0, weapon}
                                                     
-                                                    -- 🔥 OPTIMIZED INSTANT FIRING: 100 shots per zombie for reliable elimination
-                                                    for i = 1, 100 do
+                                                    -- 🔥 STABLE INSTANT FIRING: 20 shots per zombie for reliable elimination
+                                                    for i = 1, 20 do
                                                         task.spawn(function()
                                                             shootRemote:FireServer(unpack(args))
                                                         end)
@@ -595,8 +595,8 @@ CombatTab:CreateToggle({
                                                 if hitPos and hitPart then
                                                     local args = {zombie, hitPart, hitPos, 0, weapon}
                                                     
-                                                    -- 🎯 OPTIMIZED NORMAL MODE: 10 shots per zombie
-                                                    for i = 1, 10 do
+                                                    -- 🎯 STABLE NORMAL MODE: 3 shots per zombie
+                                                    for i = 1, 3 do
                                                         task.spawn(function()
                                                             shootRemote:FireServer(unpack(args))
                                                         end)
@@ -608,7 +608,7 @@ CombatTab:CreateToggle({
                                 end
                             end
                         end)
-                        task.wait(0.001) -- Check every 1ms for optimal responsiveness (1,000 checks/sec)
+                        task.wait(0.01) -- Check every 10ms for stable performance (100 checks/sec)
                     end
                 end)
             
@@ -776,20 +776,20 @@ CombatTab:CreateToggle({
                                 local baseShotCapacity = math.floor(5 + (focusFactor * 5)) -- 4-10 shots base
                                 
                                 if inOptimalWindow then
-                                    -- 🔥 OPTIMAL WINDOW: OPTIMIZED - Maximum exploitation in 5ms
-                                    maxShotsPerCycle = totalThreats * 50 -- 50 shots per zombie = RELIABLE ELIMINATION
+                                    -- 🔥 OPTIMAL WINDOW: STABLE - Maximum exploitation in 5ms
+                                    maxShotsPerCycle = totalThreats * 10 -- 10 shots per zombie = STABLE ELIMINATION
                                 elseif inPeakWindow then
-                                    -- 🔥 PEAK WINDOW: OPTIMIZED - Ultra exploitation in 8ms
-                                    maxShotsPerCycle = totalThreats * 40 -- 40 shots per zombie = STRONG ELIMINATION
+                                    -- 🔥 PEAK WINDOW: STABLE - Ultra exploitation in 8ms
+                                    maxShotsPerCycle = totalThreats * 8 -- 8 shots per zombie = RELIABLE ELIMINATION
                                 elseif inHyperBlindspot then
-                                    -- 🔥 HYPER BLINDSPOT: OPTIMIZED - Enhanced exploitation in 15ms
-                                    maxShotsPerCycle = totalThreats * 30 -- 30 shots per zombie = GOOD ELIMINATION
+                                    -- 🔥 HYPER BLINDSPOT: STABLE - Enhanced exploitation in 15ms
+                                    maxShotsPerCycle = totalThreats * 6 -- 6 shots per zombie = GOOD ELIMINATION
                                 elseif inUltraBlindspot then
-                                    -- 🔥 ULTRA BLINDSPOT: OPTIMIZED - High exploitation in 35ms
-                                    maxShotsPerCycle = totalThreats * 25 -- 25 shots per zombie = EFFECTIVE ELIMINATION
+                                    -- 🔥 ULTRA BLINDSPOT: STABLE - High exploitation in 35ms
+                                    maxShotsPerCycle = totalThreats * 5 -- 5 shots per zombie = EFFECTIVE ELIMINATION
                                 elseif inBlindspot then
-                                    -- 🔥 KRYPTONITE BLINDSPOT: OPTIMIZED - Good exploitation in 55ms
-                                    maxShotsPerCycle = totalThreats * 20 -- 20 shots per zombie = GUARANTEED ELIMINATION
+                                    -- 🔥 KRYPTONITE BLINDSPOT: STABLE - Good exploitation in 55ms
+                                    maxShotsPerCycle = totalThreats * 4 -- 4 shots per zombie = GUARANTEED ELIMINATION
                                 elseif criticalThreats > 0 then
                                     -- ALERT MODE: Enhanced adrenaline boost
                                     local panicBoost = math.min(8, criticalThreats / 2) -- Up to +8 shots
@@ -884,15 +884,15 @@ CombatTab:CreateToggle({
                                             local shotsPerZombie = 1
                                             
                                             if inOptimalWindow then
-                                                shotsPerZombie = 50 -- 50 shots per zombie = RELIABLE ELIMINATION
+                                                shotsPerZombie = 10 -- 10 shots per zombie = STABLE ELIMINATION
                                             elseif inPeakWindow then
-                                                shotsPerZombie = 40 -- 40 shots per zombie = STRONG ELIMINATION
+                                                shotsPerZombie = 8 -- 8 shots per zombie = RELIABLE ELIMINATION
                                             elseif inHyperBlindspot then
-                                                shotsPerZombie = 30 -- 30 shots per zombie = GOOD ELIMINATION
+                                                shotsPerZombie = 6 -- 6 shots per zombie = GOOD ELIMINATION
                                             elseif inUltraBlindspot then
-                                                shotsPerZombie = 25 -- 25 shots per zombie = EFFECTIVE ELIMINATION
+                                                shotsPerZombie = 5 -- 5 shots per zombie = EFFECTIVE ELIMINATION
                                             elseif inBlindspot then
-                                                shotsPerZombie = 20 -- 20 shots per zombie = GUARANTEED ELIMINATION
+                                                shotsPerZombie = 4 -- 4 shots per zombie = GUARANTEED ELIMINATION
                                             else
                                                 -- Normal mode - adaptive shots
                                                 local isBoss = target.model.Name == "GoblinKing" or target.model.Name == "CaptainBoom" or target.model.Name == "Fungarth"
