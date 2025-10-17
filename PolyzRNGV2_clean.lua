@@ -522,71 +522,70 @@ CombatTab:CreateToggle({
                     end
                 end)
                     
-                    -- 🛡️ KNIGHTMARE KRYPTONITE - ULTIMATE DETECTION EXPLOIT
-                    local cycleDelay
-                    
-                    -- 🚀 ULTRA-FAST BURST CYCLE DELAYS - 700 ZOMBIES IN 60 SECONDS
-                    if stealthMode then
-                        -- Conservative: Fast burst cycles
-                        cycleDelay = 0.05 + (math.random() * 0.05) -- 50-100ms (FAST BURST)
-                    else
-                        -- 🚀 ULTRA-FAST BURST: Maximum throughput
-                        cycleDelay = 0.01 + (math.random() * 0.02) -- 10-30ms (ULTRA-FAST BURST)
-                    end
-                    
-                    -- 🛡️ KNIGHTMARE'S RANDOMSEED EXPLOIT: math.randomseed(tick())
-                    -- KnightMare uses this - we exploit it by syncing with their random patterns
-                    local knightMareSeed = math.floor(tick() * 10) % 1000 -- Match their seed pattern
-                    math.randomseed(knightMareSeed)
-                    
-                    -- 🚀 KNIGHTMARE'S HUMANOID EXPLOIT: They check Humanoid properties
-                    -- We exploit by timing our shots when Humanoid is being processed
-                    local humanoidCheck = tick() % 0.1 -- KnightMare checks every 0.1s
-                    if humanoidCheck < 0.05 then
-                        cycleDelay = cycleDelay * 0.3 -- Triple speed during Humanoid processing
-                    end
-                    
-                    -- 🛡️ KNIGHTMARE'S ANIMATION EXPLOIT: They use playAnimation with 0.1s timing
-                    -- We exploit by syncing with their animation cycles
-                    local animationCycle = (tick() * 10) % 1 -- 0.1s animation cycles
-                    if animationCycle < 0.3 then
-                        cycleDelay = cycleDelay * 0.2 -- 5x speed during animation processing
-                    end
-                    
-                    -- 🚀 INTELLIGENT BURST GAPS: Avoid detection while maintaining speed
-                    local burstGap = 0
-                    local currentTime = tick()
-                    
-                    -- 🚀 BURST PATTERN: Fire in bursts, then pause
-                    local burstCycle = (currentTime * 2) % 4 -- 2-second burst cycles
-                    if burstCycle < 0.5 then
-                        -- BURST PHASE: Ultra-fast firing
-                        cycleDelay = cycleDelay * 0.1 -- 10x faster during burst
-                    elseif burstCycle < 1.0 then
-                        -- COOLDOWN PHASE: Normal speed
-                        cycleDelay = cycleDelay -- Normal speed
-                    elseif burstCycle < 1.5 then
-                        -- PAUSE PHASE: Longer delay to avoid detection
-                        burstGap = 0.2 + (math.random() * 0.3) -- 200-500ms gap
-                    else
-                        -- RECOVERY PHASE: Medium speed
-                        cycleDelay = cycleDelay * 2 -- 2x slower during recovery
-                    end
-                    
-                    -- 🚀 INTELLIGENT INCONSISTENCY: Natural variation
-                    local humanInconsistency = (math.random() - 0.5) * 0.01 -- ±5ms natural variation
-                    cycleDelay = math.max(0.005, cycleDelay + humanInconsistency) -- Minimum 5ms
-                    
-                    -- 🚀 BURST GAP APPLICATION
-                    cycleDelay = cycleDelay + burstGap
-                    
-                    -- Update last shot time for rate limiting
-                    lastShot = tick()
-                    
-                    task.wait(cycleDelay)
+                -- 🛡️ KNIGHTMARE KRYPTONITE - ULTIMATE DETECTION EXPLOIT
+                local cycleDelay
+                
+                -- 🚀 ULTRA-FAST BURST CYCLE DELAYS - 700 ZOMBIES IN 60 SECONDS
+                if stealthMode then
+                    -- Conservative: Fast burst cycles
+                    cycleDelay = 0.05 + (math.random() * 0.05) -- 50-100ms (FAST BURST)
+                else
+                    -- 🚀 ULTRA-FAST BURST: Maximum throughput
+                    cycleDelay = 0.01 + (math.random() * 0.02) -- 10-30ms (ULTRA-FAST BURST)
                 end
-            end)
-        end
+                
+                -- 🛡️ KNIGHTMARE'S RANDOMSEED EXPLOIT: math.randomseed(tick())
+                -- KnightMare uses this - we exploit it by syncing with their random patterns
+                local knightMareSeed = math.floor(tick() * 10) % 1000 -- Match their seed pattern
+                math.randomseed(knightMareSeed)
+                
+                -- 🚀 KNIGHTMARE'S HUMANOID EXPLOIT: They check Humanoid properties
+                -- We exploit by timing our shots when Humanoid is being processed
+                local humanoidCheck = tick() % 0.1 -- KnightMare checks every 0.1s
+                if humanoidCheck < 0.05 then
+                    cycleDelay = cycleDelay * 0.3 -- Triple speed during Humanoid processing
+                end
+                
+                -- 🛡️ KNIGHTMARE'S ANIMATION EXPLOIT: They use playAnimation with 0.1s timing
+                -- We exploit by syncing with their animation cycles
+                local animationCycle = (tick() * 10) % 1 -- 0.1s animation cycles
+                if animationCycle < 0.3 then
+                    cycleDelay = cycleDelay * 0.2 -- 5x speed during animation processing
+                end
+                
+                -- 🚀 INTELLIGENT BURST GAPS: Avoid detection while maintaining speed
+                local burstGap = 0
+                local currentTime = tick()
+                
+                -- 🚀 BURST PATTERN: Fire in bursts, then pause
+                local burstCycle = (currentTime * 2) % 4 -- 2-second burst cycles
+                if burstCycle < 0.5 then
+                    -- BURST PHASE: Ultra-fast firing
+                    cycleDelay = cycleDelay * 0.1 -- 10x faster during burst
+                elseif burstCycle < 1.0 then
+                    -- COOLDOWN PHASE: Normal speed
+                    cycleDelay = cycleDelay -- Normal speed
+                elseif burstCycle < 1.5 then
+                    -- PAUSE PHASE: Longer delay to avoid detection
+                    burstGap = 0.2 + (math.random() * 0.3) -- 200-500ms gap
+                else
+                    -- RECOVERY PHASE: Medium speed
+                    cycleDelay = cycleDelay * 2 -- 2x slower during recovery
+                end
+                
+                -- 🚀 INTELLIGENT INCONSISTENCY: Natural variation
+                local humanInconsistency = (math.random() - 0.5) * 0.01 -- ±5ms natural variation
+                cycleDelay = math.max(0.005, cycleDelay + humanInconsistency) -- Minimum 5ms
+                
+                -- 🚀 BURST GAP APPLICATION
+                cycleDelay = cycleDelay + burstGap
+                
+                -- Update last shot time for rate limiting
+                lastShot = tick()
+                
+                task.wait(cycleDelay)
+            end
+        end)
     end
 })
 
