@@ -53,16 +53,34 @@ local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
 
 -- Load Rayfield UI Library with error handling
+print("[Freezy HUB] Starting script...")
+print("[Freezy HUB] Loading Rayfield UI Library...")
+
 local Rayfield
-local success, error = pcall(function()
-    Rayfield = loadstring(game:HttpGet('https://limerbro.github.io/Roblox-Limer/rayfield.lua'))()
+local success, err = pcall(function()
+    local rayfield_source = game:HttpGet('https://sirius.menu/rayfield')
+    if rayfield_source then
+        Rayfield = loadstring(rayfield_source)()
+    end
 end)
 
-if not success then
-    warn("[Freezy HUB] Failed to load Rayfield UI Library:", error)
-    -- Create a simple fallback UI or exit gracefully
+if not success or not Rayfield then
+    warn("[Freezy HUB] Primary Rayfield URL failed, trying backup...")
+    -- Try backup URL
+    success, err = pcall(function()
+        local rayfield_source = game:HttpGet('https://raw.githubusercontent.com/shlexware/Rayfield/main/source')
+        if rayfield_source then
+            Rayfield = loadstring(rayfield_source)()
+        end
+    end)
+end
+
+if not success or not Rayfield then
+    error("[Freezy HUB] CRITICAL: Failed to load Rayfield UI Library. Error: " .. tostring(err))
     return
 end
+
+print("[Freezy HUB] Rayfield loaded successfully!")
 
 -- Wait for Remotes safely
 local Remotes
@@ -74,11 +92,13 @@ task.spawn(function()
 end)
 
 -- 🛡️ KNIGHTMARE-SYNCHRONIZED UI CONFIGURATION
+print("[Freezy HUB] Creating window...")
+
 local Window = Rayfield:CreateWindow({
     Name = "❄️ Freezy HUB ❄️ | POLY-Z | 🛡️ KnightMare Sync",
     Icon = 71338090068856,
-    LoadingTitle = "🛡️ Initializing KnightMare Synchronicity...",
-    LoadingSubtitle = "Advanced Detection Evasion Active",
+    LoadingTitle = "🔥 Initializing KRYPTONITE MODE...",
+    LoadingSubtitle = "Exploit-Based Overpowered Performance | Press K to toggle",
     Theme = "Ocean",
     ToggleUIKeybind = Enum.KeyCode.K,
     ConfigurationSaving = {
@@ -87,6 +107,9 @@ local Window = Rayfield:CreateWindow({
         FileName = "FreezyConfig"
     }
 })
+
+print("[Freezy HUB] Window created successfully!")
+print("[Freezy HUB] Press 'K' to toggle the GUI")
 
 -- 📊 KnightMare Performance Monitor
 local performanceStats = {
@@ -1715,3 +1738,26 @@ MiscTab:CreateButton({
 
 -- Load config
 Rayfield:LoadConfiguration()
+
+-- 🔥 SCRIPT LOADED SUCCESSFULLY
+print("[Freezy HUB] ========================================")
+print("[Freezy HUB] KRYPTONITE MODE LOADED SUCCESSFULLY! 🔥")
+print("[Freezy HUB] ========================================")
+print("[Freezy HUB] Features:")
+print("[Freezy HUB]   • Normal Mode: Human-like performance (6-8 shots/cycle)")
+print("[Freezy HUB]   • Kryptonite Mode: Overpowered bursts (up to 50 shots/cycle)")
+print("[Freezy HUB]   • Target: 700+ zombies per minute")
+print("[Freezy HUB] ========================================")
+print("[Freezy HUB] Controls:")
+print("[Freezy HUB]   • Press 'K' to toggle GUI")
+print("[Freezy HUB]   • Enable 'KRYPTONITE MODE' for overpowered performance")
+print("[Freezy HUB]   • Enable 'Perfect Defense' to start auto-headshot")
+print("[Freezy HUB] ========================================")
+
+-- Initial notification
+Rayfield:Notify({
+    Title = "🔥 KRYPTONITE MODE LOADED",
+    Content = "Press K to toggle GUI | Enable Kryptonite Mode for 700 zombies/min",
+    Duration = 7,
+    Image = 4483362458
+})
