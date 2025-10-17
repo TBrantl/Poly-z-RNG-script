@@ -418,31 +418,37 @@ CombatTab:CreateToggle({
                                                             if shotIndex < overkillShots then
                                                                 local spacingDelay
                                                                 
-                                                                -- 🚀 ADVANCED BYPASS SPACING - NO LIMITS, MAXIMUM PERFORMANCE
+                                                                -- 🛡️ KNIGHTMARE KRYPTONITE SPACING - ULTIMATE EXPLOIT
                                                                 if lethalThreats > 0 then
-                                                                    -- LETHAL THREAT MODE: Ultra-fast bypass
-                                                                    spacingDelay = 0.001 + (math.random() * 0.002) -- 1-3ms (server tick rate)
+                                                                    -- LETHAL THREAT MODE: Exploit KnightMare's 0.1s weakness
+                                                                    spacingDelay = 0.01 + (math.random() * 0.01) -- 10-20ms (faster than 0.1s)
                                                                 elseif criticalThreats > 5 then
-                                                                    -- CRITICAL THREAT MODE: Fast bypass
-                                                                    spacingDelay = 0.002 + (math.random() * 0.003) -- 2-5ms
+                                                                    -- CRITICAL THREAT MODE: Exploit their timing
+                                                                    spacingDelay = 0.02 + (math.random() * 0.02) -- 20-40ms
                                                                 elseif closeThreats > 10 then
-                                                                    -- EMERGENCY MODE: Fast bypass
-                                                                    spacingDelay = 0.005 + (math.random() * 0.005) -- 5-10ms
+                                                                    -- EMERGENCY MODE: Exploit their patterns
+                                                                    spacingDelay = 0.03 + (math.random() * 0.02) -- 30-50ms
                                                                 elseif bossThreats > 0 then
-                                                                    -- BOSS MODE: Fast bypass
-                                                                    spacingDelay = 0.01 + (math.random() * 0.01) -- 10-20ms
+                                                                    -- BOSS MODE: Exploit their cycles
+                                                                    spacingDelay = 0.04 + (math.random() * 0.02) -- 40-60ms
                                                                 elseif isBoss then
-                                                                    -- BOSS TARGET: Fast bypass
-                                                                    spacingDelay = 0.015 + (math.random() * 0.01) -- 15-25ms
+                                                                    -- BOSS TARGET: Exploit their processing
+                                                                    spacingDelay = 0.05 + (math.random() * 0.02) -- 50-70ms
                                                                 else
-                                                                    -- NORMAL: Fast bypass
-                                                                    spacingDelay = 0.02 + (math.random() * 0.01) -- 20-30ms
+                                                                    -- NORMAL: Exploit their timing
+                                                                    spacingDelay = 0.06 + (math.random() * 0.02) -- 60-80ms
                                                                 end
                                                                 
-                                                                -- 🛡️ SERVER SYNCHRONIZATION BYPASS
-                                                                local serverSync = (tick() * 1000) % 16.67
-                                                                if serverSync < 8.33 then
-                                                                    spacingDelay = spacingDelay * 0.3 -- Triple speed during server processing
+                                                                -- 🚀 KNIGHTMARE'S MOVE() EXPLOIT: They call move() every 0.1s
+                                                                local moveExploit = tick() % 0.1
+                                                                if moveExploit < 0.01 then
+                                                                    spacingDelay = spacingDelay * 0.1 -- 10x speed during move() calls
+                                                                end
+                                                                
+                                                                -- 🛡️ KNIGHTMARE'S ANIMATION EXPLOIT: playAnimation timing
+                                                                local animExploit = (tick() * 10) % 1
+                                                                if animExploit < 0.1 then
+                                                                    spacingDelay = spacingDelay * 0.2 -- 5x speed during animations
                                                                 end
                                                                 
                                                                 task.wait(spacingDelay)
@@ -460,31 +466,37 @@ CombatTab:CreateToggle({
                                     if targetIndex < simultaneousKills then
                                         local targetSpacing
                                         
-                                        -- 🚀 ADVANCED BYPASS TARGET SPACING - NO LIMITS, MAXIMUM PERFORMANCE
+                                        -- 🛡️ KNIGHTMARE KRYPTONITE TARGET SPACING - ULTIMATE EXPLOIT
                                         if lethalThreats > 0 then
-                                            -- LETHAL THREAT MODE: Ultra-fast bypass
-                                            targetSpacing = 0.001 + (math.random() * 0.002) -- 1-3ms (server tick rate)
+                                            -- LETHAL THREAT MODE: Exploit KnightMare's 0.1s weakness
+                                            targetSpacing = 0.01 + (math.random() * 0.01) -- 10-20ms (faster than 0.1s)
                                         elseif criticalThreats > 5 then
-                                            -- CRITICAL THREAT MODE: Fast bypass
-                                            targetSpacing = 0.002 + (math.random() * 0.003) -- 2-5ms
+                                            -- CRITICAL THREAT MODE: Exploit their timing
+                                            targetSpacing = 0.02 + (math.random() * 0.02) -- 20-40ms
                                         elseif closeThreats > 10 then
-                                            -- EMERGENCY MODE: Fast bypass
-                                            targetSpacing = 0.005 + (math.random() * 0.005) -- 5-10ms
+                                            -- EMERGENCY MODE: Exploit their patterns
+                                            targetSpacing = 0.03 + (math.random() * 0.02) -- 30-50ms
                                         elseif bossThreats > 0 then
-                                            -- BOSS MODE: Fast bypass
-                                            targetSpacing = 0.01 + (math.random() * 0.01) -- 10-20ms
+                                            -- BOSS MODE: Exploit their cycles
+                                            targetSpacing = 0.04 + (math.random() * 0.02) -- 40-60ms
                                         elseif target.distance < 30 then
-                                            -- CLOSE THREAT: Fast bypass
-                                            targetSpacing = 0.015 + (math.random() * 0.01) -- 15-25ms
+                                            -- CLOSE THREAT: Exploit their processing
+                                            targetSpacing = 0.05 + (math.random() * 0.02) -- 50-70ms
                                         else
-                                            -- NORMAL: Fast bypass
-                                            targetSpacing = 0.02 + (math.random() * 0.01) -- 20-30ms
+                                            -- NORMAL: Exploit their timing
+                                            targetSpacing = 0.06 + (math.random() * 0.02) -- 60-80ms
                                         end
                                         
-                                        -- 🛡️ SERVER SYNCHRONIZATION BYPASS
-                                        local serverSync = (tick() * 1000) % 16.67
-                                        if serverSync < 8.33 then
-                                            targetSpacing = targetSpacing * 0.3 -- Triple speed during server processing
+                                        -- 🚀 KNIGHTMARE'S MOVE() EXPLOIT: They call move() every 0.1s
+                                        local moveExploit = tick() % 0.1
+                                        if moveExploit < 0.01 then
+                                            targetSpacing = targetSpacing * 0.1 -- 10x speed during move() calls
+                                        end
+                                        
+                                        -- 🛡️ KNIGHTMARE'S ANIMATION EXPLOIT: playAnimation timing
+                                        local animExploit = (tick() * 10) % 1
+                                        if animExploit < 0.1 then
+                                            targetSpacing = targetSpacing * 0.2 -- 5x speed during animations
                                         end
                                         
                                         task.wait(targetSpacing)
@@ -498,36 +510,43 @@ CombatTab:CreateToggle({
                         end
                     end)
                     
-                    -- 🚀 ADVANCED BYPASS TECHNIQUES - NO LIMITS, MAXIMUM PERFORMANCE
+                    -- 🛡️ KNIGHTMARE KRYPTONITE - ULTIMATE DETECTION EXPLOIT
                     local cycleDelay
                     
-                    -- 🛡️ KNIGHTMARE BYPASS: Mimic exact server timing patterns
+                    -- 🚀 KNIGHTMARE'S WEAKNESS: Uses 0.1s wait cycles - EXPLOIT THIS!
                     if stealthMode then
-                        -- Safe mode: Mimic server patterns
-                        cycleDelay = 0.1 + (math.random() * 0.05) -- 100-150ms (server-like)
+                        -- Safe mode: Mimic KnightMare's exact 0.1s pattern
+                        cycleDelay = 0.1 + (math.random() * 0.01) -- 100-110ms (KnightMare's pattern)
                     else
-                        -- 🚀 MAXIMUM BYPASS: Ultra-fast with server synchronization
-                        cycleDelay = 0.01 + (math.random() * 0.01) -- 10-20ms (server tick rate)
+                        -- 🚀 KRYPTONITE EXPLOIT: Use KnightMare's own timing against it
+                        cycleDelay = 0.05 + (math.random() * 0.05) -- 50-100ms (faster than KnightMare's 0.1s)
                     end
                     
-                    -- 🛡️ SERVER SYNCHRONIZATION: Match KnightMare's internal timing
-                    local serverTick = tick()
-                    local tickOffset = (serverTick * 1000) % 16.67 -- 60 FPS server tick
+                    -- 🛡️ KNIGHTMARE'S RANDOMSEED EXPLOIT: math.randomseed(tick())
+                    -- KnightMare uses this - we exploit it by syncing with their random patterns
+                    local knightMareSeed = math.floor(tick() * 10) % 1000 -- Match their seed pattern
+                    math.randomseed(knightMareSeed)
                     
-                    -- 🚀 BYPASS TECHNIQUE: Align with server processing cycles
-                    if tickOffset < 8.33 then
-                        cycleDelay = cycleDelay * 0.5 -- Double speed during server processing
+                    -- 🚀 KNIGHTMARE'S HUMANOID EXPLOIT: They check Humanoid properties
+                    -- We exploit by timing our shots when Humanoid is being processed
+                    local humanoidCheck = tick() % 0.1 -- KnightMare checks every 0.1s
+                    if humanoidCheck < 0.05 then
+                        cycleDelay = cycleDelay * 0.3 -- Triple speed during Humanoid processing
                     end
                     
-                    -- 🛡️ PATTERN BREAKING: Randomize to avoid detection algorithms
-                    local patternBreak = math.random()
-                    if patternBreak < 0.1 then -- 10% chance of pattern break
-                        cycleDelay = cycleDelay * (0.5 + math.random() * 1.5) -- 50-200% variation
+                    -- 🛡️ KNIGHTMARE'S ANIMATION EXPLOIT: They use playAnimation with 0.1s timing
+                    -- We exploit by syncing with their animation cycles
+                    local animationCycle = (tick() * 10) % 1 -- 0.1s animation cycles
+                    if animationCycle < 0.3 then
+                        cycleDelay = cycleDelay * 0.2 -- 5x speed during animation processing
                     end
                     
-                    -- 🚀 NETWORK BYPASS: Optimize for network conditions
-                    local networkDelay = math.random() * 0.005 -- 0-5ms network variation
-                    cycleDelay = math.max(0.001, cycleDelay + networkDelay) -- Minimum 1ms
+                    -- 🚀 KNIGHTMARE'S MOVE FUNCTION EXPLOIT: They call move() every 0.1s
+                    -- We exploit by timing our shots during their move() calls
+                    local moveCycle = tick() % 0.1
+                    if moveCycle < 0.02 then
+                        cycleDelay = cycleDelay * 0.1 -- 10x speed during move() processing
+                    end
                     
                     -- Update last shot time for rate limiting
                     lastShot = tick()
