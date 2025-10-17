@@ -869,7 +869,7 @@ CombatTab:CreateToggle({
                                         local head = zombie:FindFirstChild("Head")
                                         local humanoid = zombie:FindFirstChild("Humanoid")
                                         
-                                        if head and humanoid then
+                                        if head and humanoid and humanoid.Health > 0 then
                                             -- 🎯 BOSS DETECTION: Check if this is a boss
                                             local isBoss = zombie.Name == "GoblinKing" or zombie.Name == "CaptainBoom" or zombie.Name == "Fungarth"
                                             
@@ -883,10 +883,14 @@ CombatTab:CreateToggle({
                                             end
                                             
                                             if isBoss then
+                                                print("[BOSS FOUND] " .. zombie.Name .. " - Health: " .. humanoid.Health .. " - MaxHealth: " .. humanoid.MaxHealth)
+                                                
                                                 local distance = (head.Position - root.Position).Magnitude
                                                 
                                                 -- 🎯 BOSS TARGETING: Shoot bosses regardless of distance
                                                 if distance <= 500 then -- Very large range for bosses
+                                                    print("[BOSS IN RANGE] " .. zombie.Name .. " - Distance: " .. math.floor(distance))
+                                                    
                                                     local hitPos, hitPart = getKnightMareShotPosition(head, zombie)
                                                     if hitPos and hitPart then
                                                         local args = {zombie, hitPart, hitPos, 0, weapon}
@@ -905,6 +909,8 @@ CombatTab:CreateToggle({
                                                     else
                                                         print("[BOSS TARGETING] Failed to get hit position for " .. zombie.Name)
                                                     end
+                                                else
+                                                    print("[BOSS OUT OF RANGE] " .. zombie.Name .. " - Distance: " .. math.floor(distance))
                                                 end
                                             end
                                         end
@@ -919,19 +925,82 @@ CombatTab:CreateToggle({
                 end
             end)
             
+            -- 🎯 SIMPLE BOSS SHOOTER: Basic boss detection and shooting
             task.spawn(function()
                 while autoKill do
                     pcall(function()
-                        -- ⚡ OPTIMIZED SYNCHRONICITY CHECK
-                        if not shouldAllowKnightMareShot() then
+                        local enemies = workspace:FindFirstChild("Enemies")
+                        local shootRemote = Remotes and Remotes:FindFirstChild("ShootEnemy")
+                        local weapon = getEquippedWeaponName()
+                        
+                        if enemies and shootRemote then
+                            local character = player.Character
+                            local root = character and character:FindFirstChild("HumanoidRootPart")
+                            
+                            if root then
+                                -- Simple boss detection - just look for exact names
+                                for _, zombie in pairs(enemies:GetChildren()) do
+                                    if zombie:IsA("Model") and (zombie.Name == "CaptainBoom" or zombie.Name == "GoblinKing" or zombie.Name == "Fungarth") then
+                                        local head = zombie:FindFirstChild("Head")
+                                        local humanoid = zombie:FindFirstChild("Humanoid")
+                                        
+                                        if head and humanoid and humanoid.Health > 0 then
+                                            print("[SIMPLE BOSS SHOOTER] Found " .. zombie.Name)
+                                            
+                                            local distance = (head.Position - root.Position).Magnitude
+                                            if distance <= 1000 then -- Very large range
+                                                local hitPos, hitPart = getKnightMareShotPosition(head, zombie)
+                                                if hitPos and hitPart then
+                                                    local args = {zombie, hitPart, hitPos, 0, weapon}
+                                                    
+                                                    print("[SIMPLE BOSS SHOOTER] Shooting " .. zombie.Name .. " with 50 shots")
+                                                    
+                                                    -- Simple shooting
+                                                    for i = 1, 50 do
+                                                        task.spawn(function()
+                                                            shootRemote:FireServer(unpack(args))
+                                                        end)
+                                                    end
+                                                end
+                                            end
+                                        end
+                                    end
+                                end
+                            end
+                        end
+                        
+                        task.wait(0.2) -- 200ms intervals
+                    end)
+                end
+            end)
+            
+            task.spawn(function()
+                while autoKill do
+                    pcall(function()
+                        -- ⚡ OPTIMIZED SYNCHRONICITY CHECK (Bypass for bosses)
+                        local hasBosses = false
+                        local enemies = workspace:FindFirstChild("Enemies")
+                        if enemies then
+                            for _, zombie in pairs(enemies:GetChildren()) do
+                                if zombie:IsA("Model") then
+                                    local isBoss = zombie.Name == "GoblinKing" or zombie.Name == "CaptainBoom" or zombie.Name == "Fungarth"
+                                    if isBoss then
+                                        hasBosses = true
+                                        break
+                                    end
+                                end
+                            end
+                        end
+                        
+                        -- Skip rate limiting if bosses are present
+                        if not hasBosses and not shouldAllowKnightMareShot() then
                             task.wait(0.01) -- Ultra-smooth cooldown
                             return
                         end
                         
                         -- 🔧 DEFINE VARIABLES FIRST
-                        local enemies = workspace:FindFirstChild("Enemies")
                         local shootRemote = Remotes and Remotes:FindFirstChild("ShootEnemy")
-                            local weapon = getEquippedWeaponName()
+                        local weapon = getEquippedWeaponName()
                         
                         if enemies and shootRemote then
                             -- 🔥 INSTANT SPAWN DETECTION & ELIMINATION
@@ -1019,8 +1088,8 @@ CombatTab:CreateToggle({
                                             distance = effectiveRange - 1 -- Force within range
                                         end
                                     end
-                                    
-                                    if distance <= effectiveRange then
+                                        
+                                        if distance <= effectiveRange then
                                         -- 🔍 DEBUG: Print target info
                                         if isBoss then
                                             print("[TARGET ADDED] BOSS: " .. zombie.Name .. " - Distance: " .. math.floor(distance) .. " - Range: " .. math.floor(effectiveRange))
