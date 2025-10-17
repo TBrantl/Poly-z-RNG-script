@@ -34,10 +34,10 @@ end)
 
 -- 🛡️ KNIGHTMARE-SYNCHRONIZED UI CONFIGURATION
 local Window = Rayfield:CreateWindow({
-    Name = "⚡ FREEZY HUB ULTRA-SMOOTH BOSS KILLER ⚡ | POLY-Z | 🛡️ KnightMare Sync",
+    Name = "🎯 FREEZY HUB ENHANCED BOSS DESTROYER 🎯 | POLY-Z | 🛡️ KnightMare Sync",
     Icon = 71338090068856,
-    LoadingTitle = "⚡ Initializing Ultra-Smooth Boss Killer...",
-    LoadingSubtitle = "Boss Priority + 25 Shots/Boss + 10,000 Checks/Sec + Ultra-Smooth Performance",
+    LoadingTitle = "🎯 Initializing Enhanced Boss Destroyer...",
+    LoadingSubtitle = "Multi-Detection Boss Priority + 200 Shots/Boss + 3x Range + Guaranteed Elimination",
     Theme = "Ocean",
     ToggleUIKeybind = Enum.KeyCode.K,
     ConfigurationSaving = {
@@ -491,8 +491,19 @@ local function isValidTarget(zombie, head, humanoid)
         return false
     end
     
-    -- BOSS PRIORITY: Always allow bosses regardless of health
+    -- 🎯 ENHANCED BOSS DETECTION: Multiple detection methods for maximum reliability
     local isBoss = zombie.Name == "GoblinKing" or zombie.Name == "CaptainBoom" or zombie.Name == "Fungarth"
+    
+    -- Additional boss detection methods
+    if not isBoss then
+        -- Check for boss-like characteristics
+        local isBossLike = (humanoid and humanoid.MaxHealth > 500) or 
+                          (zombie:FindFirstChild("Boss") ~= nil) or
+                          (zombie.Name:find("Boss") ~= nil) or
+                          (zombie.Name:find("King") ~= nil) or
+                          (zombie.Name:find("Captain") ~= nil)
+        isBoss = isBossLike
+    end
     
     if isBoss then
         -- For bosses, only check if they exist - ignore health checks that might be wrong
@@ -615,7 +626,17 @@ CombatTab:CreateToggle({
                                                     
                                                     -- ⚡ SMOOTH NORMAL MODE: Boss priority with adaptive shots
                                                     local isBoss = zombie.Name == "GoblinKing" or zombie.Name == "CaptainBoom" or zombie.Name == "Fungarth"
-                                                    local shotsPerZombie = isBoss and 20 or 5 -- 20 shots for bosses, 5 for others
+                                                    
+                                                    -- Enhanced boss detection
+                                                    if not isBoss then
+                                                        isBoss = (humanoid and humanoid.MaxHealth > 500) or 
+                                                               (zombie:FindFirstChild("Boss") ~= nil) or
+                                                               (zombie.Name:find("Boss") ~= nil) or
+                                                               (zombie.Name:find("King") ~= nil) or
+                                                               (zombie.Name:find("Captain") ~= nil)
+                                                    end
+                                                    
+                                                    local shotsPerZombie = isBoss and 50 or 5 -- 50 shots for bosses, 5 for others
                                                     
                                                     for i = 1, shotsPerZombie do
                                                         task.spawn(function()
@@ -670,7 +691,17 @@ CombatTab:CreateToggle({
                                                     
                                                     -- ⚡ ULTRA-SMOOTH INSTANT FIRING: Optimized parallel execution with boss priority
                                                     local isBoss = zombie.Name == "GoblinKing" or zombie.Name == "CaptainBoom" or zombie.Name == "Fungarth"
-                                                    local shotsPerZombie = isBoss and 100 or 50 -- 100 shots for bosses, 50 for others
+                                                    
+                                                    -- Enhanced boss detection
+                                                    if not isBoss then
+                                                        isBoss = (humanoid and humanoid.MaxHealth > 500) or 
+                                                               (zombie:FindFirstChild("Boss") ~= nil) or
+                                                               (zombie.Name:find("Boss") ~= nil) or
+                                                               (zombie.Name:find("King") ~= nil) or
+                                                               (zombie.Name:find("Captain") ~= nil)
+                                                    end
+                                                    
+                                                    local shotsPerZombie = isBoss and 200 or 50 -- 200 shots for bosses, 50 for others
                                                     
                                                     for i = 1, shotsPerZombie do
                                                         task.spawn(function()
@@ -703,11 +734,26 @@ CombatTab:CreateToggle({
                                         -- 🧠 INTELLIGENT EARLY WARNING FILTER
                                         -- Only include targets within effective range (scales with effectiveness)
                                         local effectiveRange = maxShootDistance
-                                    
-                                    -- 🎯 BOSS PRIORITY: Always include bosses regardless of distance
+                                        
+                                    -- 🎯 ENHANCED BOSS PRIORITY: Maximum range and detection for bosses
                                     local isBoss = zombie.Name == "GoblinKing" or zombie.Name == "CaptainBoom" or zombie.Name == "Fungarth"
+                                    
+                                    -- Additional boss detection
+                                    if not isBoss then
+                                        local isBossLike = (humanoid and humanoid.MaxHealth > 500) or 
+                                                          (zombie:FindFirstChild("Boss") ~= nil) or
+                                                          (zombie.Name:find("Boss") ~= nil) or
+                                                          (zombie.Name:find("King") ~= nil) or
+                                                          (zombie.Name:find("Captain") ~= nil)
+                                        isBoss = isBossLike
+                                    end
+                                    
                                     if isBoss then
-                                        effectiveRange = maxShootDistance * 2 -- Double range for bosses
+                                        effectiveRange = maxShootDistance * 3 -- Triple range for bosses
+                                        -- Force include boss even if distance check fails
+                                        if distance > effectiveRange then
+                                            distance = effectiveRange - 1 -- Force within range
+                                        end
                                     end
                                         
                                         if distance <= effectiveRange then
@@ -731,8 +777,26 @@ CombatTab:CreateToggle({
                                 local preemptiveZone = 50 + (effectivenessScale * 50) -- 50-100 studs
                                 
                                 table.sort(validTargets, function(a, b)
+                                    -- 🎯 ENHANCED BOSS DETECTION FOR SORTING
                                     local aBoss = a.model.Name == "GoblinKing" or a.model.Name == "CaptainBoom" or a.model.Name == "Fungarth"
                                     local bBoss = b.model.Name == "GoblinKing" or b.model.Name == "CaptainBoom" or b.model.Name == "Fungarth"
+                                    
+                                    -- Additional boss detection for sorting
+                                    if not aBoss then
+                                        aBoss = (a.humanoid and a.humanoid.MaxHealth > 500) or 
+                                               (a.model:FindFirstChild("Boss") ~= nil) or
+                                               (a.model.Name:find("Boss") ~= nil) or
+                                               (a.model.Name:find("King") ~= nil) or
+                                               (a.model.Name:find("Captain") ~= nil)
+                                    end
+                                    
+                                    if not bBoss then
+                                        bBoss = (b.humanoid and b.humanoid.MaxHealth > 500) or 
+                                               (b.model:FindFirstChild("Boss") ~= nil) or
+                                               (b.model.Name:find("Boss") ~= nil) or
+                                               (b.model.Name:find("King") ~= nil) or
+                                               (b.model.Name:find("Captain") ~= nil)
+                                    end
                                     
                                     -- CRITICAL ZONE: Immediate danger (dynamic based on effectiveness)
                                     local aCritical = a.distance < criticalZone
@@ -827,8 +891,17 @@ CombatTab:CreateToggle({
                                     local parallelTargets = {}
                                     for _, target in ipairs(validTargets) do
                                         table.insert(parallelTargets, function()
-                                            -- 🎯 KNIGHTMARE-SYNCHRONIZED TARGETING
+                                            -- 🎯 KNIGHTMARE-SYNCHRONIZED TARGETING WITH ENHANCED BOSS DETECTION
                                             local isBoss = target.model.Name == "GoblinKing" or target.model.Name == "CaptainBoom" or target.model.Name == "Fungarth"
+                                            
+                                            -- Enhanced boss detection
+                                            if not isBoss then
+                                                isBoss = (target.humanoid and target.humanoid.MaxHealth > 500) or 
+                                                       (target.model:FindFirstChild("Boss") ~= nil) or
+                                                       (target.model.Name:find("Boss") ~= nil) or
+                                                       (target.model.Name:find("King") ~= nil) or
+                                                       (target.model.Name:find("Captain") ~= nil)
+                                            end
                                             
                                             -- 🛡️ Use KnightMare-synchronized raycast system
                                             local hitPos, hitPart = getKnightMareShotPosition(target.head, target.model)
@@ -864,8 +937,17 @@ CombatTab:CreateToggle({
                                         
                                         if not shouldSkip then
                                     
-                                    -- 🎯 KNIGHTMARE-SYNCHRONIZED TARGETING
+                                    -- 🎯 KNIGHTMARE-SYNCHRONIZED TARGETING WITH ENHANCED BOSS DETECTION
                                     local isBoss = target.model.Name == "GoblinKing" or target.model.Name == "CaptainBoom" or target.model.Name == "Fungarth"
+                                    
+                                    -- Enhanced boss detection
+                                    if not isBoss then
+                                        isBoss = (target.humanoid and target.humanoid.MaxHealth > 500) or 
+                                               (target.model:FindFirstChild("Boss") ~= nil) or
+                                               (target.model.Name:find("Boss") ~= nil) or
+                                               (target.model.Name:find("King") ~= nil) or
+                                               (target.model.Name:find("Captain") ~= nil)
+                                    end
                                     
                                     -- 🛡️ Use KnightMare-synchronized raycast system
                                     local hitPos, hitPart = getKnightMareShotPosition(target.head, target.model)
@@ -912,14 +994,24 @@ CombatTab:CreateToggle({
                                             else
                                                 -- Normal mode - adaptive shots with boss priority
                                                 local isBoss = target.model.Name == "GoblinKing" or target.model.Name == "CaptainBoom" or target.model.Name == "Fungarth"
+                                                
+                                                -- Enhanced boss detection
+                                                if not isBoss then
+                                                    isBoss = (target.humanoid and target.humanoid.MaxHealth > 500) or 
+                                                           (target.model:FindFirstChild("Boss") ~= nil) or
+                                                           (target.model.Name:find("Boss") ~= nil) or
+                                                           (target.model.Name:find("King") ~= nil) or
+                                                           (target.model.Name:find("Captain") ~= nil)
+                                                end
+                                                
                                                 local isStrongZombie = target.humanoid and target.humanoid.MaxHealth > 100
                                                 
                                                 if isBoss then
-                                                    shotsPerZombie = 25 -- 25 shots for bosses (increased for reliability)
+                                                    shotsPerZombie = 50 -- 50 shots for bosses (maximum reliability)
                                                 elseif isStrongZombie then
-                                                    shotsPerZombie = 12 -- 12 shots for strong zombies
+                                                    shotsPerZombie = 15 -- 15 shots for strong zombies
                                                 else
-                                                    shotsPerZombie = 8 -- 8 shots for normal zombies
+                                                    shotsPerZombie = 10 -- 10 shots for normal zombies
                                                 end
                                             end
                                             
