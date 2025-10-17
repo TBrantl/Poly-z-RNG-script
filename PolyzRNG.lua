@@ -34,10 +34,10 @@ end)
 
 -- 🛡️ KNIGHTMARE-SYNCHRONIZED UI CONFIGURATION
 local Window = Rayfield:CreateWindow({
-    Name = "🛡️ FREEZY HUB MULTI-LAYER SAFETY NET 🛡️ | POLY-Z | 🛡️ KnightMare Sync",
+    Name = "🛡️ FREEZY HUB DETECTION-SAFE 🛡️ | POLY-Z | 🛡️ KnightMare Sync",
     Icon = 71338090068856,
-    LoadingTitle = "🛡️ Initializing Multi-Layer Safety Net...",
-    LoadingSubtitle = "Boss Destroyer + 3-Layer Safety Net (20/10/5 studs) + Human-Like Panic Response + Outlier Elimination",
+    LoadingTitle = "🛡️ Initializing Detection-Safe System...",
+    LoadingSubtitle = "Conservative Boss Targeting + Safe Shot Counts + Human-Like Timing + Multi-Layer Safety Net",
     Theme = "Ocean",
     ToggleUIKeybind = Enum.KeyCode.K,
     ConfigurationSaving = {
@@ -629,7 +629,7 @@ CombatTab:CreateToggle({
                                                 if hitPos and hitPart then
                                                     local args = {zombie, hitPart, hitPos, 0, weapon}
                                                     
-                                                    -- ⚡ SMOOTH NORMAL MODE: Boss priority with adaptive shots
+                                                    -- 🛡️ DETECTION-SAFE NORMAL MODE: Conservative boss priority
                                                     local isBoss = zombie.Name == "GoblinKing" or zombie.Name == "CaptainBoom" or zombie.Name == "Fungarth"
                                                     
                                                     -- Enhanced boss detection
@@ -641,7 +641,7 @@ CombatTab:CreateToggle({
                                                                (zombie.Name:find("Captain") ~= nil)
                                                     end
                                                     
-                                                    local shotsPerZombie = isBoss and 50 or 5 -- 50 shots for bosses, 5 for others
+                                                    local shotsPerZombie = isBoss and 8 or 3 -- 8 shots for bosses, 3 for others
                                                     
                                                     for i = 1, shotsPerZombie do
                                                         task.spawn(function()
@@ -655,8 +655,8 @@ CombatTab:CreateToggle({
                                 end
                             end
                         end)
-                        -- ⚡ ULTRA-SMOOTH MONITORING: Maximum efficiency
-                        task.wait(0.0001) -- 0.1ms ultra-smooth monitoring (10,000 checks/sec)
+                        -- 🛡️ DETECTION-SAFE MONITORING: Conservative timing
+                        task.wait(0.01) -- 10ms safe monitoring (100 checks/sec)
                     end
                 end)
             
@@ -701,7 +701,7 @@ CombatTab:CreateToggle({
                                                                (zombie.Name:find("Captain") ~= nil)
                                                     end
                                                     
-                                                    local panicShots = isBoss and 15 or 8 -- Panic shots for close threats
+                                                    local panicShots = isBoss and 5 or 3 -- Conservative panic shots for close threats
                                                     
                                                     -- 🚀 INSTANT PANIC ELIMINATION
                                                     for i = 1, panicShots do
@@ -764,7 +764,7 @@ CombatTab:CreateToggle({
                                                                (zombie.Name:find("Captain") ~= nil)
                                                     end
                                                     
-                                                    local emergencyShots = isBoss and 30 or 20 -- Emergency shots for ultra-close threats
+                                                    local emergencyShots = isBoss and 8 or 5 -- Conservative emergency shots for ultra-close threats
                                                     
                                                     -- 🚀 INSTANT EMERGENCY ELIMINATION
                                                     for i = 1, emergencyShots do
@@ -827,7 +827,7 @@ CombatTab:CreateToggle({
                                                                (zombie.Name:find("Captain") ~= nil)
                                                     end
                                                     
-                                                    local criticalShots = isBoss and 50 or 35 -- Critical shots for point-blank threats
+                                                    local criticalShots = isBoss and 10 or 6 -- Conservative critical shots for point-blank threats
                                                     
                                                     -- 🚀 INSTANT CRITICAL ELIMINATION
                                                     for i = 1, criticalShots do
@@ -895,8 +895,8 @@ CombatTab:CreateToggle({
                                                     if hitPos and hitPart then
                                                         local args = {zombie, hitPart, hitPos, 0, weapon}
                                                         
-                                                        -- 🚀 BOSS ELIMINATION: Massive shot count
-                                                        local bossShots = 100 -- 100 shots per boss
+                                                        -- 🛡️ DETECTION-SAFE BOSS ELIMINATION: Conservative shot count
+                                                        local bossShots = 15 -- 15 shots per boss
                                                         
                                                         print("[BOSS TARGETING] Shooting " .. zombie.Name .. " with " .. bossShots .. " shots")
                                                         
@@ -1022,7 +1022,7 @@ CombatTab:CreateToggle({
                                                 if hitPos and hitPart then
                                                     local args = {zombie, hitPart, hitPos, 0, weapon}
                                                     
-                                                    -- ⚡ ULTRA-SMOOTH INSTANT FIRING: Optimized parallel execution with boss priority
+                                                    -- 🛡️ DETECTION-SAFE FIRING: Conservative shot counts
                                                     local isBoss = zombie.Name == "GoblinKing" or zombie.Name == "CaptainBoom" or zombie.Name == "Fungarth"
                                                     
                                                     -- Enhanced boss detection
@@ -1034,7 +1034,7 @@ CombatTab:CreateToggle({
                                                                (zombie.Name:find("Captain") ~= nil)
                                                     end
                                                     
-                                                    local shotsPerZombie = isBoss and 200 or 50 -- 200 shots for bosses, 50 for others
+                                                    local shotsPerZombie = isBoss and 20 or 10 -- 20 shots for bosses, 10 for others
                                                     
                                                     for i = 1, shotsPerZombie do
                                                         task.spawn(function()
@@ -1217,15 +1217,15 @@ CombatTab:CreateToggle({
                                 local focusFactor = behaviorProfile.focusLevel - behaviorProfile.fatigueLevel
                                 local baseShotCapacity = math.floor(5 + (focusFactor * 5)) -- 4-10 shots base
                                 
-                                -- ⚡ ULTRA-SMOOTH PERFORMANCE - Optimized for maximum efficiency
+                                -- 🛡️ DETECTION-SAFE PERFORMANCE - Conservative but effective
                                 if inOptimalWindow then
-                                    maxShotsPerCycle = totalThreats * 5 -- 5 shots per zombie = ULTRA-SMOOTH CLEARING
+                                    maxShotsPerCycle = totalThreats * 2 -- 2 shots per zombie = SAFE CLEARING
                                 elseif inPeakWindow then
-                                    maxShotsPerCycle = totalThreats * 4 -- 4 shots per zombie = SMOOTH CLEARING
+                                    maxShotsPerCycle = totalThreats * 2 -- 2 shots per zombie = SAFE CLEARING
                                 elseif inHyperBlindspot then
-                                    maxShotsPerCycle = totalThreats * 3 -- 3 shots per zombie = FAST CLEARING
+                                    maxShotsPerCycle = totalThreats * 2 -- 2 shots per zombie = SAFE CLEARING
                                 else
-                                    maxShotsPerCycle = totalThreats * 2 -- 2 shots per zombie = EFFICIENT CLEARING
+                                    maxShotsPerCycle = totalThreats * 1 -- 1 shot per zombie = CONSERVATIVE CLEARING
                                 end
                                 
                                 -- ⚡ SMOOTH VARIATION: Reduced for better consistency
@@ -1335,15 +1335,15 @@ CombatTab:CreateToggle({
                                             local shotsPerZombie = 1
                                             
                                             if inOptimalWindow then
-                                                shotsPerZombie = 8 -- 8 shots per zombie = ULTRA-SMOOTH ELIMINATION
+                                                shotsPerZombie = 3 -- 3 shots per zombie = SAFE ELIMINATION
                                             elseif inPeakWindow then
-                                                shotsPerZombie = 6 -- 6 shots per zombie = SMOOTH ELIMINATION
+                                                shotsPerZombie = 3 -- 3 shots per zombie = SAFE ELIMINATION
                                             elseif inHyperBlindspot then
-                                                shotsPerZombie = 5 -- 5 shots per zombie = FAST ELIMINATION
+                                                shotsPerZombie = 2 -- 2 shots per zombie = CONSERVATIVE ELIMINATION
                                             elseif inUltraBlindspot then
-                                                shotsPerZombie = 4 -- 4 shots per zombie = EFFICIENT ELIMINATION
+                                                shotsPerZombie = 2 -- 2 shots per zombie = CONSERVATIVE ELIMINATION
                                             elseif inBlindspot then
-                                                shotsPerZombie = 3 -- 3 shots per zombie = RELIABLE ELIMINATION
+                                                shotsPerZombie = 2 -- 2 shots per zombie = CONSERVATIVE ELIMINATION
                                             else
                                                 -- Normal mode - adaptive shots with boss priority
                                                 local isBoss = target.model.Name == "GoblinKing" or target.model.Name == "CaptainBoom" or target.model.Name == "Fungarth"
@@ -1360,11 +1360,11 @@ CombatTab:CreateToggle({
                                                 local isStrongZombie = target.humanoid and target.humanoid.MaxHealth > 100
                                                 
                                                 if isBoss then
-                                                    shotsPerZombie = 50 -- 50 shots for bosses (maximum reliability)
+                                                    shotsPerZombie = 8 -- 8 shots for bosses (detection-safe)
                                                 elseif isStrongZombie then
-                                                    shotsPerZombie = 15 -- 15 shots for strong zombies
+                                                    shotsPerZombie = 4 -- 4 shots for strong zombies
                                                 else
-                                                    shotsPerZombie = 10 -- 10 shots for normal zombies
+                                                    shotsPerZombie = 2 -- 2 shots for normal zombies
                                                 end
                                             end
                                             
