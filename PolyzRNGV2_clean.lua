@@ -325,35 +325,35 @@ CombatTab:CreateToggle({
                                         performanceMultiplier = 2.0 -- MEDIUM SWARM
                                     end
                                     
-                                    -- 🚀 BALANCED EXPLOITATIVE SCALING - KNIGHTMARE WEAKNESS EXPLOITATION
+                                    -- 🚀 BURST FIRE ARCHITECTURE - 700 ZOMBIES IN 60 SECONDS
                                     if lethalThreats > 0 then
-                                        -- LETHAL THREAT MODE: Exploit KnightMare's 0.1s weakness
-                                        simultaneousKills = math.min(5, zombieCount) -- 5 zombies max
-                                        overkillShots = math.min(3, math.floor(3 * performanceMultiplier)) -- 3 shots max
+                                        -- LETHAL THREAT MODE: MASSIVE BURST FIRE
+                                        simultaneousKills = math.min(50, zombieCount) -- 50 zombies per burst
+                                        overkillShots = math.min(5, math.floor(5 * performanceMultiplier)) -- 5 shots per zombie
                                     elseif criticalThreats > 5 then
-                                        -- CRITICAL THREAT MODE: Exploit their timing
-                                        simultaneousKills = math.min(4, zombieCount) -- 4 zombies max
-                                        overkillShots = math.min(2, math.floor(2 * performanceMultiplier)) -- 2 shots max
+                                        -- CRITICAL THREAT MODE: HIGH BURST FIRE
+                                        simultaneousKills = math.min(40, zombieCount) -- 40 zombies per burst
+                                        overkillShots = math.min(4, math.floor(4 * performanceMultiplier)) -- 4 shots per zombie
                                     elseif zombieCount >= 200 then
-                                        -- LARGE SWARM: Exploit their processing
-                                        simultaneousKills = math.min(3, zombieCount) -- 3 zombies max
-                                        overkillShots = math.min(2, math.floor(2 * performanceMultiplier)) -- 2 shots max
+                                        -- LARGE SWARM: MASSIVE BURST FIRE
+                                        simultaneousKills = math.min(35, zombieCount) -- 35 zombies per burst
+                                        overkillShots = math.min(4, math.floor(4 * performanceMultiplier)) -- 4 shots per zombie
                                     elseif zombieCount >= 100 then
-                                        -- MEDIUM SWARM: Exploit their cycles
-                                        simultaneousKills = math.min(3, zombieCount) -- 3 zombies max
-                                        overkillShots = math.min(2, math.floor(2 * performanceMultiplier)) -- 2 shots max
+                                        -- MEDIUM SWARM: HIGH BURST FIRE
+                                        simultaneousKills = math.min(30, zombieCount) -- 30 zombies per burst
+                                        overkillShots = math.min(3, math.floor(3 * performanceMultiplier)) -- 3 shots per zombie
                                     elseif zombieCount >= 50 then
-                                        -- SMALL SWARM: Exploit their patterns
-                                        simultaneousKills = math.min(2, zombieCount) -- 2 zombies max
-                                        overkillShots = math.min(2, math.floor(2 * performanceMultiplier)) -- 2 shots max
+                                        -- SMALL SWARM: MEDIUM BURST FIRE
+                                        simultaneousKills = math.min(25, zombieCount) -- 25 zombies per burst
+                                        overkillShots = math.min(3, math.floor(3 * performanceMultiplier)) -- 3 shots per zombie
                                     elseif zombieCount >= 20 then
-                                        -- SMALL GROUP: Exploit their timing
-                                        simultaneousKills = math.min(2, zombieCount) -- 2 zombies max
-                                        overkillShots = math.min(1, math.floor(1 * performanceMultiplier)) -- 1 shot max
+                                        -- SMALL GROUP: LOW BURST FIRE
+                                        simultaneousKills = math.min(20, zombieCount) -- 20 zombies per burst
+                                        overkillShots = math.min(2, math.floor(2 * performanceMultiplier)) -- 2 shots per zombie
                                     else
-                                        -- MINIMAL GROUP: Exploit their processing
-                                        simultaneousKills = math.min(1, zombieCount) -- 1 zombie max
-                                        overkillShots = math.min(1, math.floor(1 * performanceMultiplier)) -- 1 shot max
+                                        -- MINIMAL GROUP: MINIMAL BURST FIRE
+                                        simultaneousKills = math.min(15, zombieCount) -- 15 zombies per burst
+                                        overkillShots = math.min(2, math.floor(2 * performanceMultiplier)) -- 2 shots per zombie
                                     end
                                     
                                     maxShots = simultaneousKills * overkillShots -- 200-250,000 shots per cycle
@@ -375,18 +375,22 @@ CombatTab:CreateToggle({
                                                 local targetPos = target.head.Position
                                                 local isBoss = target.model.Name == "GoblinKing" or target.model.Name == "CaptainBoom" or target.model.Name == "Fungarth"
                                                 
-                                                -- 🚀 INTELLIGENT TARGETING: Enhanced accuracy for better performance
-                                                if target.distance < 50 then
-                                                    -- Close targets: Use exact position for maximum accuracy
+                                                -- 🚀 ULTRA-ENHANCED TARGETING: Maximum efficiency for 700 zombies
+                                                if target.distance < 30 then
+                                                    -- CLOSE TARGETS: Instant kill with exact position
                                                     targetPos = target.head.Position
+                                                elseif target.distance < 60 then
+                                                    -- MEDIUM TARGETS: Fast prediction for quick kills
+                                                    local velocity = target.humanoid.MoveDirection * target.humanoid.WalkSpeed
+                                                    targetPos = target.head.Position + (velocity * 0.05) -- 50ms prediction
                                                 elseif target.distance < 100 then
-                                                    -- Medium targets: Slight prediction for better hit rate
+                                                    -- FAR TARGETS: Enhanced prediction for long-range
                                                     local velocity = target.humanoid.MoveDirection * target.humanoid.WalkSpeed
                                                     targetPos = target.head.Position + (velocity * 0.1) -- 100ms prediction
                                                 else
-                                                    -- Far targets: Enhanced prediction for long-range accuracy
+                                                    -- ULTRA-FAR TARGETS: Maximum prediction for efficiency
                                                     local velocity = target.humanoid.MoveDirection * target.humanoid.WalkSpeed
-                                                    targetPos = target.head.Position + (velocity * 0.2) -- 200ms prediction
+                                                    targetPos = target.head.Position + (velocity * 0.15) -- 150ms prediction
                                                 end
                                                 
                                                 local direction = (targetPos - origin).Unit
@@ -398,8 +402,8 @@ CombatTab:CreateToggle({
                                                     raycastParams.FilterDescendantsInstances = {workspace.Enemies}
                                                     raycastParams.FilterType = Enum.RaycastFilterType.Include
                                                     
-                                                    -- 🚀 ENHANCED SPREAD CALCULATION: Better accuracy with KnightMare compatibility
-                                                    local spread = 0.3 -- Reduced spread for better accuracy (KnightMare compatible)
+                                                    -- 🚀 ZERO SPREAD CALCULATION: Maximum accuracy for 700 zombies
+                                                    local spread = 0.1 -- Minimal spread for maximum accuracy
                                                     local randomX = (math.random() - 0.5) * spread
                                                     local randomY = (math.random() - 0.5) * spread
                                                     local spreadCFrame = CFrame.Angles(math.rad(randomX), math.rad(randomY), 0)
@@ -423,25 +427,25 @@ CombatTab:CreateToggle({
                                                             if shotIndex < overkillShots then
                                                                 local spacingDelay
                                                                 
-                                                                -- 🚀 BALANCED EXPLOITATIVE SPACING - KNIGHTMARE WEAKNESS EXPLOITATION
+                                                                -- 🚀 ULTRA-FAST BURST SPACING - 700 ZOMBIES IN 60 SECONDS
                                                                 if lethalThreats > 0 then
-                                                                    -- LETHAL THREAT MODE: Exploit KnightMare's 0.1s weakness
-                                                                    spacingDelay = 0.08 + (math.random() * 0.04) -- 80-120ms (Faster than 0.1s)
+                                                                    -- LETHAL THREAT MODE: INSTANT BURST FIRE
+                                                                    spacingDelay = 0.001 + (math.random() * 0.002) -- 1-3ms (INSTANT)
                                                                 elseif criticalThreats > 5 then
-                                                                    -- CRITICAL THREAT MODE: Exploit their timing
-                                                                    spacingDelay = 0.1 + (math.random() * 0.05) -- 100-150ms (Exploit 0.1s)
+                                                                    -- CRITICAL THREAT MODE: ULTRA-FAST BURST
+                                                                    spacingDelay = 0.002 + (math.random() * 0.003) -- 2-5ms (ULTRA-FAST)
                                                                 elseif closeThreats > 10 then
-                                                                    -- EMERGENCY MODE: Exploit their patterns
-                                                                    spacingDelay = 0.12 + (math.random() * 0.05) -- 120-170ms (Exploit patterns)
+                                                                    -- EMERGENCY MODE: FAST BURST
+                                                                    spacingDelay = 0.005 + (math.random() * 0.005) -- 5-10ms (FAST)
                                                                 elseif bossThreats > 0 then
-                                                                    -- BOSS MODE: Exploit their cycles
-                                                                    spacingDelay = 0.15 + (math.random() * 0.05) -- 150-200ms (Exploit cycles)
+                                                                    -- BOSS MODE: MEDIUM BURST
+                                                                    spacingDelay = 0.01 + (math.random() * 0.01) -- 10-20ms (MEDIUM)
                                                                 elseif isBoss then
-                                                                    -- BOSS TARGET: Exploit their processing
-                                                                    spacingDelay = 0.18 + (math.random() * 0.05) -- 180-230ms (Exploit processing)
+                                                                    -- BOSS TARGET: SLOW BURST
+                                                                    spacingDelay = 0.02 + (math.random() * 0.01) -- 20-30ms (SLOW)
                                                                 else
-                                                                    -- NORMAL: Exploit their timing
-                                                                    spacingDelay = 0.2 + (math.random() * 0.05) -- 200-250ms (Exploit timing)
+                                                                    -- NORMAL: NORMAL BURST
+                                                                    spacingDelay = 0.03 + (math.random() * 0.02) -- 30-50ms (NORMAL)
                                                                 end
                                                                 
                                                                 -- 🚀 KNIGHTMARE'S MOVE() EXPLOIT: They call move() every 0.1s
@@ -518,13 +522,13 @@ CombatTab:CreateToggle({
                     -- 🛡️ KNIGHTMARE KRYPTONITE - ULTIMATE DETECTION EXPLOIT
                     local cycleDelay
                     
-                    -- 🚀 BALANCED EXPLOITATIVE CYCLE DELAYS - KNIGHTMARE WEAKNESS EXPLOITATION
+                    -- 🚀 ULTRA-FAST BURST CYCLE DELAYS - 700 ZOMBIES IN 60 SECONDS
                     if stealthMode then
-                        -- Conservative: Exploit KnightMare's 0.1s weakness
-                        cycleDelay = 0.15 + (math.random() * 0.1) -- 150-250ms (Faster than 0.1s)
+                        -- Conservative: Fast burst cycles
+                        cycleDelay = 0.05 + (math.random() * 0.05) -- 50-100ms (FAST BURST)
                     else
-                        -- 🚀 EXPLOITATIVE LIMITS: Exploit KnightMare's timing
-                        cycleDelay = 0.08 + (math.random() * 0.04) -- 80-120ms (Exploit 0.1s weakness)
+                        -- 🚀 ULTRA-FAST BURST: Maximum throughput
+                        cycleDelay = 0.01 + (math.random() * 0.02) -- 10-30ms (ULTRA-FAST BURST)
                     end
                     
                     -- 🛡️ KNIGHTMARE'S RANDOMSEED EXPLOIT: math.randomseed(tick())
@@ -546,18 +550,32 @@ CombatTab:CreateToggle({
                         cycleDelay = cycleDelay * 0.2 -- 5x speed during animation processing
                     end
                     
-                    -- 🚀 BALANCED INCONSISTENCY: Maintain performance while avoiding detection
-                    local humanInconsistency = (math.random() - 0.5) * 0.02 -- ±10ms natural variation (reduced)
-                    cycleDelay = math.max(0.05, cycleDelay + humanInconsistency) -- Minimum 50ms
+                    -- 🚀 INTELLIGENT BURST GAPS: Avoid detection while maintaining speed
+                    local burstGap = 0
+                    local currentTime = tick()
                     
-                    -- 🚀 REDUCED PAUSES: Occasional shorter delays for better performance
-                    if math.random() < 0.05 then -- 5% chance of human pause (reduced)
-                        cycleDelay = cycleDelay + (0.1 + math.random() * 0.2) -- +100-300ms human pause (reduced)
+                    -- 🚀 BURST PATTERN: Fire in bursts, then pause
+                    local burstCycle = (currentTime * 2) % 4 -- 2-second burst cycles
+                    if burstCycle < 0.5 then
+                        -- BURST PHASE: Ultra-fast firing
+                        cycleDelay = cycleDelay * 0.1 -- 10x faster during burst
+                    elseif burstCycle < 1.0 then
+                        -- COOLDOWN PHASE: Normal speed
+                        cycleDelay = cycleDelay -- Normal speed
+                    elseif burstCycle < 1.5 then
+                        -- PAUSE PHASE: Longer delay to avoid detection
+                        burstGap = 0.2 + (math.random() * 0.3) -- 200-500ms gap
+                    else
+                        -- RECOVERY PHASE: Medium speed
+                        cycleDelay = cycleDelay * 2 -- 2x slower during recovery
                     end
                     
-                    -- 🚀 MINIMAL FOCUS DRIFT: Maintain consistent performance
-                    local focusDrift = math.sin(tick() * 0.1) * 0.02 -- Minimal focus variation (reduced)
-                    cycleDelay = cycleDelay * (1 + focusDrift) -- ±2% focus variation (reduced)
+                    -- 🚀 INTELLIGENT INCONSISTENCY: Natural variation
+                    local humanInconsistency = (math.random() - 0.5) * 0.01 -- ±5ms natural variation
+                    cycleDelay = math.max(0.005, cycleDelay + humanInconsistency) -- Minimum 5ms
+                    
+                    -- 🚀 BURST GAP APPLICATION
+                    cycleDelay = cycleDelay + burstGap
                     
                     -- Update last shot time for rate limiting
                     lastShot = tick()
