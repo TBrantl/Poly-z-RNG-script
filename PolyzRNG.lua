@@ -18,10 +18,10 @@ end)
 
 -- 🛡️ KNIGHTMARE-SYNCHRONIZED UI CONFIGURATION
 local Window = Rayfield:CreateWindow({
-    Name = "🔥 FREEZY HUB GODLIKE MODE 🔥 | POLY-Z | 🛡️ KnightMare Sync",
+    Name = "💀 FREEZY HUB INSTANT MASS ELIMINATION 💀 | POLY-Z | 🛡️ KnightMare Sync",
     Icon = 71338090068856,
-    LoadingTitle = "🔥 Initializing Godlike Exploit System...",
-    LoadingSubtitle = "20,000x Performance + Anti-Cheat Exploitation + Godlike Multi-Threading",
+    LoadingTitle = "💀 Initializing Instant Mass Elimination System...",
+    LoadingSubtitle = "Kill ALL Zombies Instantly + Anti-Cheat Exploitation + Mass Destruction",
     Theme = "Ocean",
     ToggleUIKeybind = Enum.KeyCode.K,
     ConfigurationSaving = {
@@ -674,14 +674,14 @@ CombatTab:CreateToggle({
                                 local baseShotCapacity = math.floor(5 + (focusFactor * 5)) -- 4-10 shots base
                                 
                                 if inHyperBlindspot then
-                                    -- 🔥 GODLIKE MODE: 20,000x performance in 10ms window
-                                    maxShotsPerCycle = math.min(totalThreats, 20000) -- Up to 20,000 shots!
+                                    -- 🔥 INSTANT MASS ELIMINATION: Kill ALL zombies in 10ms window
+                                    maxShotsPerCycle = totalThreats * 50 -- 50 shots per zombie = guaranteed death
                                 elseif inUltraBlindspot then
-                                    -- 🔥 ULTRA GODLIKE: 15,000x performance in 20ms window
-                                    maxShotsPerCycle = math.min(totalThreats, 15000) -- Up to 15,000 shots!
+                                    -- 🔥 ULTRA MASS ELIMINATION: Kill ALL zombies in 20ms window
+                                    maxShotsPerCycle = totalThreats * 30 -- 30 shots per zombie = guaranteed death
                                 elseif inBlindspot then
-                                    -- 🔥 KRYPTONITE GODLIKE: 10,000x performance in 40ms window
-                                    maxShotsPerCycle = math.min(totalThreats, 10000) -- Up to 10,000 shots!
+                                    -- 🔥 KRYPTONITE MASS ELIMINATION: Kill ALL zombies in 40ms window
+                                    maxShotsPerCycle = totalThreats * 20 -- 20 shots per zombie = guaranteed death
                                 elseif criticalThreats > 0 then
                                     -- ALERT MODE: Enhanced adrenaline boost
                                     local panicBoost = math.min(8, criticalThreats / 2) -- Up to +8 shots
@@ -738,39 +738,21 @@ CombatTab:CreateToggle({
                                                 task.wait(packetDelay)
                                             end
                                             
-                                            -- 🔥 GODLIKE MULTI-SHOT ZOMBIE ELIMINATION
-                                            -- Fire multiple shots per zombie to ensure death
+                                            -- 🔥 INSTANT MASS ZOMBIE ELIMINATION
+                                            -- Fire massive amounts of shots per zombie for guaranteed death
                                             local shotsPerZombie = 1
                                             
-                                            -- 🧠 ADAPTIVE SHOTS BASED ON ZOMBIE TYPE
-                                            local isBoss = target.model.Name == "GoblinKing" or target.model.Name == "CaptainBoom" or target.model.Name == "Fungarth"
-                                            local isStrongZombie = target.humanoid and target.humanoid.MaxHealth > 100
-                                            
                                             if inHyperBlindspot then
-                                                if isBoss then
-                                                    shotsPerZombie = 50 -- 50 shots for bosses in hyper blindspot
-                                                elseif isStrongZombie then
-                                                    shotsPerZombie = 20 -- 20 shots for strong zombies
-                                                else
-                                                    shotsPerZombie = 10 -- 10 shots for normal zombies
-                                                end
+                                                shotsPerZombie = 50 -- 50 shots per zombie = INSTANT DEATH
                                             elseif inUltraBlindspot then
-                                                if isBoss then
-                                                    shotsPerZombie = 30 -- 30 shots for bosses in ultra blindspot
-                                                elseif isStrongZombie then
-                                                    shotsPerZombie = 15 -- 15 shots for strong zombies
-                                                else
-                                                    shotsPerZombie = 8 -- 8 shots for normal zombies
-                                                end
+                                                shotsPerZombie = 30 -- 30 shots per zombie = INSTANT DEATH
                                             elseif inBlindspot then
-                                                if isBoss then
-                                                    shotsPerZombie = 20 -- 20 shots for bosses in kryptonite blindspot
-                                                elseif isStrongZombie then
-                                                    shotsPerZombie = 10 -- 10 shots for strong zombies
-                                                else
-                                                    shotsPerZombie = 5 -- 5 shots for normal zombies
-                                                end
+                                                shotsPerZombie = 20 -- 20 shots per zombie = INSTANT DEATH
                                             else
+                                                -- Normal mode - adaptive shots
+                                                local isBoss = target.model.Name == "GoblinKing" or target.model.Name == "CaptainBoom" or target.model.Name == "Fungarth"
+                                                local isStrongZombie = target.humanoid and target.humanoid.MaxHealth > 100
+                                                
                                                 if isBoss then
                                                     shotsPerZombie = 5 -- 5 shots for bosses in normal mode
                                                 elseif isStrongZombie then
@@ -780,10 +762,10 @@ CombatTab:CreateToggle({
                                                 end
                                             end
                                             
-                                            -- 🔥 GODLIKE SHOT FIRING - MULTIPLE SHOTS PER ZOMBIE
+                                            -- 🔥 INSTANT MASS FIRING - NO DELAYS IN BLINDSPOTS
                                             for i = 1, shotsPerZombie do
-                                                -- NO DELAYS in godlike mode - instant firing
-                                                shootRemote:FireServer(unpack(args))
+                                                -- NO DELAYS in blindspots - instant mass firing
+                                            shootRemote:FireServer(unpack(args))
                                             end
                                         end)
                                         
