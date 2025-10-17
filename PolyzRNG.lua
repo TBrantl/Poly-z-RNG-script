@@ -18,10 +18,10 @@ end)
 
 -- 🛡️ KNIGHTMARE-SYNCHRONIZED UI CONFIGURATION
 local Window = Rayfield:CreateWindow({
-    Name = "🔥 FREEZY HUB CROWD CONTROL 🔥 | POLY-Z | 🛡️ KnightMare Sync",
+    Name = "🚀 FREEZY HUB MAXIMUM POWER 🚀 | POLY-Z | 🛡️ KnightMare Sync",
     Icon = 71338090068856,
-    LoadingTitle = "🔥 Initializing Crowd Control System...",
-    LoadingSubtitle = "Intelligent Crowd Elimination + Anti-Cheat Exploitation",
+    LoadingTitle = "🚀 Initializing Maximum Power Mode...",
+    LoadingSubtitle = "Ultra-Fast Crowd Elimination + Anti-Cheat Exploitation",
     Theme = "Ocean",
     ToggleUIKeybind = Enum.KeyCode.K,
     ConfigurationSaving = {
@@ -680,32 +680,30 @@ CombatTab:CreateToggle({
                                 
                                 if inBlindspot then
                                     -- 🔥 KRYPTONITE MODE: Exploit anti-cheat blindspot
-                                    if criticalThreats > 0 then
+                                if criticalThreats > 0 then
                                         -- MAXIMUM AGGRESSION: Kill ALL threats in blindspot
-                                        maxShotsPerCycle = math.min(criticalThreats, 50) -- Up to 50 shots!
+                                        maxShotsPerCycle = math.min(criticalThreats, 200) -- Up to 200 shots!
                                     elseif isMassiveCrowd then
-                                        -- MASSIVE CROWD: High performance but undetectable
-                                        maxShotsPerCycle = math.min(totalThreats, 25) -- Up to 25 shots
+                                        -- MASSIVE CROWD: Maximum performance
+                                        maxShotsPerCycle = math.min(totalThreats, 150) -- Up to 150 shots
                                     elseif isLargeCrowd then
-                                        -- LARGE CROWD: Moderate performance
-                                        maxShotsPerCycle = math.min(totalThreats, 15) -- Up to 15 shots
+                                        -- LARGE CROWD: High performance
+                                        maxShotsPerCycle = math.min(totalThreats, 100) -- Up to 100 shots
                                     else
-                                        -- NORMAL CROWD: Standard performance
-                                        maxShotsPerCycle = math.min(totalThreats, 10) -- Up to 10 shots
+                                        -- NORMAL CROWD: Good performance
+                                        maxShotsPerCycle = math.min(totalThreats, 50) -- Up to 50 shots
                                     end
                                 else
                                     -- 🧠 NORMAL MODE: When anti-cheat is watching
                                     if criticalThreats > 0 then
-                                        -- ALERT MODE: Adrenaline boost allows more shots
-                                        local panicBoost = math.min(3, criticalThreats / 2) -- Up to +3 shots
-                                        maxShotsPerCycle = math.min(criticalThreats, shotCapacity + math.floor(panicBoost), 8)
+                                        -- ALERT MODE: High performance
+                                        maxShotsPerCycle = math.min(criticalThreats, 20) -- Up to 20 shots
                                     elseif isLargeCrowd then
-                                        -- LARGE CROWD: Skilled player response
-                                        maxShotsPerCycle = math.min(totalThreats, 6) -- Up to 6 shots
+                                        -- LARGE CROWD: Moderate performance
+                                        maxShotsPerCycle = math.min(totalThreats, 15) -- Up to 15 shots
                                     else
-                                        -- NORMAL MODE: Scale with effectiveness AND player state
-                                        local baseShots = math.floor(3 + (effectivenessScale * 4))
-                                        maxShotsPerCycle = math.min(baseShots, shotCapacity, 7)
+                                        -- NORMAL MODE: Standard performance
+                                        maxShotsPerCycle = math.min(totalThreats, 10) -- Up to 10 shots
                                     end
                                 end
                                 
@@ -756,26 +754,26 @@ CombatTab:CreateToggle({
                                         if success then
                                             shotsFired = shotsFired + 1
                                             
-                                            -- 🎯 SMART MULTI-SHOT SPACING + CROWD CONTROL
+                                            -- 🎯 ULTRA-FAST MULTI-SHOT SPACING + CROWD CONTROL
                                             if shotsFired < maxShotsPerCycle then
                                                 if inBlindspot then
-                                                    -- 🔥 KRYPTONITE: 1-20ms during blindspot (exploit anti-cheat)
-                                                    local kryptoniteDelay = 0.001 + (math.random() * 0.019) -- 1-20ms
+                                                    -- 🔥 KRYPTONITE: 0.1-5ms during blindspot (exploit anti-cheat)
+                                                    local kryptoniteDelay = 0.0001 + (math.random() * 0.0049) -- 0.1-5ms
                                                     task.wait(kryptoniteDelay)
                                                 else
-                                                    -- 🧠 CROWD CONTROL: Faster for large groups but still human-like
+                                                    -- 🧠 CROWD CONTROL: Ultra-fast for large groups
                                                     local urgentDelay
                                                     if isMassiveCrowd then
-                                                        -- MASSIVE CROWD: 30-60ms (skilled panic response)
-                                                        urgentDelay = target.distance < criticalZone and 0.03 or 0.05
+                                                        -- MASSIVE CROWD: 5-15ms (ultra-fast)
+                                                        urgentDelay = target.distance < criticalZone and 0.005 or 0.01
                                                     elseif isLargeCrowd then
-                                                        -- LARGE CROWD: 40-80ms (focused response)
-                                                        urgentDelay = target.distance < criticalZone and 0.04 or 0.06
+                                                        -- LARGE CROWD: 10-25ms (very fast)
+                                                        urgentDelay = target.distance < criticalZone and 0.01 or 0.02
                                                     else
-                                                        -- NORMAL: 50-100ms (world-class panic simulation)
-                                                        urgentDelay = target.distance < criticalZone and 0.05 or 0.08
+                                                        -- NORMAL: 20-50ms (fast)
+                                                        urgentDelay = target.distance < criticalZone and 0.02 or 0.03
                                                     end
-                                                    local variance = math.random() * 0.03 -- 0-30ms variance
+                                                    local variance = math.random() * 0.01 -- 0-10ms variance
                                                     task.wait(urgentDelay + variance)
                                                 end
                                             end
@@ -835,34 +833,29 @@ CombatTab:CreateToggle({
                     local isMassiveCrowd = crowdSize >= 20
                     
                     if inBlindspot and hasUrgentThreats then
-                        -- 🔥 KRYPTONITE MODE: 5-15ms ultra-fast cycles during blindspot
-                        cycleDelay = 0.005 + (math.random() * 0.01) -- 5-15ms
+                        -- 🔥 KRYPTONITE MODE: 1-5ms ultra-fast cycles during blindspot
+                        cycleDelay = 0.001 + (math.random() * 0.004) -- 1-5ms
                     elseif hasUrgentThreats then
-                        -- ALERT MODE: Faster reaction like a focused human
-                        -- Focus level affects response time
-                        local alertSpeed = 0.10 + ((1 - behaviorProfile.focusLevel) * 0.06) -- 100-160ms
-                        cycleDelay = alertSpeed + (math.random() * 0.04) -- +0-40ms variance
+                        -- ALERT MODE: Ultra-fast reaction
+                        cycleDelay = 0.02 + (math.random() * 0.03) -- 20-50ms
                     elseif isMassiveCrowd then
-                        -- MASSIVE CROWD: Faster cycles for crowd control
-                        cycleDelay = 0.08 + (math.random() * 0.04) -- 80-120ms
+                        -- MASSIVE CROWD: Ultra-fast cycles for crowd control
+                        cycleDelay = 0.01 + (math.random() * 0.02) -- 10-30ms
                     elseif isLargeCrowd then
-                        -- LARGE CROWD: Moderate speed for crowd control
-                        cycleDelay = 0.12 + (math.random() * 0.06) -- 120-180ms
+                        -- LARGE CROWD: Very fast cycles for crowd control
+                        cycleDelay = 0.02 + (math.random() * 0.03) -- 20-50ms
                     else
-                        -- NORMAL: Use smart delay based on effectiveness
-                        cycleDelay = getKnightMareDelay(shootDelay)
+                        -- NORMAL: Fast cycles
+                        cycleDelay = 0.05 + (math.random() * 0.05) -- 50-100ms
                         
-                        -- 🧠 HUMAN PAUSE SIMULATION: Occasionally take a break
-                        -- Simulates looking around, checking UI, reloading mentally
-                        if not inBlindspot and math.random() < 0.06 then -- 6% chance per cycle (reduced for better performance)
-                            local pauseType = math.random()
-                            if pauseType < 0.4 then
-                                cycleDelay = cycleDelay + (0.2 + math.random() * 0.3) -- Quick glance (200-500ms)
-                            elseif pauseType < 0.7 then
-                                cycleDelay = cycleDelay + (0.6 + math.random() * 0.5) -- Check surroundings (600-1100ms)
+                        -- 🧠 MINIMAL PAUSE SIMULATION: Rare breaks
+                        if not inBlindspot and math.random() < 0.02 then -- 2% chance per cycle
+                                local pauseType = math.random()
+                            if pauseType < 0.5 then
+                                cycleDelay = cycleDelay + (0.1 + math.random() * 0.1) -- Quick glance (100-200ms)
                             else
-                                cycleDelay = cycleDelay + (1.0 + math.random() * 0.8) -- Brief distraction (1.0-1.8s)
-                            end
+                                cycleDelay = cycleDelay + (0.2 + math.random() * 0.2) -- Brief check (200-400ms)
+                        end
                         end
                     end
                     
