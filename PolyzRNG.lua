@@ -788,15 +788,6 @@ CombatTab:CreateToggle({
                                 else
                                     maxShotsPerCycle = totalThreats * 1 -- 1 shot per zombie = INSTANT CROWD CLEARING
                                 end
-                                elseif criticalThreats > 0 then
-                                    -- ALERT MODE: Enhanced adrenaline boost
-                                    local panicBoost = math.min(8, criticalThreats / 2) -- Up to +8 shots
-                                    maxShotsPerCycle = math.min(criticalThreats, baseShotCapacity + math.floor(panicBoost), 20)
-                                else
-                                    -- NORMAL MODE: Enhanced base performance
-                                    local baseShots = math.floor(6 + (effectivenessScale * 8))
-                                    maxShotsPerCycle = math.min(baseShots, baseShotCapacity, 15)
-                                end
                                 
                                 -- RANDOM VARIATION: Sometimes shoot fewer (distraction, hesitation)
                                 if math.random() < 0.20 then -- 20% chance
