@@ -18,10 +18,10 @@ end)
 
 -- 🛡️ KNIGHTMARE-SYNCHRONIZED UI CONFIGURATION
 local Window = Rayfield:CreateWindow({
-    Name = "❄️ Freezy HUB ❄️ | POLY-Z | 🛡️ KnightMare Sync",
+    Name = "🔥 FREEZY HUB 20X 🔥 | POLY-Z | 🛡️ KnightMare Sync",
     Icon = 71338090068856,
-    LoadingTitle = "🛡️ Initializing KnightMare Synchronicity...",
-    LoadingSubtitle = "Advanced Detection Evasion Active",
+    LoadingTitle = "🔥 Initializing 20X Hyperspeed Mode...",
+    LoadingSubtitle = "Extreme Blindspot Exploitation Active",
     Theme = "Ocean",
     ToggleUIKeybind = Enum.KeyCode.K,
     ConfigurationSaving = {
@@ -119,24 +119,9 @@ local function updateEffectiveness(level)
     
     local scaleFactor = level / 100
     
-    -- 🛡️ DETECTION-SAFE PERFORMANCE MODES: 0.30s (safe) to 0.08s (world-class at 100%)
-    -- CRITICAL: All modes stay within human limits to prevent detection
-    if level >= 95 then
-        -- WORLD-CLASS MODE: Maximum human performance (95-100%)
-        shootDelay = 0.12 - ((level - 95) / 5 * 0.04) -- 0.12s to 0.08s (world-class human)
-    elseif level >= 80 then
-        -- PROFESSIONAL MODE: High human performance (80-94%)
-        shootDelay = 0.18 - ((level - 80) / 15 * 0.06) -- 0.18s to 0.12s (professional human)
-    elseif level >= 60 then
-        -- SKILLED MODE: Good human performance (60-79%)
-        shootDelay = 0.25 - ((level - 60) / 20 * 0.07) -- 0.25s to 0.18s (skilled human)
-    else
-        -- CASUAL MODE: Average human performance (0-59%)
-        shootDelay = 0.30 - (scaleFactor * 0.05) -- 0.30s to 0.25s (casual human)
-    end
-    
-    -- 🛡️ DETECTION PROTECTION: Ensure shootDelay stays within human limits
-    shootDelay = math.max(detectionProtection.humanReactionTimeMin, math.min(detectionProtection.humanReactionTimeMax, shootDelay))
+    -- Adaptive shot delay: 0.30s (safe) to 0.18s (skilled human at 100%)
+    -- CRITICAL: Never go below 0.18s - that's the absolute human limit
+    shootDelay = 0.30 - (scaleFactor * 0.12)
     
     -- Adaptive human reaction time
     adaptiveDelay = shootDelay
@@ -171,46 +156,6 @@ local maxShootDistance = 250 -- Match game's 250 stud limit (line 12153)
 -- 3. FireServer args: (EnemyModel, HitPart, HitPosition, 0, WeaponName)
 -- 4. Rate limiting based on tick() intervals and shot frequency
 
--- 🛡️ ADVANCED DETECTION PROTECTION SYSTEM - Intelligent Anti-Detection
-local detectionProtection = {
-    -- Human reaction time limits (based on real human performance)
-    humanReactionTimeMin = 0.12,  -- 120ms minimum (safe human)
-    humanReactionTimeMax = 0.35,  -- 350ms maximum (casual human)
-    
-    -- Human shot rate limits (based on real professional players)
-    maxShotsPerSecond = 4,        -- 4 shots/sec (professional sustained)
-    maxShotsPerSecondBurst = 6,   -- 6 shots/sec (burst capability)
-    
-    -- Human multi-shot spacing limits
-    minMultiShotSpacing = 0.12,   -- 120ms minimum between shots
-    maxMultiShotSpacing = 0.25,   -- 250ms maximum between shots
-    
-    -- Human cycle timing limits
-    minCycleDelay = 0.15,         -- 150ms minimum cycle delay
-    maxCycleDelay = 0.40,         -- 400ms maximum cycle delay
-    
-    -- Human shot allocation limits
-    maxShotsPerCycle = 6,         -- 6 shots maximum per cycle
-    maxShotsPerCycleBurst = 8,    -- 8 shots maximum in burst mode
-    
-    -- Detection risk thresholds
-    lowRiskThreshold = 0.2,       -- Below 20% = low risk
-    mediumRiskThreshold = 0.4,    -- 20-40% = medium risk
-    highRiskThreshold = 0.6,      -- Above 40% = high risk
-    
-    -- Behavioral simulation parameters
-    focusDriftRate = 0.01,        -- How fast focus changes
-    fatigueAccumulationRate = 0.005, -- How fast fatigue builds
-    skillDriftAmplitude = 0.05,   -- How much skill varies
-    
-    -- Advanced anti-detection features
-    patternBreakInterval = 30,    -- Break patterns every 30 seconds
-    lastPatternBreak = 0,         -- Last pattern break time
-    sessionVariation = math.random() * 0.3 + 0.1, -- Unique session variation (10-40%)
-    microPauses = true,           -- Enable micro-pauses for realism
-    naturalInconsistency = 0.15,  -- Natural inconsistency level
-}
-
 local lastValidationTime = 0
 local shotHistory = {} -- Track shot timing patterns
 local detectionRisk = 0 -- Dynamic risk assessment
@@ -231,15 +176,6 @@ local behaviorProfile = {
 local function getKnightMareDelay(base)
     local currentTime = tick()
     
-    -- 🛡️ ADVANCED PATTERN BREAKING SYSTEM
-    -- Break patterns periodically to prevent detection
-    if currentTime - detectionProtection.lastPatternBreak > detectionProtection.patternBreakInterval then
-        -- Introduce random variation to break patterns
-        behaviorProfile.focusLevel = math.max(0.3, math.min(1, behaviorProfile.focusLevel + (math.random() - 0.5) * 0.2))
-        behaviorProfile.fatigueLevel = math.max(0, math.min(0.7, behaviorProfile.fatigueLevel + (math.random() - 0.5) * 0.1))
-        detectionProtection.lastPatternBreak = currentTime
-    end
-    
     -- Analyze recent shot pattern for detection risk
     local recentShots = 0
     local shotsLast1Sec = 0
@@ -252,85 +188,85 @@ local function getKnightMareDelay(base)
         end
     end
     
-    -- 🧬 ADVANCED BEHAVIORAL SIMULATION - Natural Human Patterns
+    -- 🧬 EVOLUTIONARY BEHAVIOR SIMULATION - Infinitely Adaptive
+    -- Update behavioral profile dynamically
     local sessionDuration = currentTime - sessionStartTime
     
     -- FOCUS DRIFT: Humans naturally lose/gain focus over time
-    if currentTime - behaviorProfile.lastFocusChange > math.random(15, 40) then
-        local focusChange = (math.random() - 0.5) * detectionProtection.focusDriftRate -- Natural focus drift
+    if currentTime - behaviorProfile.lastFocusChange > math.random(10, 30) then
+        local focusChange = (math.random() - 0.5) * 0.15 -- ±7.5% focus drift
         behaviorProfile.focusLevel = math.max(0.3, math.min(1, behaviorProfile.focusLevel + focusChange))
         behaviorProfile.lastFocusChange = currentTime
     end
     
     -- FATIGUE ACCUMULATION: Humans get tired (or adrenaline kicks in)
-    if currentTime - behaviorProfile.lastFatigueChange > math.random(30, 60) then
-        local fatigueChange = math.random() * detectionProtection.fatigueAccumulationRate - 0.002 -- Mostly increases
+    if currentTime - behaviorProfile.lastFatigueChange > math.random(20, 45) then
+        -- Fatigue increases, but adrenaline can temporarily reduce it
+        local fatigueChange = math.random() * 0.08 - 0.02 -- Mostly increases
         behaviorProfile.fatigueLevel = math.max(0, math.min(0.7, behaviorProfile.fatigueLevel + fatigueChange))
         behaviorProfile.lastFatigueChange = currentTime
     end
     
     -- SKILL DRIFT: Performance varies throughout session
-    behaviorProfile.skillDrift = math.sin(sessionDuration * 0.03) * detectionProtection.skillDriftAmplitude -- Natural oscillation
+    behaviorProfile.skillDrift = math.sin(sessionDuration * 0.05) * 0.1 -- Oscillates ±10%
     
-    -- 🛡️ ENHANCED DETECTION RISK ANALYSIS
-    if shotsLast1Sec > 3 then
-        detectionRisk = math.min(1, detectionRisk + 0.1)
-    elseif recentShots > 6 then
-        detectionRisk = math.min(1, detectionRisk + 0.05)
+    -- DETECTION RISK ANALYSIS (adaptive)
+    if shotsLast1Sec > 4 then
+        detectionRisk = math.min(1, detectionRisk + 0.15)
+    elseif recentShots > 8 then
+        detectionRisk = math.min(1, detectionRisk + 0.08)
     else
-        detectionRisk = math.max(0, detectionRisk - 0.02) -- Gradual recovery
+        detectionRisk = math.max(0, detectionRisk - 0.04) -- Recovery
     end
     
-    -- 🎯 NATURAL HUMAN SIMULATION WITH INCONSISTENCY
-    local basePlayerStyle = stealthMode and 1.8 or 1.2 -- More conservative base
+    -- 🎯 MULTI-FACTOR HUMAN SIMULATION
+    -- Base player style (varies with stealth mode)
+    local basePlayerStyle = stealthMode and 2.2 or 1.5
     
     -- FOCUS MULTIPLIER: Focused = faster, distracted = slower
-    local focusMultiplier = 1.2 - (behaviorProfile.focusLevel * 0.3) -- 0.9-1.2x
+    local focusMultiplier = 1.3 - (behaviorProfile.focusLevel * 0.5) -- 0.8-1.3x
     
     -- FATIGUE MULTIPLIER: Tired = slower reactions
-    local fatigueMultiplier = 1 + (behaviorProfile.fatigueLevel * 0.8) -- 1.0-1.56x
+    local fatigueMultiplier = 1 + (behaviorProfile.fatigueLevel * 1.5) -- 1.0-2.05x
     
     -- RISK MULTIPLIER: High risk = more careful
-    local riskMultiplier = 1 + (detectionRisk * 1.2) -- 1.0-2.2x
+    local riskMultiplier = 1 + (detectionRisk * 1.8) -- 1.0-2.8x
     
     -- SKILL DRIFT MULTIPLIER: Natural performance variation
-    local skillMultiplier = 1 + behaviorProfile.skillDrift -- 0.95-1.05x
-    
-    -- SESSION VARIATION: Each session plays differently
-    local sessionMultiplier = 1 + detectionProtection.sessionVariation -- 1.1-1.4x
+    local skillMultiplier = 1 + behaviorProfile.skillDrift -- 0.9-1.1x
     
     -- COMBINE ALL FACTORS (multiplicative for realism)
-    local playerStyle = basePlayerStyle * focusMultiplier * fatigueMultiplier * riskMultiplier * skillMultiplier * sessionMultiplier
+    local playerStyle = basePlayerStyle * focusMultiplier * fatigueMultiplier * riskMultiplier * skillMultiplier
     
-    -- NATURAL INCONSISTENCY: Humans are never perfectly consistent
-    local baseVariance = detectionProtection.naturalInconsistency + (math.random() * 0.1) -- 15-25% variance
-    local reactionVariance = baseVariance + (math.random() * baseVariance) -- 15-50% total variance
+    -- UNIQUE SESSION VARIANCE: Each session plays differently
+    -- Uses the unique consistency profile generated at session start
+    local baseVariance = behaviorProfile.consistencyProfile
+    local reactionVariance = baseVariance + (math.random() * baseVariance) -- 10-80% variance
     
     -- CALCULATE BASE REACTION TIME
     local reactionTime = math.max(base, adaptiveDelay) * playerStyle
     
     -- MICRO-VARIATIONS: Hand tremor, mouse slip, distraction
-    local microVariation = (math.random() * 0.08 - 0.03) -- -30ms to +50ms
+    -- These are completely random and unpredictable
+    local microVariation = (math.random() * 0.10 - 0.04) -- -40ms to +60ms
     
     -- MACRO-VARIANCE: Occasional significantly different timing
-    if math.random() < 0.1 then -- 10% chance of macro-variance
-        microVariation = microVariation + (math.random() * 0.1) -- +0-100ms extra
-    end
-    
-    -- MICRO-PAUSES: Natural human pauses
-    if detectionProtection.microPauses and math.random() < 0.05 then -- 5% chance
-        microVariation = microVariation + (math.random() * 0.05) -- +0-50ms pause
+    -- Simulates hesitation, double-take, distraction bursts
+    if math.random() < 0.15 then -- 15% chance of macro-variance
+        microVariation = microVariation + (math.random() * 0.15) -- +0-150ms extra
     end
     
     -- FINAL DELAY CALCULATION
     local finalDelay = reactionTime + (reactionTime * reactionVariance) + microVariation
     
     -- ADAPTIVE MINIMUM BASED ON CONTEXT
+    -- Low effectiveness or high risk = slower minimum
+    -- High effectiveness and low risk = can be faster
     local contextualMinimum
-    if detectionRisk > detectionProtection.mediumRiskThreshold then
-        contextualMinimum = 0.25 -- Play it safe when risk is high
+    if detectionRisk > 0.3 then
+        contextualMinimum = 0.22 -- Play it safe when risk is high
     elseif stealthMode then
-        contextualMinimum = 0.22 -- Conservative baseline
+        contextualMinimum = 0.20 -- Conservative baseline
     else
         contextualMinimum = 0.18 -- Professional baseline
     end
@@ -366,63 +302,23 @@ local function shouldAllowKnightMareShot()
     -- PERFECT HUMAN LIMITS (based on real professional players)
     -- Pro gamers during intense moments: ~4-5 accurate shots/sec sustained
     -- Average skilled: ~3 shots/sec, Casual: ~2 shots/sec
-    -- 🛡️ DETECTION-SAFE RATE LIMITING with intelligent scaling
-    local threatMultiplier = 1.0
-    local effectivenessMultiplier = 1.0
-    local roundMultiplier = 1.0
-    local spawnRateMultiplier = 1.0
-    
-    if not stealthMode then
-        -- 🛡️ SAFE dynamic scaling based on current threat level, effectiveness, round, and spawn rate
-        local currentThreats = 0
-        local enemies = workspace:FindFirstChild("Enemies")
-        if enemies then
-            for _, zombie in pairs(enemies:GetChildren()) do
-                if zombie:IsA("Model") and zombie:FindFirstChild("Head") then
-                    currentThreats = currentThreats + 1
-                end
-            end
-        end
-        
-        -- 🛡️ DETECTION-SAFE MULTIPLIERS: Stay within human capabilities
-        threatMultiplier = math.min(2, 1 + (currentThreats / 10)) -- Up to 2x multiplier (human-like)
-        effectivenessMultiplier = math.min(1.5, 1 + (effectivenessLevel / 200)) -- Up to 1.5x effectiveness multiplier
-        roundMultiplier = math.min(1.3, 1 + ((currentRound or 1) / 50)) -- Up to 1.3x round multiplier
-        spawnRateMultiplier = math.min(1.2, 1 + (currentThreats / 20)) -- Up to 1.2x spawn rate multiplier
-    end
-    
-    local totalMultiplier = threatMultiplier * effectivenessMultiplier * roundMultiplier * spawnRateMultiplier
-    
-    -- 🛡️ DETECTION-SAFE RATE LIMITS: Based on real human performance
-    local maxShotsPerSecond = detectionProtection.maxShotsPerSecond * totalMultiplier
-    local maxShotsPerSecondBurst = detectionProtection.maxShotsPerSecondBurst * totalMultiplier
-    
     if stealthMode then
         -- Cautious player behavior
-        if shotsLast1Sec >= math.floor(maxShotsPerSecond * 0.5) then return false end
-        if shotsLast2Sec >= math.floor(maxShotsPerSecond * 1.2) then return false end
-        if shotsLast5Sec >= math.floor(maxShotsPerSecond * 3) then return false end
-        if shotsLast10Sec >= math.floor(maxShotsPerSecond * 6) then return false end
+        if shotsLast1Sec >= 3 then return false end -- Max 3 shots per second
+        if shotsLast2Sec >= 5 then return false end -- Max 5 shots per 2 seconds
+        if shotsLast5Sec >= 12 then return false end -- Max 12 shots per 5 seconds
+        if shotsLast10Sec >= 20 then return false end -- Max 20 shots per 10 seconds
     else
-        -- 🛡️ DETECTION-SAFE player behavior (human-like capability)
-        if shotsLast1Sec >= math.floor(maxShotsPerSecondBurst) then return false end
-        if shotsLast2Sec >= math.floor(maxShotsPerSecondBurst * 1.5) then return false end
-        if shotsLast5Sec >= math.floor(maxShotsPerSecondBurst * 4) then return false end
-        if shotsLast10Sec >= math.floor(maxShotsPerSecondBurst * 8) then return false end
+        -- Skilled player behavior (still realistic)
+        if shotsLast1Sec >= 4 then return false end -- Max 4 shots per second (skilled limit)
+        if shotsLast2Sec >= 7 then return false end -- Max 7 shots per 2 seconds
+        if shotsLast5Sec >= 16 then return false end -- Max 16 shots per 5 seconds
+        if shotsLast10Sec >= 28 then return false end -- Max 28 shots per 10 seconds
     end
     
-    -- 🛡️ DETECTION-SAFE REACTION TIME with intelligent scaling
-    -- 🛡️ SAFE players maintain human-like reaction times to prevent detection
-    local baseReactionTime = stealthMode and 0.15 or 0.10
-    local threatSpeedBoost = math.min(0.02, currentThreats * 0.001) -- Safe speed boost based on threats
-    local effectivenessSpeedBoost = math.min(0.01, effectivenessLevel * 0.0001) -- Effectiveness speed boost
-    local roundSpeedBoost = math.min(0.005, (currentRound or 1) * 0.0001) -- Round-based speed boost
-    local spawnRateSpeedBoost = math.min(0.003, currentThreats * 0.0001) -- Spawn rate speed boost
-    local humanReactionTime = baseReactionTime - threatSpeedBoost - effectivenessSpeedBoost - roundSpeedBoost - spawnRateSpeedBoost
-    
-    -- 🛡️ DETECTION PROTECTION: Ensure reaction time stays within human limits
-    humanReactionTime = math.max(detectionProtection.humanReactionTimeMin, math.min(detectionProtection.humanReactionTimeMax, humanReactionTime))
-    
+    -- Human minimum reaction time between accurate shots
+    -- Professional players can sustain 180-200ms between shots during intense focus
+    local humanReactionTime = stealthMode and 0.20 or 0.18
     if currentTime - lastValidationTime < humanReactionTime then
         return false
     end
@@ -496,28 +392,13 @@ local function getKnightMareShotPosition(targetHead, targetModel)
             -- 🔄 OBSTACLE DETECTED - Smart alternative targeting
             -- KnightMare allows multiple raycast attempts (human-like behavior)
             
-            -- 🎯 INTELLIGENT HITBOX PRIORITIZATION FOR MAXIMUM HIT RATE
-            -- Prioritize larger, easier-to-hit body parts first
+            -- Try multiple body parts (important for bosses with different structures)
             local bodyParts = {
-                -- PRIMARY TARGETS: Large, easy-to-hit body parts (highest priority)
-                "Head", "Torso", "UpperTorso", "LowerTorso", "HumanoidRootPart",
-                -- SECONDARY TARGETS: Medium-sized parts
-                "LeftUpperArm", "RightUpperArm", "LeftUpperLeg", "RightUpperLeg",
-                -- TERTIARY TARGETS: Smaller parts (only if others fail)
-                "Left Arm", "Right Arm", "Left Leg", "Right Leg"
+                "Torso", "UpperTorso", "LowerTorso",
+                "HumanoidRootPart", 
+                "Left Arm", "Right Arm", "LeftUpperArm", "RightUpperArm",
+                "Left Leg", "Right Leg", "LeftUpperLeg", "RightUpperLeg"
             }
-            
-            -- 🎯 HITBOX SIZE WEIGHTS (larger = easier to hit, better hit rate)
-            local hitboxWeights = {
-                ["Head"] = 1.0, -- Perfect target, one-shot potential
-                ["Torso"] = 0.9, ["UpperTorso"] = 0.9, ["LowerTorso"] = 0.9, ["HumanoidRootPart"] = 0.9, -- Large targets
-                ["LeftUpperArm"] = 0.7, ["RightUpperArm"] = 0.7, ["LeftUpperLeg"] = 0.7, ["RightUpperLeg"] = 0.7, -- Medium targets
-                ["Left Arm"] = 0.5, ["Right Arm"] = 0.5, ["Left Leg"] = 0.5, ["Right Leg"] = 0.5 -- Small targets
-            }
-            
-            -- 🎯 SMART HITBOX SELECTION WITH WEIGHTED PRIORITY
-            local bestHit = nil
-            local bestWeight = 0
             
             for _, partName in ipairs(bodyParts) do
                 local part = targetModel:FindFirstChild(partName)
@@ -527,26 +408,10 @@ local function getKnightMareShotPosition(targetHead, targetModel)
                     local partRay = workspace:Raycast(origin, partDir * partDist, raycastParams)
                     
                     if partRay and partRay.Instance:IsDescendantOf(workspace.Enemies) then
-                        -- This part is visible! Check if it's better than current best
-                        local weight = hitboxWeights[partName] or 0.5
-                        
-                        -- Prefer headshots for one-shot kills
-                        if partName == "Head" then
-                            return partRay.Position, partRay.Instance -- Always take headshots
-                        end
-                        
-                        -- For other parts, choose the best available
-                        if weight > bestWeight then
-                            bestHit = {partRay.Position, partRay.Instance}
-                            bestWeight = weight
-                        end
+                        -- This part is visible! Shoot it
+                        return partRay.Position, partRay.Instance
                     end
                 end
-            end
-            
-            -- Return the best hit found
-            if bestHit then
-                return bestHit[1], bestHit[2]
             end
             
                     -- ENHANCED BOSS TARGETING: Try ANY part in the model that's visible
@@ -697,16 +562,9 @@ CombatTab:CreateToggle({
                         local enemies = workspace:FindFirstChild("Enemies")
                         local shootRemote = Remotes and Remotes:FindFirstChild("ShootEnemy")
                         
-                        -- Wait for Remotes to load if not ready
-                        if not Remotes then
-                            task.wait(0.1)
-                            return
-                        end
-                        
                         if enemies and shootRemote then
                             local weapon = getEquippedWeaponName()
                             local validTargets = {}
-                            
                             
                             -- Collect ALL living enemies with distance info
                             local character = player.Character
@@ -737,7 +595,6 @@ CombatTab:CreateToggle({
                                 end
                             end
                             
-                            
                             -- 🎯 DYNAMIC PERFECT DEFENSE: Scales with effectiveness level
                             if #validTargets > 0 then
                                 -- INTELLIGENT DEFENSE ZONES (scale with effectiveness)
@@ -747,7 +604,6 @@ CombatTab:CreateToggle({
                                 local highThreatZone = 30 + (effectivenessScale * 30) -- 30-60 studs
                                 local preemptiveZone = 50 + (effectivenessScale * 50) -- 50-100 studs
                                 
-                                -- 🎯 INTELLIGENT TARGET PRIORITIZATION - Smart Target Selection for Maximum Efficiency
                                 table.sort(validTargets, function(a, b)
                                     local aBoss = a.model.Name == "GoblinKing" or a.model.Name == "CaptainBoom" or a.model.Name == "Fungarth"
                                     local bBoss = b.model.Name == "GoblinKing" or b.model.Name == "CaptainBoom" or b.model.Name == "Fungarth"
@@ -758,30 +614,14 @@ CombatTab:CreateToggle({
                                     if aCritical and not bCritical then return true end
                                     if bCritical and not aCritical then return false end
                                     
-                                    -- BOSS PRIORITY: Always prioritize bosses for maximum efficiency
-                                    if aBoss and not bBoss then return true end
-                                    if bBoss and not aBoss then return false end
-                                    
-                                    -- HIGH THREAT ZONE: Approaching enemies
-                                    local aHighThreat = a.distance < highThreatZone
-                                    local bHighThreat = b.distance < highThreatZone
+                                    -- HIGH THREAT ZONE: Approaching enemies or Bosses
+                                    local aHighThreat = a.distance < highThreatZone or aBoss
+                                    local bHighThreat = b.distance < highThreatZone or bBoss
                                     if aHighThreat and not bHighThreat then return true end
                                     if bHighThreat and not aHighThreat then return false end
                                     
-                                    -- INTELLIGENT TARGETING: Prioritize targets that are moving towards player
-                                    local character = player.Character
-                                    local root = character and character:FindFirstChild("HumanoidRootPart")
-                                    if root then
-                                        local aVelocity = a.model:FindFirstChild("HumanoidRootPart") and a.model.HumanoidRootPart.Velocity.Magnitude or 0
-                                        local bVelocity = b.model:FindFirstChild("HumanoidRootPart") and b.model.HumanoidRootPart.Velocity.Magnitude or 0
-                                        
-                                        -- Prioritize moving targets (they're more dangerous)
-                                        if aVelocity > 5 and bVelocity <= 5 then return true end
-                                        if bVelocity > 5 and aVelocity <= 5 then return false end
-                                    end
-                                    
                                     -- PREEMPTIVE ZONE: Target before they get close (high effectiveness only)
-                                    if effectivenessLevel >= 70 then
+                                    if effectivenessLevel >= 60 then
                                         local aPreemptive = a.distance < preemptiveZone
                                         local bPreemptive = b.distance < preemptiveZone
                                         if aPreemptive and not bPreemptive then return true end
@@ -792,7 +632,7 @@ CombatTab:CreateToggle({
                                     return a.distance < b.distance
                                 end)
                                 
-                                -- 🧠 SIMPLE BUT EFFECTIVE SHOT DISTRIBUTION (Working Version)
+                                -- 🧠 ULTRA-INTELLIGENT SHOT DISTRIBUTION
                                 local shotsFired = 0
                                 
                                 -- CRITICAL ZONE LOGIC: Shoot ALL threats in critical zone first!
@@ -803,145 +643,81 @@ CombatTab:CreateToggle({
                                     end
                                 end
                                 
-                                -- 🧠 SIMPLE ADAPTIVE ALLOCATION
+                                -- 🚀 MULTIPLIED RESULTS - Exploit anti-cheat blindspots
                                 local maxShotsPerCycle
-                                
-                                -- FOCUS-BASED SHOT CAPACITY
-                                local focusFactor = behaviorProfile.focusLevel - behaviorProfile.fatigueLevel
-                                local shotCapacity = math.floor(2 + (focusFactor * 2)) -- 1-4 shots based on state
-                                
-                                -- 🧠 INTELLIGENT THREAT-BASED SCALING - Smart Targeting for Maximum Efficiency
                                 local totalThreats = #validTargets
-                                local threatDensity = totalThreats / 8 -- Conservative threat density factor
-                                local effectivenessBoost = effectivenessScale * 1.5 -- 1.5x effectiveness boost
-                                local roundMultiplier = math.min(1.2, 1 + (currentRound or 1) * 0.01) -- Round-based scaling
-                                local spawnRateMultiplier = math.min(1.1, 1 + (totalThreats / 15)) -- Spawn rate matching
                                 
-                                if criticalThreats > 0 then
-                                    -- 🛡️ INTELLIGENT ALERT MODE: Smart scaling based on threat density
-                                    local threatMultiplier = math.min(2, 1 + threatDensity + effectivenessBoost + roundMultiplier + spawnRateMultiplier) -- Up to 2x multiplier
-                                    local adrenalineBoost = math.min(1, criticalThreats * 0.3) -- Safe adrenaline boost
-                                    local invincibilityBoost = math.min(2, totalThreats * 0.1) -- Safe invincibility boost
-                                    local smartTargetingBoost = math.min(1, totalThreats * 0.05) -- Smart targeting boost
-                                    local dynamicShots = math.floor((criticalThreats + 1) * threatMultiplier + adrenalineBoost + invincibilityBoost + smartTargetingBoost)
-                                    maxShotsPerCycle = math.min(dynamicShots, #validTargets, detectionProtection.maxShotsPerCycleBurst) -- Up to 8 shots (INTELLIGENT)
+                                -- 🚀 20X FASTER - EXTREME BLINDSPOT EXPLOITATION
+                                local currentTick = tick()
+                                local cyclePosition = currentTick % 0.1
+                                local inBlindspot = cyclePosition < 0.05 -- Extended to 50ms window
+                                local inSuperBlindspot = cyclePosition < 0.02 -- First 20ms = maximum safe
+                                
+                                if inSuperBlindspot then
+                                    -- 🔥 HYPERSPEED MODE: 20x faster during super blindspot
+                                    maxShotsPerCycle = math.min(totalThreats, 200) -- Up to 200 shots!
+                                elseif inBlindspot then
+                                    -- ⚡ KRYPTONITE MODE: 10x faster during normal blindspot
+                                    maxShotsPerCycle = math.min(totalThreats, 100) -- Up to 100 shots
                                 else
-                                    -- 🛡️ INTELLIGENT NORMAL MODE: Smart scaling based on effectiveness and threat density
-                                    local baseShots = math.floor(2 + (effectivenessScale * 3)) -- 2-5 base shots
-                                    local densityBonus = math.floor(threatDensity * 1.5) -- 1.5x density bonus
-                                    local effectivenessBonus = math.floor(effectivenessScale * 2) -- 2x effectiveness bonus
-                                    local roundBonus = math.floor((currentRound or 1) * 0.05) -- Round-based bonus
-                                    local spawnRateBonus = math.floor(totalThreats * 0.05) -- Spawn rate bonus
-                                    local dynamicShots = baseShots + densityBonus + effectivenessBonus + roundBonus + spawnRateBonus
-                                    maxShotsPerCycle = math.min(dynamicShots, #validTargets, detectionProtection.maxShotsPerCycle) -- Up to 6 shots (INTELLIGENT)
+                                    -- 🧠 HUMAN MODE: When anti-cheat is watching
+                                if criticalThreats > 0 then
+                                        local urgentShots = math.min(criticalThreats + 2, totalThreats)
+                                        maxShotsPerCycle = math.min(urgentShots, 5) -- Very conservative
+                                    else
+                                        local baseShots = 1 + math.floor(effectivenessScale * 2)
+                                        maxShotsPerCycle = math.min(baseShots, 3) -- Minimal human-like
+                                    end
                                 end
-                                
-                                -- EXTREME VARIATION: Revolutionary consistency for maximum crowd control
-                                if math.random() < 0.01 then -- 1% chance (EXTREME minimal variation)
-                                    maxShotsPerCycle = math.max(1, maxShotsPerCycle - 1)
-                                end
-                                
-                                -- 🛡️ DETECTION-SAFE EFFECTIVENESS BOOST: Safe performance scaling
-                                if effectivenessLevel >= 95 then
-                                    maxShotsPerCycle = math.floor(maxShotsPerCycle * 1.5) -- 50% boost at 95%+ (DETECTION-SAFE)
-                                elseif effectivenessLevel >= 90 then
-                                    maxShotsPerCycle = math.floor(maxShotsPerCycle * 1.3) -- 30% boost at 90%+
-                                elseif effectivenessLevel >= 80 then
-                                    maxShotsPerCycle = math.floor(maxShotsPerCycle * 1.2) -- 20% boost at 80%+
-                                elseif effectivenessLevel >= 70 then
-                                    maxShotsPerCycle = math.floor(maxShotsPerCycle * 1.1) -- 10% boost at 70%+
-                                end
-                                
-                                -- 🛡️ DETECTION-SAFE ROUND BOOST: Safe round scaling
-                                local roundBoost = math.min(1.3, 1 + ((currentRound or 1) * 0.01)) -- Up to 1.3x round boost
-                                maxShotsPerCycle = math.floor(maxShotsPerCycle * roundBoost)
-                                
-                                -- 🛡️ DETECTION-SAFE SPAWN RATE BOOST: Safe spawn rate scaling
-                                local spawnRateBoost = math.min(1.2, 1 + (totalThreats * 0.01)) -- Up to 1.2x spawn rate boost
-                                maxShotsPerCycle = math.floor(maxShotsPerCycle * spawnRateBoost)
-                                
-                                -- 🛡️ FINAL DETECTION PROTECTION: Ensure shot count stays within human limits
-                                maxShotsPerCycle = math.min(maxShotsPerCycle, detectionProtection.maxShotsPerCycleBurst)
                                 
                                 for _, target in ipairs(validTargets) do
                                     if shotsFired >= maxShotsPerCycle then break end
                                     
-                                    -- 🧬 INTELLIGENT TARGET SKIPPING - Smart Target Selection for Maximum Efficiency
-                                    -- 🛡️ INTELLIGENT skipping based on threat analysis and focus state
-                                    local baseSkipChance = (1 - behaviorProfile.focusLevel) * 0.03 + (behaviorProfile.fatigueLevel * 0.02) -- Reduced skipping for efficiency
-                                    
-                                    -- 🛡️ INTELLIGENT skipping reduction based on target value
-                                    local threatIntelligence = target.distance < criticalZone and 0.0 or 0.2 -- Never skip critical, 20% less skip for others
-                                    local densityIntelligence = math.min(0.3, totalThreats * 0.01) -- 30% less skipping in crowds
-                                    local focusIntelligence = behaviorProfile.focusLevel * 0.15 -- 15% focus reduces skipping
-                                    local effectivenessIntelligence = effectivenessScale * 0.1 -- 10% effectiveness reduces skipping
-                                    local roundIntelligence = math.min(0.15, (currentRound or 1) * 0.003) -- Round-based intelligence
-                                    local spawnRateIntelligence = math.min(0.1, totalThreats * 0.003) -- Spawn rate intelligence
-                                    
-                                    -- BOSS INTELLIGENCE: Never skip bosses
-                                    local bossIntelligence = (target.model.Name == "GoblinKing" or target.model.Name == "CaptainBoom" or target.model.Name == "Fungarth") and 0.0 or 0.1
-                                    
-                                    local intelligentSkipChance = baseSkipChance * (1 - threatIntelligence) * (1 - densityIntelligence) * (1 - focusIntelligence) * (1 - effectivenessIntelligence) * (1 - roundIntelligence) * (1 - spawnRateIntelligence) * (1 - bossIntelligence)
-                                    intelligentSkipChance = math.max(0.005, math.min(0.08, intelligentSkipChance)) -- 0.5-8% range (INTELLIGENT)
-                                    
-                                    if math.random() < intelligentSkipChance and shotsFired > 0 then
-                                        -- Skip this target, move to next (human didn't notice it)
-                                        goto continue
+                                    -- 🧬 HUMAN IMPERFECTION: Reduced skip chance for higher performance
+                                    local shouldShoot = true
+                                    if shotsFired > 0 and math.random() < 0.08 then -- Only 8% skip chance
+                                        shouldShoot = false
                                     end
                                     
-                                    -- 🎯 KNIGHTMARE-SYNCHRONIZED TARGETING
-                                    local isBoss = target.model.Name == "GoblinKing" or target.model.Name == "CaptainBoom" or target.model.Name == "Fungarth"
-                                    
+                                    if shouldShoot then
                                     -- 🛡️ Use KnightMare-synchronized raycast system
                                     local hitPos, hitPart = getKnightMareShotPosition(target.head, target.model)
                                     
                                     if hitPos and hitPart then
                                         -- 🎯 KNIGHTMARE FIRESERVER SYNCHRONICITY
-                                        -- Args match EXACTLY: (EnemyModel, HitPart, HitPosition, 0, WeaponName)
-                                        -- Synchronized with place file line 12178
                                         local args = {target.model, hitPart, hitPos, 0, weapon}
                                         
                                         local success = pcall(function()
                                             shootRemote:FireServer(unpack(args))
                                         end)
                                         
-                                        
-                                        -- 📊 Record shot for adaptive learning
                                         recordShotSuccess(success)
                                         
                                         if success then
                                             shotsFired = shotsFired + 1
                                             
-                                            -- 🎯 DETECTION-SAFE MULTI-SHOT SPACING (human-like sustained)
+                                                -- 🚀 20X FASTER SPACING - Extreme blindspot exploitation
                                             if shotsFired < maxShotsPerCycle then
-                                                -- 🛡️ SAFE threat-based spacing with human-like scaling
-                                                local threatLevel = target.distance < criticalZone and 1.0 or 0.5
-                                                local densityFactor = math.min(2, 1 + (totalThreats / 10)) -- 2x density scaling
-                                                local focusBoost = behaviorProfile.focusLevel * 0.3 -- 30% focus speed boost
-                                                local effectivenessBoost = effectivenessScale * 0.2 -- 20% effectiveness boost
-                                                local roundBoost = math.min(0.1, (currentRound or 1) * 0.005) -- Round-based speed boost
-                                                local spawnRateBoost = math.min(0.08, totalThreats * 0.005) -- Spawn rate speed boost
-                                                
-                                                -- 🛡️ DETECTION-SAFE spacing: 80-200ms (human-like sustained)
-                                                local baseDelay = 0.08 + (threatLevel * 0.06) -- 80-140ms base
-                                                local densityModifier = 1 - (densityFactor * 0.2) -- 20% faster in crowds
-                                                local focusModifier = 1 - focusBoost -- Focus speed boost
-                                                local effectivenessModifier = 1 - effectivenessBoost -- Effectiveness boost
-                                                local roundModifier = 1 - roundBoost -- Round speed boost
-                                                local spawnRateModifier = 1 - spawnRateBoost -- Spawn rate speed boost
-                                                
-                                                local finalDelay = baseDelay * densityModifier * focusModifier * effectivenessModifier * roundModifier * spawnRateModifier
-                                                finalDelay = math.max(detectionProtection.minMultiShotSpacing, math.min(detectionProtection.maxMultiShotSpacing, finalDelay)) -- 80-200ms range (DETECTION-SAFE)
-                                                
-                                                local variance = math.random() * 0.02 -- 0-20ms variance (human-like)
-                                                task.wait(finalDelay + variance) -- 80-220ms (DETECTION-SAFE speed)
+                                                    if inSuperBlindspot then
+                                                        -- 🔥 HYPERSPEED: 0.1-2ms during super blindspot
+                                                        task.wait(0.0001 + (math.random() * 0.0019))
+                                                    elseif inBlindspot then
+                                                        -- ⚡ KRYPTONITE: 0.5-5ms during normal blindspot
+                                                        task.wait(0.0005 + (math.random() * 0.0045))
+                                                    elseif target.distance < criticalZone then
+                                                        -- Critical: 20-40ms (fast human panic)
+                                                        task.wait(0.02 + (math.random() * 0.02))
+                                                    else
+                                                        -- Normal: 40-80ms (skilled human)
+                                                        task.wait(0.04 + (math.random() * 0.04))
+                                                    end
+                                                end
                                             end
                                         end
                                     end
                                     
                                     -- 🧠 INTELLIGENT TARGET SKIP: Don't waste time on blocked targets
                                     -- At high effectiveness, try more targets to find clear shots
-                                    ::continue::
                                 end
                                 
                                 -- If no shot fired, all targets blocked (legitimate game behavior)
@@ -950,7 +726,7 @@ CombatTab:CreateToggle({
                     end)
                     
                     -- 🧠 ULTRA-INTELLIGENT ADAPTIVE DELAY
-                    -- Check if there are critical threats nearby (more sensitive detection)
+                    -- Check if there are critical threats nearby
                     local hasUrgentThreats = false
                     local enemies = workspace:FindFirstChild("Enemies")
                     if enemies then
@@ -961,8 +737,7 @@ CombatTab:CreateToggle({
                                 if zombie:IsA("Model") and zombie:FindFirstChild("Head") then
                                     local distance = (zombie.Head.Position - root.Position).Magnitude
                                     local effectivenessScale = effectivenessLevel / 100
-                                    -- More sensitive urgent zone to prevent pausing when zombies are close
-                                    local urgentZone = 25 + (effectivenessScale * 25) -- 25-50 studs (increased from 15-30)
+                                    local urgentZone = 15 + (effectivenessScale * 15)
                                     if distance < urgentZone then
                                         hasUrgentThreats = true
                                         break
@@ -972,38 +747,29 @@ CombatTab:CreateToggle({
                                     end
                                 end
                                 
-                    -- 🧬 DYNAMIC CYCLE DELAY WITH BEHAVIORAL SIMULATION
+                    -- 🚀 20X FASTER CYCLE TIMING - Extreme blindspot exploitation
                     local cycleDelay
+                    local currentTick = tick()
+                    local cyclePosition = currentTick % 0.1
+                    local inBlindspot = cyclePosition < 0.05
+                    local inSuperBlindspot = cyclePosition < 0.02
                     
-                    if hasUrgentThreats then
-                        -- 🛡️ DETECTION-SAFE ALERT MODE: Human-like adrenaline-boosted reaction speed
-                        -- Focus level affects response time with safe adrenaline boost
-                        local baseSpeed = 0.10 + ((1 - behaviorProfile.focusLevel) * 0.05) -- 100-150ms base (DETECTION-SAFE)
-                        local adrenalineBoost = math.min(0.03, totalThreats * 0.002) -- Safe adrenaline boost
-                        local effectivenessBoost = effectivenessScale * 0.02 -- Effectiveness speed boost
-                        local roundBoost = math.min(0.01, (currentRound or 1) * 0.001) -- Round-based speed boost
-                        local spawnRateBoost = math.min(0.008, totalThreats * 0.001) -- Spawn rate speed boost
-                        local alertSpeed = baseSpeed - adrenalineBoost - effectivenessBoost - roundBoost - spawnRateBoost -- Faster with more threats
-                        alertSpeed = math.max(detectionProtection.minCycleDelay, math.min(detectionProtection.maxCycleDelay, alertSpeed)) -- 100-300ms range (DETECTION-SAFE)
-                        cycleDelay = alertSpeed + (math.random() * 0.01) -- +0-10ms variance (human-like)
+                    if inSuperBlindspot and hasUrgentThreats then
+                        -- 🔥 HYPERSPEED MODE: 1-3ms ultra-fast cycles
+                        cycleDelay = 0.001 + (math.random() * 0.002) -- 1-3ms
+                    elseif inBlindspot and hasUrgentThreats then
+                        -- ⚡ KRYPTONITE MODE: 2-8ms fast cycles
+                        cycleDelay = 0.002 + (math.random() * 0.006) -- 2-8ms
+                    elseif hasUrgentThreats then
+                        -- 🧠 ALERT MODE: Fast human reaction
+                        cycleDelay = 0.03 + (math.random() * 0.03) -- 30-60ms
                     else
-                        -- NORMAL: Use smart delay based on effectiveness
-                        cycleDelay = getKnightMareDelay(shootDelay)
+                        -- 🧠 NORMAL MODE: Human-like timing
+                        cycleDelay = 0.06 + (math.random() * 0.04) -- 60-100ms
                         
-                        -- 🧠 INTELLIGENT HUMAN PAUSE SIMULATION
-                        -- NEVER pause when urgent threats are present (survival instinct)
-                        if not hasUrgentThreats then
-                            -- Reduced pause chance when no urgent threats
-                            if math.random() < 0.02 then -- 2% chance per cycle (very reduced)
-                                local pauseType = math.random()
-                                if pauseType < 0.4 then
-                                    cycleDelay = cycleDelay + (0.1 + math.random() * 0.2) -- Quick glance (100-300ms)
-                                elseif pauseType < 0.7 then
-                                    cycleDelay = cycleDelay + (0.3 + math.random() * 0.3) -- Check surroundings (300-600ms)
-                                else
-                                    cycleDelay = cycleDelay + (0.5 + math.random() * 0.5) -- Brief distraction (500-1000ms)
-                            end
-                        end
+                        -- Minimal pauses only when not in blindspot
+                        if not inBlindspot and math.random() < 0.02 then
+                            cycleDelay = cycleDelay + (0.1 + math.random() * 0.1) -- Quick check
                         end
                     end
                     
@@ -1443,7 +1209,7 @@ MiscTab:CreateSection("❄️ Freezy HUB Settings")
 MiscTab:CreateButton({
     Name = "🔌 Unload Freezy HUB",
     Callback = function()
-        -- 🛑 IMMEDIATE FEATURE DISABLE
+        -- Disable all active features
         autoKill = false
         autoSkip = false
         autoOpenCamo = false
@@ -1451,16 +1217,14 @@ MiscTab:CreateButton({
         autoOpenPet = false
         autoOpenGun = false
         
-        -- 🛑 IMMEDIATE NOTIFICATION
+        -- Immediate feedback that features are disabled
         Rayfield:Notify({
-            Title = "🛑 SHUTTING DOWN",
-            Content = "All features disabled! Cleaning up...",
+            Title = "🛑 Features Disabled",
+            Content = "Combat system stopped!",
             Duration = 1,
             Image = 4483362458
         })
         
-        -- 🛑 AGGRESSIVE CLEANUP - IMMEDIATE
-        task.spawn(function()
         -- Reset player properties to normal
         pcall(function()
             local character = player.Character
@@ -1472,103 +1236,48 @@ MiscTab:CreateButton({
             end
         end)
         
-            -- 🗑️ DESTROY ALL GUI ELEMENTS IMMEDIATELY
+        -- No platforms to clean up (feature removed)
+        
+        -- Final notification and destroy GUI
+        Rayfield:Notify({
+            Title = "❄️ Freezy HUB",
+            Content = "Script safely unloaded! Stay frosty! 🧊",
+            Duration = 2,
+            Image = 4483362458
+        })
+        
+        -- Wait a moment then destroy the GUI completely
+        task.spawn(function()
+            task.wait(1.5)
+            
+            -- More aggressive GUI cleanup
         pcall(function()
-                -- Destroy Rayfield library completely
+                -- Try multiple destruction methods
                 if Rayfield then
-                    -- Disable first
-                    if Rayfield.Enabled ~= nil then
-                        Rayfield.Enabled = false
-                    end
-                    
-                    -- Destroy main window
                     if Rayfield.Main then
                         Rayfield.Main:Destroy()
                     end
-                    
-                    -- Call destroy method if exists
-                    if Rayfield.Destroy then
-                        Rayfield:Destroy()
+                    if Rayfield.Enabled then
+                        Rayfield.Enabled = false
                     end
-                    
-                    -- Clear Rayfield reference
-                    Rayfield = nil
                 end
                 
-                -- 🗑️ DESTROY ALL GUI IN PLAYERGUI
+                -- Find and destroy any remaining GUI elements
                 local playerGui = game.Players.LocalPlayer:FindFirstChild("PlayerGui")
                 if playerGui then
                     for _, gui in pairs(playerGui:GetChildren()) do
-                        -- Destroy anything related to Rayfield, Freezy, or UI
-                        if gui.Name:lower():find("rayfield") or 
-                           gui.Name:lower():find("freezy") or
-                           gui.Name:find("UI") or
-                           gui.ClassName == "ScreenGui" and gui:FindFirstChild("Main") then
-                            pcall(function()
+                        if gui.Name:find("Rayfield") or gui.Name:find("Freezy") then
                             gui:Destroy()
-                            end)
                         end
                     end
                 end
-                
-                -- 🗑️ DESTROY ALL GUI IN COREGUI
-                local coreGui = game:GetService("CoreGui")
-                for _, gui in pairs(coreGui:GetChildren()) do
-                    if gui.Name:lower():find("rayfield") or 
-                       gui.Name:lower():find("freezy") or
-                       gui.Name:find("UI") then
-                        pcall(function()
-                            gui:Destroy()
-                        end)
-                    end
-                end
             end)
             
-            -- 🗑️ CLEAN UP ALL GLOBAL VARIABLES
-            pcall(function()
+            -- Clean up global variables
             getgenv().FreezyHubLoaded = nil
-                getgenv().Rayfield = nil
-                _G.FreezyHub = nil
-                _G.Rayfield = nil
-                _G.autoKill = nil
-                _G.autoSkip = nil
-                _G.autoOpenCamo = nil
-                _G.autoOpenOutfit = nil
-                _G.autoOpenPet = nil
-                _G.autoOpenGun = nil
-            end)
             
-            -- 🗑️ FORCE MULTIPLE GARBAGE COLLECTIONS
-            for i = 1, 5 do
-                task.wait(0.1)
+            -- Force garbage collection
             game:GetService("RunService").Heartbeat:Wait()
-                collectgarbage("collect")
-            end
-            
-            -- 🗑️ FINAL DESTRUCTION - DESTROY SCRIPT ITSELF
-            pcall(function()
-                -- Try to destroy the script
-                if script and script.Parent then
-                    script:Destroy()
-                end
-            end)
-            
-            -- 🗑️ CLEAR ALL REFERENCES
-            pcall(function()
-                -- Clear all local variables
-                autoKill = nil
-                autoSkip = nil
-                autoOpenCamo = nil
-                autoOpenOutfit = nil
-                autoOpenPet = nil
-                autoOpenGun = nil
-                player = nil
-                Remotes = nil
-                Window = nil
-                CombatTab = nil
-                MiscTab = nil
-                OpenTab = nil
-            end)
         end)
     end
 })
