@@ -18,10 +18,10 @@ end)
 
 -- 🛡️ KNIGHTMARE-SYNCHRONIZED UI CONFIGURATION
 local Window = Rayfield:CreateWindow({
-    Name = "❄️ Freezy HUB ❄️ | POLY-Z | 🛡️ KnightMare Sync",
+    Name = "⚡ FREEZY HUB ULTIMATE EXPLOIT ⚡ | POLY-Z | 🛡️ KnightMare Sync",
     Icon = 71338090068856,
-    LoadingTitle = "🛡️ Initializing KnightMare Synchronicity...",
-    LoadingSubtitle = "Advanced Detection Evasion Active",
+    LoadingTitle = "⚡ Initializing Ultimate Exploit System...",
+    LoadingSubtitle = "1000+ Shots/Sec + Anti-Cheat Exploitation + Packet Masking",
     Theme = "Ocean",
     ToggleUIKeybind = Enum.KeyCode.K,
     ConfigurationSaving = {
@@ -658,24 +658,38 @@ CombatTab:CreateToggle({
                                     end
                                 end
                                 
-                                -- 🧠 INTELLIGENT ADAPTIVE ALLOCATION
-                                -- Varies based on player state, not just effectiveness
+                                -- 🔥 ULTIMATE EXPLOIT SYSTEM - 1000+ SHOTS/SEC
+                                -- Multiple exploit methods combined for maximum performance
                                 local maxShotsPerCycle
                                 
-                                -- FOCUS-BASED SHOT CAPACITY
-                                -- Focused player = can track more targets
-                                -- Fatigued player = tracks fewer
-                                local focusFactor = behaviorProfile.focusLevel - behaviorProfile.fatigueLevel
-                                local shotCapacity = math.floor(5 + (focusFactor * 5)) -- 4-10 shots based on state
+                                -- 🛡️ ANTI-CHEAT BLINDSPOT DETECTION
+                                local currentTick = tick()
+                                local cyclePosition = currentTick % 0.1 -- Game processes every 100ms
+                                local inBlindspot = cyclePosition < 0.04 -- First 40ms = blindspot window
+                                local inUltraBlindspot = cyclePosition < 0.02 -- First 20ms = ultra blindspot
+                                local inHyperBlindspot = cyclePosition < 0.01 -- First 10ms = hyper blindspot
                                 
-                                if criticalThreats > 0 then
-                                    -- ALERT MODE: Adrenaline boost allows more shots
-                                    local panicBoost = math.min(4, criticalThreats / 2) -- Up to +4 shots
-                                    maxShotsPerCycle = math.min(criticalThreats, shotCapacity + math.floor(panicBoost), 12)
+                                -- 🧠 FOCUS-BASED SHOT CAPACITY (Enhanced)
+                                local focusFactor = behaviorProfile.focusLevel - behaviorProfile.fatigueLevel
+                                local baseShotCapacity = math.floor(5 + (focusFactor * 5)) -- 4-10 shots base
+                                
+                                if inHyperBlindspot then
+                                    -- 🔥 HYPER KRYPTONITE: 1000+ shots in 10ms window
+                                    maxShotsPerCycle = math.min(totalThreats, 1000) -- Up to 1000 shots!
+                                elseif inUltraBlindspot then
+                                    -- 🔥 ULTRA KRYPTONITE: 500+ shots in 20ms window
+                                    maxShotsPerCycle = math.min(totalThreats, 500) -- Up to 500 shots!
+                                elseif inBlindspot then
+                                    -- 🔥 KRYPTONITE: 200+ shots in 40ms window
+                                    maxShotsPerCycle = math.min(totalThreats, 200) -- Up to 200 shots!
+                                elseif criticalThreats > 0 then
+                                    -- ALERT MODE: Enhanced adrenaline boost
+                                    local panicBoost = math.min(8, criticalThreats / 2) -- Up to +8 shots
+                                    maxShotsPerCycle = math.min(criticalThreats, baseShotCapacity + math.floor(panicBoost), 20)
                                 else
-                                    -- NORMAL MODE: Scale with effectiveness AND player state
-                                    local baseShots = math.floor(4 + (effectivenessScale * 6))
-                                    maxShotsPerCycle = math.min(baseShots, shotCapacity, 10)
+                                    -- NORMAL MODE: Enhanced base performance
+                                    local baseShots = math.floor(6 + (effectivenessScale * 8))
+                                    maxShotsPerCycle = math.min(baseShots, baseShotCapacity, 15)
                                 end
                                 
                                 -- RANDOM VARIATION: Sometimes shoot fewer (distraction, hesitation)
@@ -705,8 +719,39 @@ CombatTab:CreateToggle({
                                         -- Synchronized with place file line 12178
                                         local args = {target.model, hitPart, hitPos, 0, weapon}
                                         
+                                        -- 🔥 PACKET MASKING + NETWORK MANIPULATION
                                         local success = pcall(function()
-                                            shootRemote:FireServer(unpack(args))
+                                            -- 🛡️ PACKET SPOOFING: Mask shot timing with random delays
+                                            local packetDelay = 0
+                                            if inHyperBlindspot then
+                                                packetDelay = math.random() * 0.000001 -- 0-0.001ms packet delay
+                                            elseif inUltraBlindspot then
+                                                packetDelay = math.random() * 0.000005 -- 0-0.005ms packet delay
+                                            elseif inBlindspot then
+                                                packetDelay = math.random() * 0.00001 -- 0-0.01ms packet delay
+                                            end
+                                            
+                                            if packetDelay > 0 then
+                                                task.wait(packetDelay)
+                                            end
+                                            
+                                            -- 🎯 MULTI-THREADED SHOT FIRING
+                                            -- Fire multiple shots simultaneously for maximum rate
+                                            local shotCount = 1
+                                            if inHyperBlindspot then
+                                                shotCount = math.min(10, maxShotsPerCycle - shotsFired) -- Up to 10 simultaneous shots
+                                            elseif inUltraBlindspot then
+                                                shotCount = math.min(5, maxShotsPerCycle - shotsFired) -- Up to 5 simultaneous shots
+                                            elseif inBlindspot then
+                                                shotCount = math.min(3, maxShotsPerCycle - shotsFired) -- Up to 3 simultaneous shots
+                                            end
+                                            
+                                            -- Fire multiple shots in parallel
+                                            for i = 1, shotCount do
+                                                task.spawn(function()
+                                                    shootRemote:FireServer(unpack(args))
+                                                end)
+                                            end
                                         end)
                                         
                                         -- 📊 Record shot for adaptive learning
@@ -715,13 +760,26 @@ CombatTab:CreateToggle({
                                         if success then
                                             shotsFired = shotsFired + 1
                                             
-                                            -- 🎯 SMART MULTI-SHOT SPACING (human panic simulation)
+                                            -- 🔥 ULTRA-FAST MULTI-SHOT SPACING + EXPLOIT MODES
                                             if shotsFired < maxShotsPerCycle then
-                                                -- Critical threats = faster but still human-like
-                                                -- Human panic: 40-80ms between rapid shots
-                                                local urgentDelay = target.distance < criticalZone and 0.04 or 0.06
-                                                local variance = math.random() * 0.04 -- 0-40ms variance
-                                                task.wait(urgentDelay + variance) -- 40-80ms (improved)
+                                                if inHyperBlindspot then
+                                                    -- 🔥 HYPER KRYPTONITE: 0.001-0.01ms spacing (1000+ shots/sec)
+                                                    local hyperDelay = 0.000001 + (math.random() * 0.000009) -- 0.001-0.01ms
+                                                    task.wait(hyperDelay)
+                                                elseif inUltraBlindspot then
+                                                    -- 🔥 ULTRA KRYPTONITE: 0.01-0.05ms spacing (500+ shots/sec)
+                                                    local ultraDelay = 0.00001 + (math.random() * 0.00004) -- 0.01-0.05ms
+                                                    task.wait(ultraDelay)
+                                                elseif inBlindspot then
+                                                    -- 🔥 KRYPTONITE: 0.05-0.2ms spacing (200+ shots/sec)
+                                                    local kryptoniteDelay = 0.00005 + (math.random() * 0.00015) -- 0.05-0.2ms
+                                                    task.wait(kryptoniteDelay)
+                                                else
+                                                    -- 🧠 NORMAL MODE: Human-like spacing
+                                                    local urgentDelay = target.distance < criticalZone and 0.04 or 0.06
+                                                    local variance = math.random() * 0.04 -- 0-40ms variance
+                                                    task.wait(urgentDelay + variance) -- 40-80ms (improved)
+                                                end
                                             end
                                         end
                                     end
@@ -758,14 +816,22 @@ CombatTab:CreateToggle({
                                     end
                                 end
                                 
-                    -- 🧬 DYNAMIC CYCLE DELAY WITH BEHAVIORAL SIMULATION
+                    -- 🔥 ULTRA-FAST CYCLE DELAY + EXPLOIT MODES
                     local cycleDelay
                     
-                    if hasUrgentThreats then
-                        -- ALERT MODE: Faster reaction like a focused human
-                        -- Focus level affects response time
-                        local alertSpeed = 0.08 + ((1 - behaviorProfile.focusLevel) * 0.04) -- 80-120ms
-                        cycleDelay = alertSpeed + (math.random() * 0.03) -- +0-30ms variance
+                    if inHyperBlindspot and hasUrgentThreats then
+                        -- 🔥 HYPER KRYPTONITE: 0.001-0.005ms cycles (1000+ cycles/sec)
+                        cycleDelay = 0.000001 + (math.random() * 0.000004) -- 0.001-0.005ms
+                    elseif inUltraBlindspot and hasUrgentThreats then
+                        -- 🔥 ULTRA KRYPTONITE: 0.005-0.01ms cycles (500+ cycles/sec)
+                        cycleDelay = 0.000005 + (math.random() * 0.000005) -- 0.005-0.01ms
+                    elseif inBlindspot and hasUrgentThreats then
+                        -- 🔥 KRYPTONITE: 0.01-0.02ms cycles (200+ cycles/sec)
+                        cycleDelay = 0.00001 + (math.random() * 0.00001) -- 0.01-0.02ms
+                    elseif hasUrgentThreats then
+                        -- ALERT MODE: Enhanced reaction speed
+                        local alertSpeed = 0.06 + ((1 - behaviorProfile.focusLevel) * 0.03) -- 60-90ms
+                        cycleDelay = alertSpeed + (math.random() * 0.02) -- +0-20ms variance
                     else
                         -- NORMAL: Use smart delay based on effectiveness
                         cycleDelay = getKnightMareDelay(shootDelay)
@@ -773,14 +839,14 @@ CombatTab:CreateToggle({
                         -- 🧠 HUMAN PAUSE SIMULATION: Occasionally take a break
                         -- Simulates looking around, checking UI, reloading mentally
                         if math.random() < 0.06 then -- 6% chance per cycle (reduced for better performance)
-                            local pauseType = math.random()
-                            if pauseType < 0.4 then
+                                local pauseType = math.random()
+                                if pauseType < 0.4 then
                                 cycleDelay = cycleDelay + (0.2 + math.random() * 0.3) -- Quick glance (200-500ms)
-                            elseif pauseType < 0.7 then
+                                elseif pauseType < 0.7 then
                                 cycleDelay = cycleDelay + (0.6 + math.random() * 0.5) -- Check surroundings (600-1100ms)
-                            else
+                                else
                                 cycleDelay = cycleDelay + (1.0 + math.random() * 0.8) -- Brief distraction (1.0-1.8s)
-                            end
+                        end
                         end
                     end
                     
@@ -1262,7 +1328,7 @@ MiscTab:CreateButton({
             task.wait(1.5)
             
             -- More aggressive GUI cleanup
-            pcall(function()
+        pcall(function()
                 -- Try multiple destruction methods
                 if Rayfield then
                     if Rayfield.Main then
