@@ -674,14 +674,14 @@ CombatTab:CreateToggle({
                                 local baseShotCapacity = math.floor(5 + (focusFactor * 5)) -- 4-10 shots base
                                 
                                 if inHyperBlindspot then
-                                    -- 🔥 HYPER KRYPTONITE: 1000+ shots in 10ms window
-                                    maxShotsPerCycle = math.min(totalThreats, 1000) -- Up to 1000 shots!
+                                    -- 🔥 HYPER KRYPTONITE: 50+ shots in 10ms window
+                                    maxShotsPerCycle = math.min(totalThreats, 50) -- Up to 50 shots!
                                 elseif inUltraBlindspot then
-                                    -- 🔥 ULTRA KRYPTONITE: 500+ shots in 20ms window
-                                    maxShotsPerCycle = math.min(totalThreats, 500) -- Up to 500 shots!
+                                    -- 🔥 ULTRA KRYPTONITE: 30+ shots in 20ms window
+                                    maxShotsPerCycle = math.min(totalThreats, 30) -- Up to 30 shots!
                                 elseif inBlindspot then
-                                    -- 🔥 KRYPTONITE: 200+ shots in 40ms window
-                                    maxShotsPerCycle = math.min(totalThreats, 200) -- Up to 200 shots!
+                                    -- 🔥 KRYPTONITE: 20+ shots in 40ms window
+                                    maxShotsPerCycle = math.min(totalThreats, 20) -- Up to 20 shots!
                                 elseif criticalThreats > 0 then
                                     -- ALERT MODE: Enhanced adrenaline boost
                                     local panicBoost = math.min(8, criticalThreats / 2) -- Up to +8 shots
@@ -735,22 +735,23 @@ CombatTab:CreateToggle({
                                                 task.wait(packetDelay)
                                             end
                                             
-                                            -- 🎯 MULTI-THREADED SHOT FIRING
-                                            -- Fire multiple shots simultaneously for maximum rate
+                                            -- 🎯 OPTIMIZED SHOT FIRING
+                                            -- Fire shots with optimal timing for maximum rate
                                             local shotCount = 1
                                             if inHyperBlindspot then
-                                                shotCount = math.min(10, maxShotsPerCycle - shotsFired) -- Up to 10 simultaneous shots
-                                            elseif inUltraBlindspot then
-                                                shotCount = math.min(5, maxShotsPerCycle - shotsFired) -- Up to 5 simultaneous shots
-                                            elseif inBlindspot then
                                                 shotCount = math.min(3, maxShotsPerCycle - shotsFired) -- Up to 3 simultaneous shots
+                                            elseif inUltraBlindspot then
+                                                shotCount = math.min(2, maxShotsPerCycle - shotsFired) -- Up to 2 simultaneous shots
+                                            elseif inBlindspot then
+                                                shotCount = 1 -- Single shot for blindspot
                                             end
                                             
-                                            -- Fire multiple shots in parallel
+                                            -- Fire shots with proper timing
                                             for i = 1, shotCount do
-                                                task.spawn(function()
-                                                    shootRemote:FireServer(unpack(args))
-                                                end)
+                                                if i > 1 then
+                                                    task.wait(0.001) -- 1ms delay between simultaneous shots
+                                                end
+                                            shootRemote:FireServer(unpack(args))
                                             end
                                         end)
                                         
@@ -763,16 +764,16 @@ CombatTab:CreateToggle({
                                             -- 🔥 ULTRA-FAST MULTI-SHOT SPACING + EXPLOIT MODES
                                             if shotsFired < maxShotsPerCycle then
                                                 if inHyperBlindspot then
-                                                    -- 🔥 HYPER KRYPTONITE: 0.001-0.01ms spacing (1000+ shots/sec)
-                                                    local hyperDelay = 0.000001 + (math.random() * 0.000009) -- 0.001-0.01ms
+                                                    -- 🔥 HYPER KRYPTONITE: 1-5ms spacing (fast but practical)
+                                                    local hyperDelay = 0.001 + (math.random() * 0.004) -- 1-5ms
                                                     task.wait(hyperDelay)
                                                 elseif inUltraBlindspot then
-                                                    -- 🔥 ULTRA KRYPTONITE: 0.01-0.05ms spacing (500+ shots/sec)
-                                                    local ultraDelay = 0.00001 + (math.random() * 0.00004) -- 0.01-0.05ms
+                                                    -- 🔥 ULTRA KRYPTONITE: 2-8ms spacing (very fast)
+                                                    local ultraDelay = 0.002 + (math.random() * 0.006) -- 2-8ms
                                                     task.wait(ultraDelay)
                                                 elseif inBlindspot then
-                                                    -- 🔥 KRYPTONITE: 0.05-0.2ms spacing (200+ shots/sec)
-                                                    local kryptoniteDelay = 0.00005 + (math.random() * 0.00015) -- 0.05-0.2ms
+                                                    -- 🔥 KRYPTONITE: 5-15ms spacing (fast)
+                                                    local kryptoniteDelay = 0.005 + (math.random() * 0.01) -- 5-15ms
                                                     task.wait(kryptoniteDelay)
                                                 else
                                                     -- 🧠 NORMAL MODE: Human-like spacing
@@ -820,14 +821,14 @@ CombatTab:CreateToggle({
                     local cycleDelay
                     
                     if inHyperBlindspot and hasUrgentThreats then
-                        -- 🔥 HYPER KRYPTONITE: 0.001-0.005ms cycles (1000+ cycles/sec)
-                        cycleDelay = 0.000001 + (math.random() * 0.000004) -- 0.001-0.005ms
+                        -- 🔥 HYPER KRYPTONITE: 1-3ms cycles (fast but practical)
+                        cycleDelay = 0.001 + (math.random() * 0.002) -- 1-3ms
                     elseif inUltraBlindspot and hasUrgentThreats then
-                        -- 🔥 ULTRA KRYPTONITE: 0.005-0.01ms cycles (500+ cycles/sec)
-                        cycleDelay = 0.000005 + (math.random() * 0.000005) -- 0.005-0.01ms
+                        -- 🔥 ULTRA KRYPTONITE: 2-5ms cycles (very fast)
+                        cycleDelay = 0.002 + (math.random() * 0.003) -- 2-5ms
                     elseif inBlindspot and hasUrgentThreats then
-                        -- 🔥 KRYPTONITE: 0.01-0.02ms cycles (200+ cycles/sec)
-                        cycleDelay = 0.00001 + (math.random() * 0.00001) -- 0.01-0.02ms
+                        -- 🔥 KRYPTONITE: 5-10ms cycles (fast)
+                        cycleDelay = 0.005 + (math.random() * 0.005) -- 5-10ms
                     elseif hasUrgentThreats then
                         -- ALERT MODE: Enhanced reaction speed
                         local alertSpeed = 0.06 + ((1 - behaviorProfile.focusLevel) * 0.03) -- 60-90ms
