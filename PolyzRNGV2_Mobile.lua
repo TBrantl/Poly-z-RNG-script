@@ -82,19 +82,35 @@ if not success then
     ScreenGui.Parent = player.PlayerGui
 end
 
--- Main Frame
+-- Main Frame (BRIGHTER for visibility)
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
-MainFrame.Size = UDim2.new(0, 320, 0, 400)
-MainFrame.Position = UDim2.new(0.5, -160, 0.5, -200)
-MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
-MainFrame.BorderSizePixel = 0
+MainFrame.Size = UDim2.new(0, 340, 0, 420)
+MainFrame.Position = UDim2.new(0.5, -170, 0.5, -210)
+MainFrame.BackgroundColor3 = Color3.fromRGB(45, 45, 55) -- Lighter background
+MainFrame.BorderSizePixel = 2
+MainFrame.BorderColor3 = Color3.fromRGB(255, 75, 0) -- Orange border
 MainFrame.Parent = ScreenGui
 
 -- Rounded corners
 local UICorner = Instance.new("UICorner")
 UICorner.CornerRadius = UDim.new(0, 12)
 UICorner.Parent = MainFrame
+
+-- Add shadow effect
+local Shadow = Instance.new("Frame")
+Shadow.Name = "Shadow"
+Shadow.Size = UDim2.new(1, 6, 1, 6)
+Shadow.Position = UDim2.new(0, -3, 0, -3)
+Shadow.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+Shadow.BackgroundTransparency = 0.5
+Shadow.BorderSizePixel = 0
+Shadow.ZIndex = 0
+Shadow.Parent = MainFrame
+
+local ShadowCorner = Instance.new("UICorner")
+ShadowCorner.CornerRadius = UDim.new(0, 14)
+ShadowCorner.Parent = Shadow
 
 -- Title Bar
 local TitleBar = Instance.new("Frame")
@@ -142,64 +158,84 @@ end)
 -- Content Frame
 local ContentFrame = Instance.new("Frame")
 ContentFrame.Name = "Content"
-ContentFrame.Size = UDim2.new(1, -20, 1, -70)
-ContentFrame.Position = UDim2.new(0, 10, 0, 60)
+ContentFrame.Size = UDim2.new(1, -24, 1, -74)
+ContentFrame.Position = UDim2.new(0, 12, 0, 62)
 ContentFrame.BackgroundTransparency = 1
 ContentFrame.Parent = MainFrame
 
--- Create button helper function
-local buttonYPos = 0
-local function CreateToggleButton(name, callback)
-    local Button = Instance.new("TextButton")
-    Button.Name = name
-    Button.Size = UDim2.new(1, 0, 0, 50)
-    Button.Position = UDim2.new(0, 0, 0, buttonYPos)
-    Button.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
-    Button.Text = "❌ " .. name
-    Button.TextColor3 = Color3.white
-    Button.Font = Enum.Font.Gotham
-    Button.TextSize = 14
-    Button.BorderSizePixel = 0
-    Button.Parent = ContentFrame
-    
-    local Corner = Instance.new("UICorner")
-    Corner.CornerRadius = UDim.new(0, 8)
-    Corner.Parent = Button
-    
-    local enabled = false
-    Button.MouseButton1Click:Connect(function()
-        enabled = not enabled
-        if enabled then
-            Button.Text = "✅ " .. name
-            Button.BackgroundColor3 = Color3.fromRGB(0, 180, 0)
-        else
-            Button.Text = "❌ " .. name
-            Button.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
-        end
-        callback(enabled)
-    end)
-    
-    buttonYPos = buttonYPos + 60
-    return Button
-end
+-- Add UIListLayout for automatic spacing
+local ListLayout = Instance.new("UIListLayout")
+ListLayout.Padding = UDim.new(0, 10)
+ListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+ListLayout.Parent = ContentFrame
 
--- Status Label
+-- Status Label (TOP - Order 1)
 local StatusLabel = Instance.new("TextLabel")
-StatusLabel.Size = UDim2.new(1, 0, 0, 40)
-StatusLabel.Position = UDim2.new(0, 0, 0, 0)
-StatusLabel.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
-StatusLabel.Text = "📊 Ready | 0 Kills"
-StatusLabel.TextColor3 = Color3.fromRGB(0, 255, 150)
+StatusLabel.Name = "StatusLabel"
+StatusLabel.Size = UDim2.new(1, 0, 0, 45)
+StatusLabel.BackgroundColor3 = Color3.fromRGB(55, 55, 70)
+StatusLabel.Text = "📊 Ready | Mode: IDLE | 0 Kills"
+StatusLabel.TextColor3 = Color3.fromRGB(100, 255, 150)
 StatusLabel.Font = Enum.Font.GothamBold
-StatusLabel.TextSize = 13
-StatusLabel.BorderSizePixel = 0
+StatusLabel.TextSize = 14
+StatusLabel.BorderSizePixel = 2
+StatusLabel.BorderColor3 = Color3.fromRGB(0, 200, 100)
+StatusLabel.LayoutOrder = 1
 StatusLabel.Parent = ContentFrame
 
 local StatusCorner = Instance.new("UICorner")
 StatusCorner.CornerRadius = UDim.new(0, 8)
 StatusCorner.Parent = StatusLabel
 
-buttonYPos = 50
+-- Create button helper function
+local layoutOrder = 2
+local function CreateToggleButton(name, emoji, color, callback)
+    local Button = Instance.new("TextButton")
+    Button.Name = name
+    Button.Size = UDim2.new(1, 0, 0, 55)
+    Button.BackgroundColor3 = Color3.fromRGB(60, 60, 75)
+    Button.Text = "❌ " .. emoji .. " " .. name
+    Button.TextColor3 = Color3.white
+    Button.Font = Enum.Font.GothamBold
+    Button.TextSize = 16
+    Button.BorderSizePixel = 2
+    Button.BorderColor3 = Color3.fromRGB(80, 80, 95)
+    Button.LayoutOrder = layoutOrder
+    Button.Parent = ContentFrame
+    
+    local Corner = Instance.new("UICorner")
+    Corner.CornerRadius = UDim.new(0, 10)
+    Corner.Parent = Button
+    
+    -- Add stroke for better visibility
+    local Stroke = Instance.new("UIStroke")
+    Stroke.Color = Color3.fromRGB(255, 255, 255)
+    Stroke.Thickness = 0
+    Stroke.Transparency = 0.8
+    Stroke.Parent = Button
+    
+    local enabled = false
+    Button.MouseButton1Click:Connect(function()
+        enabled = not enabled
+        if enabled then
+            Button.Text = "✅ " .. emoji .. " " .. name
+            Button.BackgroundColor3 = color
+            Button.BorderColor3 = Color3.new(color.R * 1.2, color.G * 1.2, color.B * 1.2)
+            Stroke.Thickness = 2
+            Stroke.Transparency = 0.3
+        else
+            Button.Text = "❌ " .. emoji .. " " .. name
+            Button.BackgroundColor3 = Color3.fromRGB(60, 60, 75)
+            Button.BorderColor3 = Color3.fromRGB(80, 80, 95)
+            Stroke.Thickness = 0
+            Stroke.Transparency = 0.8
+        end
+        callback(enabled)
+    end)
+    
+    layoutOrder = layoutOrder + 1
+    return Button
+end
 
 print("[Freezy HUB] ✓ Mobile UI created")
 
@@ -277,13 +313,13 @@ local function isValidTarget(zombie, head, humanoid)
 end
 
 -- Kryptonite Mode Toggle
-CreateToggleButton("🔥 KRYPTONITE MODE", function(state)
+CreateToggleButton("KRYPTONITE MODE", "🔥", Color3.fromRGB(255, 100, 0), function(state)
     kryptoniteMode = state
     print("[Freezy HUB] Kryptonite Mode: " .. (state and "ENABLED" or "DISABLED"))
 end)
 
 -- Auto Headshot Toggle
-CreateToggleButton("🎯 AUTO HEADSHOT", function(state)
+CreateToggleButton("AUTO HEADSHOT", "🎯", Color3.fromRGB(0, 180, 255), function(state)
     autoKill = state
     print("[Freezy HUB] Auto Headshot: " .. (state and "ENABLED" or "DISABLED"))
     
@@ -364,7 +400,7 @@ end)
 
 -- Speed Toggle
 local normalSpeed = false
-CreateToggleButton("🏃 SPEED BOOST", function(state)
+CreateToggleButton("SPEED BOOST", "🏃", Color3.fromRGB(100, 200, 100), function(state)
     normalSpeed = state
     local character = player.Character
     if character then
@@ -388,9 +424,26 @@ end)
 -- Update Status
 task.spawn(function()
     while task.wait(0.5) do
-        local mode = kryptoniteMode and "🔥 KRYPTONITE" or "🛡️ SAFE"
-        local status = autoKill and "ACTIVE" or "IDLE"
-        StatusLabel.Text = string.format("%s | %s | %d Kills", mode, status, killCount)
+        pcall(function()
+            local mode = kryptoniteMode and "🔥 KRYPTO" or "🛡️ SAFE"
+            local status = autoKill and "⚡ ACTIVE" or "💤 IDLE"
+            StatusLabel.Text = string.format("📊 %s | %s | Kills: %d", mode, status, killCount)
+            
+            -- Change color based on status
+            if autoKill and kryptoniteMode then
+                StatusLabel.BackgroundColor3 = Color3.fromRGB(80, 40, 20)
+                StatusLabel.BorderColor3 = Color3.fromRGB(255, 100, 0)
+                StatusLabel.TextColor3 = Color3.fromRGB(255, 150, 50)
+            elseif autoKill then
+                StatusLabel.BackgroundColor3 = Color3.fromRGB(20, 50, 80)
+                StatusLabel.BorderColor3 = Color3.fromRGB(0, 150, 255)
+                StatusLabel.TextColor3 = Color3.fromRGB(100, 200, 255)
+            else
+                StatusLabel.BackgroundColor3 = Color3.fromRGB(55, 55, 70)
+                StatusLabel.BorderColor3 = Color3.fromRGB(0, 200, 100)
+                StatusLabel.TextColor3 = Color3.fromRGB(100, 255, 150)
+            end
+        end)
     end
 end)
 
