@@ -18,10 +18,10 @@ end)
 
 -- 🛡️ KNIGHTMARE-SYNCHRONIZED UI CONFIGURATION
 local Window = Rayfield:CreateWindow({
-    Name = "❄️ Freezy HUB ❄️ | POLY-Z | 🛡️ KnightMare Sync",
+    Name = "🚀 FREEZY HUB V2 ENHANCED 🚀 | POLY-Z | 🛡️ KnightMare Sync",
     Icon = 71338090068856,
-    LoadingTitle = "🛡️ Initializing KnightMare Synchronicity...",
-    LoadingSubtitle = "Advanced Detection Evasion Active",
+    LoadingTitle = "🚀 Initializing Enhanced V2 System...",
+    LoadingSubtitle = "Improved Performance + Anti-Cheat Synchronization",
     Theme = "Ocean",
     ToggleUIKeybind = Enum.KeyCode.K,
     ConfigurationSaving = {
@@ -119,9 +119,9 @@ local function updateEffectiveness(level)
     
     local scaleFactor = level / 100
     
-    -- Adaptive shot delay: 0.30s (safe) to 0.18s (skilled human at 100%)
-    -- CRITICAL: Never go below 0.18s - that's the absolute human limit
-    shootDelay = 0.30 - (scaleFactor * 0.12)
+    -- Adaptive shot delay: 0.30s (safe) to 0.15s (skilled human at 100%)
+    -- CRITICAL: Never go below 0.15s - that's the absolute human limit
+    shootDelay = 0.30 - (scaleFactor * 0.15)
     
     -- Adaptive human reaction time
     adaptiveDelay = shootDelay
@@ -264,11 +264,11 @@ local function getKnightMareDelay(base)
     -- High effectiveness and low risk = can be faster
     local contextualMinimum
     if detectionRisk > 0.3 then
-        contextualMinimum = 0.22 -- Play it safe when risk is high
+        contextualMinimum = 0.20 -- Play it safe when risk is high
     elseif stealthMode then
-        contextualMinimum = 0.20 -- Conservative baseline
+        contextualMinimum = 0.18 -- Conservative baseline
     else
-        contextualMinimum = 0.18 -- Professional baseline
+        contextualMinimum = 0.15 -- Professional baseline
     end
     
     return math.max(contextualMinimum, finalDelay)
@@ -317,8 +317,8 @@ local function shouldAllowKnightMareShot()
     end
     
     -- Human minimum reaction time between accurate shots
-    -- Professional players can sustain 180-200ms between shots during intense focus
-    local humanReactionTime = stealthMode and 0.20 or 0.18
+    -- Professional players can sustain 150-180ms between shots during intense focus
+    local humanReactionTime = stealthMode and 0.18 or 0.15
     if currentTime - lastValidationTime < humanReactionTime then
         return false
     end
@@ -614,11 +614,21 @@ CombatTab:CreateToggle({
                                     if aCritical and not bCritical then return true end
                                     if bCritical and not aCritical then return false end
                                     
+                                    -- If both in critical zone, closest first
+                                    if aCritical and bCritical then
+                                        return a.distance < b.distance
+                                    end
+                                    
                                     -- HIGH THREAT ZONE: Approaching enemies or Bosses
                                     local aHighThreat = a.distance < highThreatZone or aBoss
                                     local bHighThreat = b.distance < highThreatZone or bBoss
                                     if aHighThreat and not bHighThreat then return true end
                                     if bHighThreat and not aHighThreat then return false end
+                                    
+                                    -- If both in high threat zone, closest first
+                                    if aHighThreat and bHighThreat then
+                                        return a.distance < b.distance
+                                    end
                                     
                                     -- PREEMPTIVE ZONE: Target before they get close (high effectiveness only)
                                     if effectivenessLevel >= 60 then
@@ -626,9 +636,14 @@ CombatTab:CreateToggle({
                                         local bPreemptive = b.distance < preemptiveZone
                                         if aPreemptive and not bPreemptive then return true end
                                         if bPreemptive and not aPreemptive then return false end
+                                        
+                                        -- If both in preemptive zone, closest first
+                                        if aPreemptive and bPreemptive then
+                                            return a.distance < b.distance
+                                        end
                                     end
                                     
-                                    -- Default: closer = higher priority
+                                    -- PRIMARY RULE: Always prioritize closest zombie first
                                     return a.distance < b.distance
                                 end)
                                 
@@ -643,80 +658,77 @@ CombatTab:CreateToggle({
                                     end
                                 end
                                 
-                                -- 🚀 MULTIPLIED RESULTS - Exploit anti-cheat blindspots
+                                -- 🧠 INTELLIGENT ADAPTIVE ALLOCATION
+                                -- Varies based on player state, not just effectiveness
                                 local maxShotsPerCycle
-                                local totalThreats = #validTargets
                                 
-                                -- 🎯 ANTI-CHEAT BLINDSPOT DETECTION
-                                local currentTick = tick()
-                                local cyclePosition = currentTick % 0.1 -- Game processes every 100ms
-                                local inBlindspot = cyclePosition < 0.04 -- First 40ms = safe window
+                                -- FOCUS-BASED SHOT CAPACITY
+                                -- Focused player = can track more targets
+                                -- Fatigued player = tracks fewer
+                                local focusFactor = behaviorProfile.focusLevel - behaviorProfile.fatigueLevel
+                                local shotCapacity = math.floor(5 + (focusFactor * 5)) -- 4-10 shots based on state
                                 
-                                if inBlindspot then
-                                    -- 🔥 KRYPTONITE MODE: Maximum aggression during blindspot
-                                    if criticalThreats > 0 then
-                                        -- INVINCIBILITY: Kill ALL threats instantly
-                                        maxShotsPerCycle = math.min(totalThreats, 50) -- Up to 50 shots
-                                    else
-                                        -- CONSTANT KILLING: Maximum sustainable rate
-                                        maxShotsPerCycle = math.min(totalThreats, 30) -- Up to 30 shots
-                                    end
+                                if criticalThreats > 0 then
+                                    -- ALERT MODE: Adrenaline boost allows more shots
+                                    local panicBoost = math.min(4, criticalThreats / 2) -- Up to +4 shots
+                                    maxShotsPerCycle = math.min(criticalThreats, shotCapacity + math.floor(panicBoost), 12)
                                 else
-                                    -- 🧠 HUMAN MODE: When anti-cheat is watching
-                                    if criticalThreats > 0 then
-                                        local urgentShots = math.min(criticalThreats + 3, totalThreats)
-                                        maxShotsPerCycle = math.min(urgentShots, 8) -- Conservative
-                                    else
-                                        local baseShots = 2 + math.floor(effectivenessScale * 4)
-                                        maxShotsPerCycle = math.min(baseShots, 6) -- Human-like
-                                    end
+                                    -- NORMAL MODE: Scale with effectiveness AND player state
+                                    local baseShots = math.floor(4 + (effectivenessScale * 6))
+                                    maxShotsPerCycle = math.min(baseShots, shotCapacity, 10)
+                                end
+                                
+                                -- RANDOM VARIATION: Sometimes shoot fewer (distraction, hesitation)
+                                if math.random() < 0.20 then -- 20% chance
+                                    maxShotsPerCycle = math.max(1, maxShotsPerCycle - 1)
                                 end
                                 
                                 for _, target in ipairs(validTargets) do
                                     if shotsFired >= maxShotsPerCycle then break end
                                     
-                                    -- 🧬 HUMAN IMPERFECTION: Reduced skip chance for higher performance
-                                    local shouldShoot = true
-                                    if shotsFired > 0 and math.random() < 0.08 then -- Only 8% skip chance
-                                        shouldShoot = false
-                                    end
+                                    -- 🧬 HUMAN IMPERFECTION: Occasionally skip a target (distraction, hesitation)
+                                    -- Lower focus or higher fatigue = more likely to "miss" targeting
+                                    local skipChance = (1 - behaviorProfile.focusLevel) * 0.15 + (behaviorProfile.fatigueLevel * 0.10)
+                                    local shouldSkip = math.random() < skipChance and shotsFired > 0
                                     
-                                    if shouldShoot then
+                                    if not shouldSkip then
+                                    
+                                    -- 🎯 KNIGHTMARE-SYNCHRONIZED TARGETING
+                                    local isBoss = target.model.Name == "GoblinKing" or target.model.Name == "CaptainBoom" or target.model.Name == "Fungarth"
+                                    
                                     -- 🛡️ Use KnightMare-synchronized raycast system
                                     local hitPos, hitPart = getKnightMareShotPosition(target.head, target.model)
                                     
                                     if hitPos and hitPart then
                                         -- 🎯 KNIGHTMARE FIRESERVER SYNCHRONICITY
+                                        -- Args match EXACTLY: (EnemyModel, HitPart, HitPosition, 0, WeaponName)
+                                        -- Synchronized with place file line 12178
                                         local args = {target.model, hitPart, hitPos, 0, weapon}
                                         
                                         local success = pcall(function()
                                             shootRemote:FireServer(unpack(args))
                                         end)
                                         
+                                        -- 📊 Record shot for adaptive learning
                                         recordShotSuccess(success)
                                         
                                         if success then
                                             shotsFired = shotsFired + 1
                                             
-                                                -- 🚀 ULTRA-FAST SPACING - Exploit blindspots
-                                                if shotsFired < maxShotsPerCycle then
-                                                    if inBlindspot then
-                                                        -- 🔥 KRYPTONITE: 1-20ms during blindspot
-                                                        task.wait(0.001 + (math.random() * 0.019))
-                                                    elseif target.distance < criticalZone then
-                                                        -- Critical: 30-60ms (fast human panic)
-                                                        task.wait(0.03 + (math.random() * 0.03))
-                                                    else
-                                                        -- Normal: 50-100ms (skilled human)
-                                                        task.wait(0.05 + (math.random() * 0.05))
-                                                    end
-                                                end
+                                            -- 🎯 SMART MULTI-SHOT SPACING (human panic simulation)
+                                            if shotsFired < maxShotsPerCycle then
+                                                -- Critical threats = faster but still human-like
+                                                -- Human panic: 40-80ms between rapid shots
+                                                local urgentDelay = target.distance < criticalZone and 0.04 or 0.06
+                                                local variance = math.random() * 0.04 -- 0-40ms variance
+                                                task.wait(urgentDelay + variance) -- 40-80ms (improved)
                                             end
                                         end
                                     end
                                     
                                     -- 🧠 INTELLIGENT TARGET SKIP: Don't waste time on blocked targets
                                     -- At high effectiveness, try more targets to find clear shots
+                                    end -- Close shouldSkip check
                                 end
                                 
                                 -- If no shot fired, all targets blocked (legitimate game behavior)
@@ -746,25 +758,29 @@ CombatTab:CreateToggle({
                                     end
                                 end
                                 
-                    -- 🚀 ULTRA-FAST CYCLE TIMING - Exploit anti-cheat blindspots
+                    -- 🧬 DYNAMIC CYCLE DELAY WITH BEHAVIORAL SIMULATION
                     local cycleDelay
-                    local currentTick = tick()
-                    local cyclePosition = currentTick % 0.1
-                    local inBlindspot = cyclePosition < 0.04
                     
-                    if inBlindspot and hasUrgentThreats then
-                        -- 🔥 INVINCIBILITY MODE: 5-15ms ultra-fast cycles
-                        cycleDelay = 0.005 + (math.random() * 0.01) -- 5-15ms
-                    elseif hasUrgentThreats then
-                        -- ⚡ ALERT MODE: Fast human reaction
-                        cycleDelay = 0.04 + (math.random() * 0.04) -- 40-80ms
+                    if hasUrgentThreats then
+                        -- ALERT MODE: Faster reaction like a focused human
+                        -- Focus level affects response time
+                        local alertSpeed = 0.08 + ((1 - behaviorProfile.focusLevel) * 0.04) -- 80-120ms
+                        cycleDelay = alertSpeed + (math.random() * 0.03) -- +0-30ms variance
                     else
-                        -- 🧠 NORMAL MODE: Human-like timing
-                        cycleDelay = 0.08 + (math.random() * 0.06) -- 80-140ms
+                        -- NORMAL: Use smart delay based on effectiveness
+                        cycleDelay = getKnightMareDelay(shootDelay)
                         
-                        -- Rare pauses only when not in blindspot
-                        if not inBlindspot and math.random() < 0.03 then
-                            cycleDelay = cycleDelay + (0.15 + math.random() * 0.2) -- Quick check
+                        -- 🧠 HUMAN PAUSE SIMULATION: Occasionally take a break
+                        -- Simulates looking around, checking UI, reloading mentally
+                        if math.random() < 0.06 then -- 6% chance per cycle (reduced for better performance)
+                            local pauseType = math.random()
+                            if pauseType < 0.4 then
+                                cycleDelay = cycleDelay + (0.2 + math.random() * 0.3) -- Quick glance (200-500ms)
+                            elseif pauseType < 0.7 then
+                                cycleDelay = cycleDelay + (0.6 + math.random() * 0.5) -- Check surroundings (600-1100ms)
+                            else
+                                cycleDelay = cycleDelay + (1.0 + math.random() * 0.8) -- Brief distraction (1.0-1.8s)
+                            end
                         end
                     end
                     
@@ -1246,7 +1262,7 @@ MiscTab:CreateButton({
             task.wait(1.5)
             
             -- More aggressive GUI cleanup
-        pcall(function()
+            pcall(function()
                 -- Try multiple destruction methods
                 if Rayfield then
                     if Rayfield.Main then
