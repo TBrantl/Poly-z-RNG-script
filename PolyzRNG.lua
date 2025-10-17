@@ -18,10 +18,10 @@ end)
 
 -- 🛡️ KNIGHTMARE-SYNCHRONIZED UI CONFIGURATION
 local Window = Rayfield:CreateWindow({
-    Name = "🛡️ FREEZY HUB STABLE ELIMINATION 🛡️ | POLY-Z | 🛡️ KnightMare Sync",
+    Name = "🚀 FREEZY HUB CROWD CLEARING SYSTEM 🚀 | POLY-Z | 🛡️ KnightMare Sync",
     Icon = 71338090068856,
-    LoadingTitle = "🛡️ Initializing Stable Elimination System...",
-    LoadingSubtitle = "20 Shots/Zombie + 10 Optimal + 100 Checks/Sec + No Freezing",
+    LoadingTitle = "🚀 Initializing Crowd Clearing System...",
+    LoadingSubtitle = "200+ Zombie Clearing + Adaptive Performance + High-Speed Elimination",
     Theme = "Ocean",
     ToggleUIKeybind = Enum.KeyCode.K,
     ConfigurationSaving = {
@@ -573,8 +573,21 @@ CombatTab:CreateToggle({
                                                 if hitPos and hitPart then
                                                     local args = {zombie, hitPart, hitPos, 0, weapon}
                                                     
-                                                    -- 🔥 STABLE INSTANT FIRING: 20 shots per zombie for reliable elimination
-                                                    for i = 1, 20 do
+                                                    -- 🔥 CROWD CLEARING FIRING: Adaptive shots based on crowd size
+                                                    local crowdSize = #enemies:GetChildren()
+                                                    local shotsPerZombie = 20
+                                                    
+                                                    if crowdSize >= 200 then
+                                                        shotsPerZombie = 2 -- 2 shots for massive crowds = FAST CLEARING
+                                                    elseif crowdSize >= 100 then
+                                                        shotsPerZombie = 5 -- 5 shots for large crowds = RAPID CLEARING
+                                                    elseif crowdSize >= 50 then
+                                                        shotsPerZombie = 10 -- 10 shots for medium crowds = GOOD CLEARING
+                                                    else
+                                                        shotsPerZombie = 20 -- 20 shots for small crowds = THOROUGH CLEARING
+                                                    end
+                                                    
+                                                    for i = 1, shotsPerZombie do
                                                         task.spawn(function()
                                                             shootRemote:FireServer(unpack(args))
                                                         end)
@@ -608,7 +621,15 @@ CombatTab:CreateToggle({
                                 end
                             end
                         end)
-                        task.wait(0.01) -- Check every 10ms for stable performance (100 checks/sec)
+                        -- 🔥 ADAPTIVE MONITORING: Faster checking for large crowds
+                        local crowdSize = enemies and #enemies:GetChildren() or 0
+                        if crowdSize >= 200 then
+                            task.wait(0.001) -- 1ms for massive crowds (1000 checks/sec)
+                        elseif crowdSize >= 100 then
+                            task.wait(0.005) -- 5ms for large crowds (200 checks/sec)
+                        else
+                            task.wait(0.01) -- 10ms for normal crowds (100 checks/sec)
+                        end
                     end
                 end)
             
@@ -775,21 +796,43 @@ CombatTab:CreateToggle({
                                 local focusFactor = behaviorProfile.focusLevel - behaviorProfile.fatigueLevel
                                 local baseShotCapacity = math.floor(5 + (focusFactor * 5)) -- 4-10 shots base
                                 
-                                if inOptimalWindow then
-                                    -- 🔥 OPTIMAL WINDOW: STABLE - Maximum exploitation in 5ms
-                                    maxShotsPerCycle = totalThreats * 10 -- 10 shots per zombie = STABLE ELIMINATION
-                                elseif inPeakWindow then
-                                    -- 🔥 PEAK WINDOW: STABLE - Ultra exploitation in 8ms
-                                    maxShotsPerCycle = totalThreats * 8 -- 8 shots per zombie = RELIABLE ELIMINATION
-                                elseif inHyperBlindspot then
-                                    -- 🔥 HYPER BLINDSPOT: STABLE - Enhanced exploitation in 15ms
-                                    maxShotsPerCycle = totalThreats * 6 -- 6 shots per zombie = GOOD ELIMINATION
-                                elseif inUltraBlindspot then
-                                    -- 🔥 ULTRA BLINDSPOT: STABLE - High exploitation in 35ms
-                                    maxShotsPerCycle = totalThreats * 5 -- 5 shots per zombie = EFFECTIVE ELIMINATION
-                                elseif inBlindspot then
-                                    -- 🔥 KRYPTONITE BLINDSPOT: STABLE - Good exploitation in 55ms
-                                    maxShotsPerCycle = totalThreats * 4 -- 4 shots per zombie = GUARANTEED ELIMINATION
+                                -- 🔥 CROWD CLEARING SYSTEM - Handle 200+ zombies quickly
+                                if totalThreats >= 200 then
+                                    -- 🚀 MASSIVE CROWD: Ultra-fast clearing for 200+ zombies
+                                    if inOptimalWindow then
+                                        maxShotsPerCycle = totalThreats * 3 -- 3 shots per zombie = FAST CROWD CLEARING
+                                    elseif inPeakWindow then
+                                        maxShotsPerCycle = totalThreats * 2 -- 2 shots per zombie = RAPID CROWD CLEARING
+                                    elseif inHyperBlindspot then
+                                        maxShotsPerCycle = totalThreats * 2 -- 2 shots per zombie = QUICK CROWD CLEARING
+                                    else
+                                        maxShotsPerCycle = totalThreats * 1 -- 1 shot per zombie = INSTANT CROWD CLEARING
+                                    end
+                                elseif totalThreats >= 100 then
+                                    -- 🔥 LARGE CROWD: Fast clearing for 100+ zombies
+                                    if inOptimalWindow then
+                                        maxShotsPerCycle = totalThreats * 5 -- 5 shots per zombie = FAST CLEARING
+                                    elseif inPeakWindow then
+                                        maxShotsPerCycle = totalThreats * 4 -- 4 shots per zombie = RAPID CLEARING
+                                    elseif inHyperBlindspot then
+                                        maxShotsPerCycle = totalThreats * 3 -- 3 shots per zombie = QUICK CLEARING
+                                    else
+                                        maxShotsPerCycle = totalThreats * 2 -- 2 shots per zombie = EFFECTIVE CLEARING
+                                    end
+                                else
+                                    -- 🎯 NORMAL CROWD: Standard clearing for <100 zombies
+                                    if inOptimalWindow then
+                                        maxShotsPerCycle = totalThreats * 10 -- 10 shots per zombie = STABLE ELIMINATION
+                                    elseif inPeakWindow then
+                                        maxShotsPerCycle = totalThreats * 8 -- 8 shots per zombie = RELIABLE ELIMINATION
+                                    elseif inHyperBlindspot then
+                                        maxShotsPerCycle = totalThreats * 6 -- 6 shots per zombie = GOOD ELIMINATION
+                                    elseif inUltraBlindspot then
+                                        maxShotsPerCycle = totalThreats * 5 -- 5 shots per zombie = EFFECTIVE ELIMINATION
+                                    elseif inBlindspot then
+                                        maxShotsPerCycle = totalThreats * 4 -- 4 shots per zombie = GUARANTEED ELIMINATION
+                                    end
+                                end
                                 elseif criticalThreats > 0 then
                                     -- ALERT MODE: Enhanced adrenaline boost
                                     local panicBoost = math.min(8, criticalThreats / 2) -- Up to +8 shots
