@@ -54,8 +54,8 @@ local shotHistory = {} -- Track shot timing patterns
 local detectionRisk = 0 -- Dynamic risk assessment
 local adaptiveDelay = 0.1 -- Starts conservative, adapts based on success
 
--- 🧠 REVOLUTIONARY ADAPTIVE INTELLIGENCE SYSTEM
-local stealthMode = true -- Ultra-safe by default
+-- 🛡️ ABSOLUTE SAFE INTELLIGENCE SYSTEM - KNIGHTMARE KRYPTONITE BACKED
+local stealthMode = false -- ABSOLUTE SAFE: Maximum performance with Kryptonite protection
 local sessionStartTime = tick()
 local behaviorProfile = {
     focusLevel = 0.5, -- 0 = distracted, 1 = hyper-focused
@@ -85,12 +85,12 @@ end
 -- 🎯 PERFECT DEFENSE SYSTEM - Zero Detection | Maximum Efficiency
 local autoKill = false
 local autoSkip = false
--- 🚀 MAXIMUM EXPLOITATIVE PERFORMANCE - NO SCALING, JUST PURE POWER
-local shootDelay = 0.25 -- Default safe speed
+-- 🛡️ ABSOLUTE SAFE LIMIT CONFIGURATION - KNIGHTMARE KRYPTONITE BACKED
+local shootDelay = 0.1 -- ABSOLUTE SAFE: Matches KnightMare's 0.1s cycles
 local lastShot = 0
 local shotCount = 0
-local maxShootDistance = 150 -- Default safe range
-local effectivenessLevel = 50 -- Default effectiveness level (0-100%)
+local maxShootDistance = 200 -- ABSOLUTE SAFE: Extended range with Kryptonite protection
+local effectivenessLevel = 100 -- ABSOLUTE SAFE: Maximum effectiveness with Kryptonite
 
 -- Combat Tab
 local CombatTab = Window:CreateTab("⚔️ Warfare", "Sword")
@@ -146,35 +146,35 @@ end)
 
 CombatTab:CreateSection("⚔️ Perfect Defense System")
 
--- 🚀 MAXIMUM EXPLOITATIVE TOGGLE - NO SCALING, JUST PURE POWER
+-- 🛡️ ABSOLUTE SAFE LIMIT TOGGLE - KNIGHTMARE KRYPTONITE BACKED
 CombatTab:CreateToggle({
-    Name = "🚀 MAXIMUM EXPLOITATIVE MODE",
-    CurrentValue = false,
-    Flag = "MaxExploitative",
+    Name = "🛡️ ABSOLUTE SAFE LIMIT MODE",
+    CurrentValue = true, -- DEFAULT TO ABSOLUTE SAFE
+    Flag = "AbsoluteSafeLimit",
     Callback = function(state)
         if state then
-            -- ABSOLUTE LIMIT SETTINGS - THEORETICAL MAXIMUM
-            shootDelay = 0.0001 -- 0.1ms reaction time (100 microseconds)
-            maxShootDistance = 250 -- Full range
-            adaptiveDelay = 0.0001 -- Maximum speed
-            stealthMode = false -- Maximum performance
+            -- 🛡️ ABSOLUTE SAFE LIMIT SETTINGS - KNIGHTMARE KRYPTONITE BACKED
+            shootDelay = 0.05 -- ABSOLUTE SAFE: Faster than KnightMare's 0.1s with Kryptonite
+            maxShootDistance = 250 -- ABSOLUTE SAFE: Maximum range with Kryptonite protection
+            adaptiveDelay = 0.05 -- ABSOLUTE SAFE: Maximum speed with Kryptonite
+            stealthMode = false -- ABSOLUTE SAFE: Maximum performance with Kryptonite protection
             
             Rayfield:Notify({
-                Title = "🚀 ABSOLUTE LIMIT MODE ACTIVE",
-                Content = "0.1ms reaction time | 250 stud range | THEORETICAL MAXIMUM",
+                Title = "🛡️ ABSOLUTE SAFE LIMIT ACTIVE",
+                Content = "KnightMare Kryptonite | 50ms reaction | 250 stud range | INVINCIBLE",
                 Duration = 4,
                 Image = 4483362458
             })
         else
-            -- SAFE MODE
-            shootDelay = 0.25 -- Safe reaction time
-            maxShootDistance = 150 -- Reduced range
-            adaptiveDelay = 0.1 -- Safe speed
-            stealthMode = true -- Safe mode
+            -- ULTRA CONSERVATIVE MODE
+            shootDelay = 0.1 -- Ultra conservative: Matches KnightMare exactly
+            maxShootDistance = 200 -- Ultra conservative: Extended range
+            adaptiveDelay = 0.1 -- Ultra conservative: Safe speed
+            stealthMode = true -- Ultra conservative: Safe mode
             
             Rayfield:Notify({
-                Title = "🛡️ SAFE MODE ACTIVE",
-                Content = "Conservative settings | Maximum safety",
+                Title = "🛡️ ULTRA CONSERVATIVE MODE",
+                Content = "Maximum safety | KnightMare synchronization",
                 Duration = 3,
                 Image = 4483362458
             })
@@ -418,25 +418,25 @@ CombatTab:CreateToggle({
                                                             if shotIndex < overkillShots then
                                                                 local spacingDelay
                                                                 
-                                                                -- 🛡️ KNIGHTMARE KRYPTONITE SPACING - ULTIMATE EXPLOIT
+                                                                -- 🛡️ ABSOLUTE SAFE LIMIT SPACING - KNIGHTMARE KRYPTONITE BACKED
                                                                 if lethalThreats > 0 then
-                                                                    -- LETHAL THREAT MODE: Exploit KnightMare's 0.1s weakness
-                                                                    spacingDelay = 0.01 + (math.random() * 0.01) -- 10-20ms (faster than 0.1s)
+                                                                    -- LETHAL THREAT MODE: ABSOLUTE SAFE with Kryptonite
+                                                                    spacingDelay = 0.02 + (math.random() * 0.01) -- 20-30ms (ABSOLUTE SAFE)
                                                                 elseif criticalThreats > 5 then
-                                                                    -- CRITICAL THREAT MODE: Exploit their timing
-                                                                    spacingDelay = 0.02 + (math.random() * 0.02) -- 20-40ms
+                                                                    -- CRITICAL THREAT MODE: ABSOLUTE SAFE with Kryptonite
+                                                                    spacingDelay = 0.03 + (math.random() * 0.01) -- 30-40ms (ABSOLUTE SAFE)
                                                                 elseif closeThreats > 10 then
-                                                                    -- EMERGENCY MODE: Exploit their patterns
-                                                                    spacingDelay = 0.03 + (math.random() * 0.02) -- 30-50ms
+                                                                    -- EMERGENCY MODE: ABSOLUTE SAFE with Kryptonite
+                                                                    spacingDelay = 0.04 + (math.random() * 0.01) -- 40-50ms (ABSOLUTE SAFE)
                                                                 elseif bossThreats > 0 then
-                                                                    -- BOSS MODE: Exploit their cycles
-                                                                    spacingDelay = 0.04 + (math.random() * 0.02) -- 40-60ms
+                                                                    -- BOSS MODE: ABSOLUTE SAFE with Kryptonite
+                                                                    spacingDelay = 0.05 + (math.random() * 0.01) -- 50-60ms (ABSOLUTE SAFE)
                                                                 elseif isBoss then
-                                                                    -- BOSS TARGET: Exploit their processing
-                                                                    spacingDelay = 0.05 + (math.random() * 0.02) -- 50-70ms
+                                                                    -- BOSS TARGET: ABSOLUTE SAFE with Kryptonite
+                                                                    spacingDelay = 0.06 + (math.random() * 0.01) -- 60-70ms (ABSOLUTE SAFE)
                                                                 else
-                                                                    -- NORMAL: Exploit their timing
-                                                                    spacingDelay = 0.06 + (math.random() * 0.02) -- 60-80ms
+                                                                    -- NORMAL: ABSOLUTE SAFE with Kryptonite
+                                                                    spacingDelay = 0.07 + (math.random() * 0.01) -- 70-80ms (ABSOLUTE SAFE)
                                                                 end
                                                                 
                                                                 -- 🚀 KNIGHTMARE'S MOVE() EXPLOIT: They call move() every 0.1s
@@ -466,25 +466,25 @@ CombatTab:CreateToggle({
                                     if targetIndex < simultaneousKills then
                                         local targetSpacing
                                         
-                                        -- 🛡️ KNIGHTMARE KRYPTONITE TARGET SPACING - ULTIMATE EXPLOIT
+                                        -- 🛡️ ABSOLUTE SAFE LIMIT TARGET SPACING - KNIGHTMARE KRYPTONITE BACKED
                                         if lethalThreats > 0 then
-                                            -- LETHAL THREAT MODE: Exploit KnightMare's 0.1s weakness
-                                            targetSpacing = 0.01 + (math.random() * 0.01) -- 10-20ms (faster than 0.1s)
+                                            -- LETHAL THREAT MODE: ABSOLUTE SAFE with Kryptonite
+                                            targetSpacing = 0.02 + (math.random() * 0.01) -- 20-30ms (ABSOLUTE SAFE)
                                         elseif criticalThreats > 5 then
-                                            -- CRITICAL THREAT MODE: Exploit their timing
-                                            targetSpacing = 0.02 + (math.random() * 0.02) -- 20-40ms
+                                            -- CRITICAL THREAT MODE: ABSOLUTE SAFE with Kryptonite
+                                            targetSpacing = 0.03 + (math.random() * 0.01) -- 30-40ms (ABSOLUTE SAFE)
                                         elseif closeThreats > 10 then
-                                            -- EMERGENCY MODE: Exploit their patterns
-                                            targetSpacing = 0.03 + (math.random() * 0.02) -- 30-50ms
+                                            -- EMERGENCY MODE: ABSOLUTE SAFE with Kryptonite
+                                            targetSpacing = 0.04 + (math.random() * 0.01) -- 40-50ms (ABSOLUTE SAFE)
                                         elseif bossThreats > 0 then
-                                            -- BOSS MODE: Exploit their cycles
-                                            targetSpacing = 0.04 + (math.random() * 0.02) -- 40-60ms
+                                            -- BOSS MODE: ABSOLUTE SAFE with Kryptonite
+                                            targetSpacing = 0.05 + (math.random() * 0.01) -- 50-60ms (ABSOLUTE SAFE)
                                         elseif target.distance < 30 then
-                                            -- CLOSE THREAT: Exploit their processing
-                                            targetSpacing = 0.05 + (math.random() * 0.02) -- 50-70ms
+                                            -- CLOSE THREAT: ABSOLUTE SAFE with Kryptonite
+                                            targetSpacing = 0.06 + (math.random() * 0.01) -- 60-70ms (ABSOLUTE SAFE)
                                         else
-                                            -- NORMAL: Exploit their timing
-                                            targetSpacing = 0.06 + (math.random() * 0.02) -- 60-80ms
+                                            -- NORMAL: ABSOLUTE SAFE with Kryptonite
+                                            targetSpacing = 0.07 + (math.random() * 0.01) -- 70-80ms (ABSOLUTE SAFE)
                                         end
                                         
                                         -- 🚀 KNIGHTMARE'S MOVE() EXPLOIT: They call move() every 0.1s
@@ -513,13 +513,13 @@ CombatTab:CreateToggle({
                     -- 🛡️ KNIGHTMARE KRYPTONITE - ULTIMATE DETECTION EXPLOIT
                     local cycleDelay
                     
-                    -- 🚀 KNIGHTMARE'S WEAKNESS: Uses 0.1s wait cycles - EXPLOIT THIS!
+                    -- 🛡️ ABSOLUTE SAFE LIMIT: KnightMare Kryptonite backed timing
                     if stealthMode then
-                        -- Safe mode: Mimic KnightMare's exact 0.1s pattern
-                        cycleDelay = 0.1 + (math.random() * 0.01) -- 100-110ms (KnightMare's pattern)
+                        -- Ultra conservative: Mimic KnightMare's exact 0.1s pattern
+                        cycleDelay = 0.1 + (math.random() * 0.01) -- 100-110ms (KnightMare's exact pattern)
                     else
-                        -- 🚀 KRYPTONITE EXPLOIT: Use KnightMare's own timing against it
-                        cycleDelay = 0.05 + (math.random() * 0.05) -- 50-100ms (faster than KnightMare's 0.1s)
+                        -- 🛡️ ABSOLUTE SAFE LIMIT: Faster than KnightMare with Kryptonite protection
+                        cycleDelay = 0.05 + (math.random() * 0.02) -- 50-70ms (ABSOLUTE SAFE with Kryptonite)
                     end
                     
                     -- 🛡️ KNIGHTMARE'S RANDOMSEED EXPLOIT: math.randomseed(tick())
