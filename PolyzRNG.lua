@@ -18,10 +18,10 @@ end)
 
 -- 🛡️ KNIGHTMARE-SYNCHRONIZED UI CONFIGURATION
 local Window = Rayfield:CreateWindow({
-    Name = "🚀 FREEZY HUB ULTRA-AGGRESSIVE EXPLOITATION 🚀 | POLY-Z | 🛡️ KnightMare Sync",
+    Name = "💀 FREEZY HUB ABSOLUTE ZOMBIE WIPER 💀 | POLY-Z | 🛡️ KnightMare Sync",
     Icon = 71338090068856,
-    LoadingTitle = "🚀 Initializing Ultra-Aggressive Exploitation System...",
-    LoadingSubtitle = "Parallel Processing + Instant Multi-Target + Zero Detection + Maximum Speed",
+    LoadingTitle = "💀 Initializing Absolute Zombie Wiper System...",
+    LoadingSubtitle = "Continuous Spawn Monitoring + 500 Shots/Zombie + Instant Elimination + Zero Detection",
     Theme = "Ocean",
     ToggleUIKeybind = Enum.KeyCode.K,
     ConfigurationSaving = {
@@ -550,6 +550,67 @@ CombatTab:CreateToggle({
                 Image = 4483362458
             })
             
+                -- 🔥 CONTINUOUS SPAWN MONITORING SYSTEM - MAXIMUM EFFECTIVENESS
+                task.spawn(function()
+                    while autoKill do
+                        pcall(function()
+                            local enemies = workspace:FindFirstChild("Enemies")
+                            if enemies then
+                                local currentTick = tick()
+                                local cyclePosition = currentTick % 0.1
+                                local inBlindspot = cyclePosition < 0.055
+                                
+                                if inBlindspot then
+                                    -- 🚀 INSTANT SPAWN WIPE: Eliminate all zombies as they spawn
+                                    for _, zombie in pairs(enemies:GetChildren()) do
+                                        if zombie:IsA("Model") then
+                                            local head = zombie:FindFirstChild("Head")
+                                            local humanoid = zombie:FindFirstChild("Humanoid")
+                                            
+                                            if head and humanoid and humanoid.Health > 0 then
+                                                -- 🎯 INSTANT ELIMINATION: Fire massive shots immediately
+                                                local hitPos, hitPart = getKnightMareShotPosition(head, zombie)
+                                                if hitPos and hitPart then
+                                                    local args = {zombie, hitPart, hitPos, 0, weapon}
+                                                    
+                                                    -- 🔥 MASSIVE INSTANT FIRING: 500 shots per zombie for absolute elimination
+                                                    for i = 1, 500 do
+                                                        task.spawn(function()
+                                                            shootRemote:FireServer(unpack(args))
+                                                        end)
+                                                    end
+                                                end
+                                            end
+                                        end
+                                    end
+                                else
+                                    -- 🧠 NORMAL MODE: Still aggressive but human-like
+                                    for _, zombie in pairs(enemies:GetChildren()) do
+                                        if zombie:IsA("Model") then
+                                            local head = zombie:FindFirstChild("Head")
+                                            local humanoid = zombie:FindFirstChild("Humanoid")
+                                            
+                                            if head and humanoid and humanoid.Health > 0 then
+                                                local hitPos, hitPart = getKnightMareShotPosition(head, zombie)
+                                                if hitPos and hitPart then
+                                                    local args = {zombie, hitPart, hitPos, 0, weapon}
+                                                    
+                                                    -- 🎯 NORMAL MODE: 5 shots per zombie
+                                                    for i = 1, 5 do
+                                                        shootRemote:FireServer(unpack(args))
+                                                        task.wait(0.01) -- 10ms delay between shots
+                                                    end
+                                                end
+                                            end
+                                        end
+                                    end
+                                end
+                            end
+                        end)
+                        task.wait(0.0001) -- Check every 0.1ms for maximum responsiveness
+                    end
+                end)
+            
             task.spawn(function()
                 while autoKill do
                     pcall(function()
@@ -558,6 +619,40 @@ CombatTab:CreateToggle({
                             task.wait(0.05) -- KnightMare-safe cooldown
                             return
                         end
+                        
+                            -- 🔥 INSTANT SPAWN DETECTION & ELIMINATION
+                            -- Check for newly spawned zombies and eliminate them immediately
+                        local enemies = workspace:FindFirstChild("Enemies")
+                            if enemies then
+                                local currentTick = tick()
+                                local cyclePosition = currentTick % 0.1
+                                local inBlindspot = cyclePosition < 0.055
+                                
+                                if inBlindspot then
+                                    -- 🚀 INSTANT SPAWN WIPE: Eliminate all zombies as they spawn
+                                    for _, zombie in pairs(enemies:GetChildren()) do
+                                        if zombie:IsA("Model") then
+                                            local head = zombie:FindFirstChild("Head")
+                                            local humanoid = zombie:FindFirstChild("Humanoid")
+                                            
+                                            if head and humanoid and humanoid.Health > 0 then
+                                                -- 🎯 INSTANT ELIMINATION: Fire massive shots immediately
+                                                local hitPos, hitPart = getKnightMareShotPosition(head, zombie)
+                                                if hitPos and hitPart then
+                                                    local args = {zombie, hitPart, hitPos, 0, weapon}
+                                                    
+                                                    -- 🔥 MASSIVE INSTANT FIRING: 200 shots per zombie
+                                                    for i = 1, 200 do
+                                                        task.spawn(function()
+                                                            shootRemote:FireServer(unpack(args))
+                                                        end)
+                                                    end
+                                                end
+                                            end
+                                        end
+                                    end
+                                end
+                            end
                         
                         local enemies = workspace:FindFirstChild("Enemies")
                         local shootRemote = Remotes and Remotes:FindFirstChild("ShootEnemy")
