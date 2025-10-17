@@ -738,21 +738,52 @@ CombatTab:CreateToggle({
                                                 task.wait(packetDelay)
                                             end
                                             
-                                            -- 🔥 GODLIKE MULTI-THREADED SHOT FIRING
-                                            -- Fire massive amounts of shots simultaneously for godlike performance
-                                            local shotCount = 1
+                                            -- 🔥 GODLIKE MULTI-SHOT ZOMBIE ELIMINATION
+                                            -- Fire multiple shots per zombie to ensure death
+                                            local shotsPerZombie = 1
+                                            
+                                            -- 🧠 ADAPTIVE SHOTS BASED ON ZOMBIE TYPE
+                                            local isBoss = target.model.Name == "GoblinKing" or target.model.Name == "CaptainBoom" or target.model.Name == "Fungarth"
+                                            local isStrongZombie = target.humanoid and target.humanoid.MaxHealth > 100
+                                            
                                             if inHyperBlindspot then
-                                                shotCount = math.min(1000, maxShotsPerCycle - shotsFired) -- Up to 1000 simultaneous shots!
+                                                if isBoss then
+                                                    shotsPerZombie = 50 -- 50 shots for bosses in hyper blindspot
+                                                elseif isStrongZombie then
+                                                    shotsPerZombie = 20 -- 20 shots for strong zombies
+                                                else
+                                                    shotsPerZombie = 10 -- 10 shots for normal zombies
+                                                end
                                             elseif inUltraBlindspot then
-                                                shotCount = math.min(500, maxShotsPerCycle - shotsFired) -- Up to 500 simultaneous shots!
+                                                if isBoss then
+                                                    shotsPerZombie = 30 -- 30 shots for bosses in ultra blindspot
+                                                elseif isStrongZombie then
+                                                    shotsPerZombie = 15 -- 15 shots for strong zombies
+                                                else
+                                                    shotsPerZombie = 8 -- 8 shots for normal zombies
+                                                end
                                             elseif inBlindspot then
-                                                shotCount = math.min(100, maxShotsPerCycle - shotsFired) -- Up to 100 simultaneous shots!
+                                                if isBoss then
+                                                    shotsPerZombie = 20 -- 20 shots for bosses in kryptonite blindspot
+                                                elseif isStrongZombie then
+                                                    shotsPerZombie = 10 -- 10 shots for strong zombies
+                                                else
+                                                    shotsPerZombie = 5 -- 5 shots for normal zombies
+                                                end
+                                            else
+                                                if isBoss then
+                                                    shotsPerZombie = 5 -- 5 shots for bosses in normal mode
+                                                elseif isStrongZombie then
+                                                    shotsPerZombie = 3 -- 3 shots for strong zombies
+                                                else
+                                                    shotsPerZombie = 2 -- 2 shots for normal zombies
+                                                end
                                             end
                                             
-                                            -- 🔥 GODLIKE SHOT FIRING - NO DELAYS WHATSOEVER
-                                            for i = 1, shotCount do
+                                            -- 🔥 GODLIKE SHOT FIRING - MULTIPLE SHOTS PER ZOMBIE
+                                            for i = 1, shotsPerZombie do
                                                 -- NO DELAYS in godlike mode - instant firing
-                                            shootRemote:FireServer(unpack(args))
+                                                shootRemote:FireServer(unpack(args))
                                             end
                                         end)
                                         
@@ -760,7 +791,7 @@ CombatTab:CreateToggle({
                                         recordShotSuccess(success)
                                         
                                         if success then
-                                            shotsFired = shotsFired + 1
+                                            shotsFired = shotsFired + shotsPerZombie
                                             
                                             -- 🔥 CONSTANT FLOW KILLING - NO DELAYS IN BLINDSPOTS
                                             if shotsFired < maxShotsPerCycle then
