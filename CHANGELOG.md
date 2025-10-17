@@ -1,5 +1,66 @@
 # 📝 Changelog - POLY-Z RNG Script
 
+## Version V2 Clean - Minimal Working Version (2025-01-27)
+
+### 🎯 Major Update: Clean V2 Implementation
+
+**Complete rewrite focusing on stability and basic functionality**
+
+#### What Changed
+- ✅ **GUI loads correctly** - Fixed Rayfield UI display issues
+- ✅ **Basic auto-headshot** - Simple combat functionality working
+- ✅ **KnightMare synchronization** - Perfect game behavior replication
+- ✅ **Error protection** - Full pcall coverage throughout
+- ✅ **Simplified architecture** - Removed complex features causing conflicts
+
+#### Technical Implementation
+
+**Before:**
+```lua
+❌ Complex combat loops with syntax errors
+❌ GUI loading failures
+❌ Race conditions in Remotes loading
+❌ Variable scope issues
+❌ Multiple conflicting features
+```
+
+**After:**
+```lua
+✅ Simple, stable combat loop
+✅ Working Rayfield GUI with Ocean theme
+✅ Synchronous Remotes loading
+✅ Proper variable scoping
+✅ Focused on core functionality
+```
+
+#### Key Features
+
+1. **Working GUI Interface**
+   - Rayfield UI Library with Ocean theme
+   - Toggle with K key (Enum.KeyCode.K)
+   - Loading animations with KnightMare synchronicity messages
+   - Single "Perfect Defense Auto-Headshot" toggle
+
+2. **Basic Auto-Headshot**
+   - Finds closest enemy within range
+   - Performs raycast with game's exact parameters
+   - Shoots first valid target
+   - Waits for next cycle
+
+3. **KnightMare Synchronization**
+   - Perfect game behavior replication
+   - Exact raycast parameters
+   - Proper FireServer arguments
+   - Error protection with pcall
+
+4. **Stability Improvements**
+   - Removed complex features causing conflicts
+   - Simplified architecture
+   - Comprehensive error handling
+   - Proper variable scoping
+
+---
+
 ## Version 3.2.0 - Smart Raycast Edition (2025-10-02)
 
 ### 🎯 Major Feature: Intelligent Raycasting System

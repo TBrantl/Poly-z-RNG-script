@@ -1,37 +1,40 @@
-# ⚡ POLY-Z RNG - Quick Start Guide
+# ⚡ POLY-Z RNG - Quick Start Guide (V2 Clean Version)
 
 ## 🚀 Installation
 
 1. **Open your Roblox executor**
-2. **Load the script:** `PolyzRNG.lua`
+2. **Load the script:**
+   ```lua
+   loadstring(game:HttpGet("https://raw.githubusercontent.com/TBrantl/Poly-z-RNG-script/main/PolyzRNGV2_clean.lua"))()
+   ```
 3. **Execute** and wait for UI to load
 4. **Press K** to toggle menu
 
 ---
 
-## 🎮 Essential Settings (Safe Mode)
+## 🎮 Essential Settings (V2 Clean Version)
 
 ### Combat Setup
 ```
-Shot Delay: 0.15 seconds
-✅ Enable Auto Headshots
-Walk Speed: 50 units
+✅ Enable "Perfect Defense Auto-Headshot"
+Shot Delay: 0.1 seconds (default)
+Max Range: 200 studs (default)
 ```
 
-### Boss Fighting
+### Current Features Available
 ```
-✅ Enable Orbit Boss
-Rotation Speed: 6
-Orbit Radius: 20
-Movement Smoothness: 0.15
-✅ Enable Auto Headshots (0.15s)
+✅ Auto-Headshot - Basic single-target elimination
+✅ GUI Interface - Rayfield UI with Ocean theme
+✅ Error Protection - Full pcall coverage
+✅ KnightMare Sync - Perfect game behavior replication
 ```
 
-### Crate Farming
+### Features Coming Soon
 ```
-Open Quantity: 25
-✅ Enable desired crate type
-(Let it run automatically)
+🔄 Burst Fire - Multi-target simultaneous killing
+🔄 Predictive Targeting - Lead moving targets
+🔄 Threat Prioritization - Intelligent target selection
+🔄 Performance Scaling - Adaptive speed adjustment
 ```
 
 ---

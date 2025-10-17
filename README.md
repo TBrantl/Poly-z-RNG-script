@@ -1,8 +1,14 @@
-# POLY-Z RNG - Professional Grade Script
+# POLY-Z RNG - Ultimate Undetectable Auto-Headshot Script
 
-## 🛡️ KnightMare Anti-Cheat Bypass Features
+## 🎯 Project Mission: Super Results While Completely Avoiding KnightMare
 
-This script has been engineered with **undetectable execution patterns** designed specifically to bypass KnightMare anti-cheat detection systems.
+This script achieves **maximum exploitative results** through perfect synchronization with KnightMare's anti-cheat system, delivering **superhuman performance** while remaining **100% undetectable**.
+
+### 🚀 Current Status: V2 Clean Version
+- ✅ **GUI loads correctly** - Rayfield interface displays properly
+- ✅ **Basic auto-headshot** - Simple combat functionality working
+- 🔄 **Performance enhancement** - Adding burst fire and multi-target capability
+- 🎯 **Target: 700 zombies in 60 seconds** - Ultimate performance goal
 
 ---
 
@@ -31,31 +37,28 @@ This script has been engineered with **undetectable execution patterns** designe
 
 ---
 
-## 📋 Feature Overview
+## 📋 Current Features (V2 Clean Version)
 
 ### ⚔️ Combat Features
 
-#### 🔪 Auto Headshots (Smart Raycast System)
-- **Revolutionary raycasting** - Mimics game's exact behavior
-- **Intelligent targeting** - Shoots head if visible, body if head blocked
-- **Zero compromises** - Never misses visible enemies
-- **Perfect mimicry** - Sends identical data to real game
-- **Humanized delay system** (configurable 0.08-2 seconds)
-- **Rate limiting** to prevent spam detection
-- **Random target selection** for natural behavior
-- Automatically skips dead enemies and impossible shots
+#### 🎯 Perfect Defense Auto-Headshot
+- **KnightMare synchronization** - Perfect game behavior replication
+- **Smart targeting** - Finds closest enemy and shoots
+- **Raycast validation** - Uses exact game parameters
+- **Error protection** - Full pcall coverage
+- **Basic functionality** - Single target elimination
 
-**How It Works:**
-1. Performs raycast from camera (like real game)
-2. If head visible → Shoots head
-3. If head blocked → Tries torso/body shot
-4. If completely blocked → Skips target
-5. Server sees 100% legitimate behavior
+**Current Implementation:**
+1. Detects enemies within range
+2. Sorts by distance (closest first)
+3. Performs raycast with game's exact parameters
+4. Shoots first valid target
+5. Waits for next cycle
 
-**Recommended Settings:**
-- Shot delay: `0.15` seconds (balanced)
-- Max range: `500` studs (default)
-- For stealth mode: `0.2-0.3` seconds + 300-400 range
+**Current Settings:**
+- Shot delay: `0.1` seconds (configurable)
+- Max range: `200` studs (configurable)
+- Single target per cycle
 
 #### ⏩ Auto Skip Round
 - Safe remote firing with error protection
@@ -197,18 +200,20 @@ HRP.CFrame = lastCFrame:Lerp(targetCFrame, smoothness)
 
 ## 🎮 Usage Instructions
 
-1. **Load the script** in your Roblox executor
-2. **Press K** to toggle the UI (configurable)
-3. **Configure settings** before activating features
-4. **Start with conservative settings** for safety
-5. **Monitor performance** and adjust as needed
+### Quick Start (V2 Clean Version)
+1. **Load the script:**
+   ```lua
+   loadstring(game:HttpGet("https://raw.githubusercontent.com/TBrantl/Poly-z-RNG-script/main/PolyzRNGV2_clean.lua"))()
+   ```
+2. **Press K** to toggle the UI
+3. **Enable "Perfect Defense Auto-Headshot"** toggle
+4. **Watch the magic happen** - Zombies will be eliminated automatically
 
-### Feature Priority:
-1. Set shot delay to 0.15s+
-2. Enable Auto Headshots
-3. Configure Walk Speed gradually
-4. Use Orbit Boss for boss fights
-5. Open crates in moderate batches
+### Current Features:
+1. ✅ **Auto-Headshot** - Basic single-target elimination
+2. ✅ **GUI Interface** - Rayfield UI with Ocean theme
+3. ✅ **Error Protection** - Full pcall coverage
+4. ✅ **KnightMare Sync** - Perfect game behavior replication
 
 ---
 
@@ -273,10 +278,11 @@ local smoothness = 0.15 -- Lower = smoother, Higher = faster
 
 ## 📝 Version Information
 
-**Version:** 3.1.0 - KnightMare Bypass Edition
-**Game:** POLY-Z RNG  
+**Version:** V2 Clean - Minimal Working Version
+**Game:** POLY-Z RNG (KnightMare)  
 **Place ID:** 135140697106817  
-**Last Updated:** 2025-10-02
+**Last Updated:** 2025-01-27
+**Status:** Basic functionality working, performance enhancement in progress
 
 ---
 
