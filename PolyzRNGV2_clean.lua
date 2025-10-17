@@ -16,10 +16,13 @@ if not success then
 end
 
 -- Wait for Remotes safely
-local Remotes = ReplicatedStorage:WaitForChild("Remotes", 10)
-if not Remotes then
-    warn("[Freezy HUB] Remotes folder not found - some features may not work")
-end
+local Remotes
+task.spawn(function()
+    Remotes = ReplicatedStorage:WaitForChild("Remotes", 10)
+    if not Remotes then
+        warn("[Freezy HUB] Remotes folder not found - some features may not work")
+    end
+end)
 
 -- 🛡️ KNIGHTMARE-SYNCHRONIZED UI CONFIGURATION
 local Window = Rayfield:CreateWindow({
@@ -359,112 +362,113 @@ CombatTab:CreateToggle({
                                 -- PHASE 1: SIMULTANEOUS MULTI-TARGET KILLING
                                 for targetIndex = 1, math.min(simultaneousKills, #validTargets) do
                                     local target = validTargets[targetIndex]
-                                    if target and target.head and target.head.Parent then
-                                        
-                                        -- PHASE 2: INTELLIGENT OVERKILL - Multiple shots per zombie
-                                        for shotIndex = 1, overkillShots do
-                                            local character = player.Character
-                                            if character then
-                                                local camera = workspace.CurrentCamera
-                                                if camera then
-                                                    local origin = camera.CFrame.Position
+                                    if not target or not target.head or not target.head.Parent then
+                                        goto continue
+                                    end
+                                    
+                                    -- PHASE 2: INTELLIGENT OVERKILL - Multiple shots per zombie
+                                    for shotIndex = 1, overkillShots do
+                                        local character = player.Character
+                                        if character then
+                                            local camera = workspace.CurrentCamera
+                                            if camera then
+                                                local origin = camera.CFrame.Position
+                                                
+                                                -- 🚀 ENHANCED TARGETING: Solve "not facing directly" issue
+                                                local targetPos = target.head.Position
+                                                local isBoss = target.model.Name == "GoblinKing" or target.model.Name == "CaptainBoom" or target.model.Name == "Fungarth"
+                                                
+                                                -- 🚀 ULTRA-ENHANCED TARGETING: Maximum efficiency for 700 zombies
+                                                if target.distance < 30 then
+                                                    -- CLOSE TARGETS: Instant kill with exact position
+                                                    targetPos = target.head.Position
+                                                elseif target.distance < 60 then
+                                                    -- MEDIUM TARGETS: Fast prediction for quick kills
+                                                    local velocity = target.humanoid.MoveDirection * target.humanoid.WalkSpeed
+                                                    targetPos = target.head.Position + (velocity * 0.05) -- 50ms prediction
+                                                elseif target.distance < 100 then
+                                                    -- FAR TARGETS: Enhanced prediction for long-range
+                                                    local velocity = target.humanoid.MoveDirection * target.humanoid.WalkSpeed
+                                                    targetPos = target.head.Position + (velocity * 0.1) -- 100ms prediction
+                                                else
+                                                    -- ULTRA-FAR TARGETS: Maximum prediction for efficiency
+                                                    local velocity = target.humanoid.MoveDirection * target.humanoid.WalkSpeed
+                                                    targetPos = target.head.Position + (velocity * 0.15) -- 150ms prediction
+                                                end
+                                                
+                                                local direction = (targetPos - origin).Unit
+                                                local distance = (targetPos - origin).Magnitude
+                                                
+                                                if distance <= maxShootDistance then
+                                                    -- 🛡️ KNIGHTMARE-EXACT RAYCAST SYNCHRONIZATION
+                                                    local raycastParams = RaycastParams.new()
+                                                    raycastParams.FilterDescendantsInstances = {workspace.Enemies}
+                                                    raycastParams.FilterType = Enum.RaycastFilterType.Include
                                                     
-                                                    -- 🚀 ENHANCED TARGETING: Solve "not facing directly" issue
-                                                    local targetPos = target.head.Position
-                                                    local isBoss = target.model.Name == "GoblinKing" or target.model.Name == "CaptainBoom" or target.model.Name == "Fungarth"
+                                                    -- 🚀 ZERO SPREAD CALCULATION: Maximum accuracy for 700 zombies
+                                                    local spread = 0.1 -- Minimal spread for maximum accuracy
+                                                    local randomX = (math.random() - 0.5) * spread
+                                                    local randomY = (math.random() - 0.5) * spread
+                                                    local spreadCFrame = CFrame.Angles(math.rad(randomX), math.rad(randomY), 0)
+                                                    local spreadDirection = (spreadCFrame * CFrame.new(direction * 250)).LookVector
                                                     
-                                                    -- 🚀 ULTRA-ENHANCED TARGETING: Maximum efficiency for 700 zombies
-                                                    if target.distance < 30 then
-                                                        -- CLOSE TARGETS: Instant kill with exact position
-                                                        targetPos = target.head.Position
-                                                    elseif target.distance < 60 then
-                                                        -- MEDIUM TARGETS: Fast prediction for quick kills
-                                                        local velocity = target.humanoid.MoveDirection * target.humanoid.WalkSpeed
-                                                        targetPos = target.head.Position + (velocity * 0.05) -- 50ms prediction
-                                                    elseif target.distance < 100 then
-                                                        -- FAR TARGETS: Enhanced prediction for long-range
-                                                        local velocity = target.humanoid.MoveDirection * target.humanoid.WalkSpeed
-                                                        targetPos = target.head.Position + (velocity * 0.1) -- 100ms prediction
-                                                    else
-                                                        -- ULTRA-FAR TARGETS: Maximum prediction for efficiency
-                                                        local velocity = target.humanoid.MoveDirection * target.humanoid.WalkSpeed
-                                                        targetPos = target.head.Position + (velocity * 0.15) -- 150ms prediction
-                                                    end
+                                                    local rayResult = workspace:Raycast(origin, spreadDirection * 250, raycastParams)
                                                     
-                                                    local direction = (targetPos - origin).Unit
-                                                    local distance = (targetPos - origin).Magnitude
-                                                    
-                                                        if distance <= maxShootDistance then
-                                                            -- 🛡️ KNIGHTMARE-EXACT RAYCAST SYNCHRONIZATION
-                                                            local raycastParams = RaycastParams.new()
-                                                            raycastParams.FilterDescendantsInstances = {workspace.Enemies}
-                                                            raycastParams.FilterType = Enum.RaycastFilterType.Include
+                                                    if rayResult and rayResult.Instance:IsDescendantOf(workspace.Enemies) then
+                                                        -- 🛡️ KNIGHTMARE-EXACT FIRESERVER ARGUMENTS
+                                                        local args = {target.model, rayResult.Instance, rayResult.Position, 0, weapon}
+                                                        
+                                                        local success = pcall(function()
+                                                            shootRemote:FireServer(unpack(args))
+                                                        end)
+                                                        
+                                                        if success then
+                                                            shotsFired = shotsFired + 1
+                                                            performanceStats.shotsSuccessful = performanceStats.shotsSuccessful + 1
                                                             
-                                                            -- 🚀 ZERO SPREAD CALCULATION: Maximum accuracy for 700 zombies
-                                                            local spread = 0.1 -- Minimal spread for maximum accuracy
-                                                            local randomX = (math.random() - 0.5) * spread
-                                                            local randomY = (math.random() - 0.5) * spread
-                                                            local spreadCFrame = CFrame.Angles(math.rad(randomX), math.rad(randomY), 0)
-                                                            local spreadDirection = (spreadCFrame * CFrame.new(direction * 250)).LookVector
-                                                            
-                                                            local rayResult = workspace:Raycast(origin, spreadDirection * 250, raycastParams)
-                                                            
-                                                            if rayResult and rayResult.Instance:IsDescendantOf(workspace.Enemies) then
-                                                                -- 🛡️ KNIGHTMARE-EXACT FIRESERVER ARGUMENTS
-                                                                local args = {target.model, rayResult.Instance, rayResult.Position, 0, weapon}
+                                                            -- 🚀 REVOLUTIONARY ADAPTIVE SPACING
+                                                            if shotIndex < overkillShots then
+                                                                local spacingDelay
                                                                 
-                                                                local success = pcall(function()
-                                                                    shootRemote:FireServer(unpack(args))
-                                                                end)
-                                                                
-                                                                if success then
-                                                                    shotsFired = shotsFired + 1
-                                                                    performanceStats.shotsSuccessful = performanceStats.shotsSuccessful + 1
-                                                                    
-                                                                    -- 🚀 REVOLUTIONARY ADAPTIVE SPACING
-                                                                    if shotIndex < overkillShots then
-                                                                        local spacingDelay
-                                                                        
-                                                                        -- 🚀 ULTRA-FAST BURST SPACING - 700 ZOMBIES IN 60 SECONDS
-                                                                        if lethalThreats > 0 then
-                                                                            -- LETHAL THREAT MODE: INSTANT BURST FIRE
-                                                                            spacingDelay = 0.001 + (math.random() * 0.002) -- 1-3ms (INSTANT)
-                                                                        elseif criticalThreats > 5 then
-                                                                            -- CRITICAL THREAT MODE: ULTRA-FAST BURST
-                                                                            spacingDelay = 0.002 + (math.random() * 0.003) -- 2-5ms (ULTRA-FAST)
-                                                                        elseif closeThreats > 10 then
-                                                                            -- EMERGENCY MODE: FAST BURST
-                                                                            spacingDelay = 0.005 + (math.random() * 0.005) -- 5-10ms (FAST)
-                                                                        elseif bossThreats > 0 then
-                                                                            -- BOSS MODE: MEDIUM BURST
-                                                                            spacingDelay = 0.01 + (math.random() * 0.01) -- 10-20ms (MEDIUM)
-                                                                        elseif isBoss then
-                                                                            -- BOSS TARGET: SLOW BURST
-                                                                            spacingDelay = 0.02 + (math.random() * 0.01) -- 20-30ms (SLOW)
-                                                                        else
-                                                                            -- NORMAL: NORMAL BURST
-                                                                            spacingDelay = 0.03 + (math.random() * 0.02) -- 30-50ms (NORMAL)
-                                                                        end
-                                                                        
-                                                                        -- 🚀 KNIGHTMARE'S MOVE() EXPLOIT: They call move() every 0.1s
-                                                                        local moveExploit = tick() % 0.1
-                                                                        if moveExploit < 0.01 then
-                                                                            spacingDelay = spacingDelay * 0.1 -- 10x speed during move() calls
-                                                                        end
-                                                                        
-                                                                        -- 🛡️ KNIGHTMARE'S ANIMATION EXPLOIT: playAnimation timing
-                                                                        local animExploit = (tick() * 10) % 1
-                                                                        if animExploit < 0.1 then
-                                                                            spacingDelay = spacingDelay * 0.2 -- 5x speed during animations
-                                                                        end
-                                                                        
-                                                                        task.wait(spacingDelay)
-                                                                    end
+                                                                -- 🚀 ULTRA-FAST BURST SPACING - 700 ZOMBIES IN 60 SECONDS
+                                                                if lethalThreats > 0 then
+                                                                    -- LETHAL THREAT MODE: INSTANT BURST FIRE
+                                                                    spacingDelay = 0.001 + (math.random() * 0.002) -- 1-3ms (INSTANT)
+                                                                elseif criticalThreats > 5 then
+                                                                    -- CRITICAL THREAT MODE: ULTRA-FAST BURST
+                                                                    spacingDelay = 0.002 + (math.random() * 0.003) -- 2-5ms (ULTRA-FAST)
+                                                                elseif closeThreats > 10 then
+                                                                    -- EMERGENCY MODE: FAST BURST
+                                                                    spacingDelay = 0.005 + (math.random() * 0.005) -- 5-10ms (FAST)
+                                                                elseif bossThreats > 0 then
+                                                                    -- BOSS MODE: MEDIUM BURST
+                                                                    spacingDelay = 0.01 + (math.random() * 0.01) -- 10-20ms (MEDIUM)
+                                                                elseif isBoss then
+                                                                    -- BOSS TARGET: SLOW BURST
+                                                                    spacingDelay = 0.02 + (math.random() * 0.01) -- 20-30ms (SLOW)
+                                                                else
+                                                                    -- NORMAL: NORMAL BURST
+                                                                    spacingDelay = 0.03 + (math.random() * 0.02) -- 30-50ms (NORMAL)
                                                                 end
-                                                            else
-                                                                performanceStats.shotsBlocked = performanceStats.shotsBlocked + 1
+                                                                
+                                                                -- 🚀 KNIGHTMARE'S MOVE() EXPLOIT: They call move() every 0.1s
+                                                                local moveExploit = tick() % 0.1
+                                                                if moveExploit < 0.01 then
+                                                                    spacingDelay = spacingDelay * 0.1 -- 10x speed during move() calls
+                                                                end
+                                                                
+                                                                -- 🛡️ KNIGHTMARE'S ANIMATION EXPLOIT: playAnimation timing
+                                                                local animExploit = (tick() * 10) % 1
+                                                                if animExploit < 0.1 then
+                                                                    spacingDelay = spacingDelay * 0.2 -- 5x speed during animations
+                                                                end
+                                                                
+                                                                task.wait(spacingDelay)
                                                             end
+                                                        else
+                                                            performanceStats.shotsBlocked = performanceStats.shotsBlocked + 1
                                                         end
+                                                    end
                                                 end
                                             end
                                         end
@@ -474,25 +478,25 @@ CombatTab:CreateToggle({
                                     if targetIndex < simultaneousKills then
                                         local targetSpacing
                                         
-                                        -- 🚀 ULTRA-FAST TARGET SPACING - 700 ZOMBIES IN 60 SECONDS
+                                        -- 🛡️ HUMAN-LIKE TARGET SPACING - UNDETECTABLE PATTERNS
                                         if lethalThreats > 0 then
-                                            -- LETHAL THREAT MODE: INSTANT TARGET SWITCHING
-                                            targetSpacing = 0.001 + (math.random() * 0.002) -- 1-3ms (INSTANT)
+                                            -- LETHAL THREAT MODE: Human-like spacing
+                                            targetSpacing = 0.2 + (math.random() * 0.1) -- 200-300ms (Human-like)
                                         elseif criticalThreats > 5 then
-                                            -- CRITICAL THREAT MODE: ULTRA-FAST TARGET SWITCHING
-                                            targetSpacing = 0.002 + (math.random() * 0.003) -- 2-5ms (ULTRA-FAST)
+                                            -- CRITICAL THREAT MODE: Human-like spacing
+                                            targetSpacing = 0.25 + (math.random() * 0.1) -- 250-350ms (Human-like)
                                         elseif closeThreats > 10 then
-                                            -- EMERGENCY MODE: FAST TARGET SWITCHING
-                                            targetSpacing = 0.005 + (math.random() * 0.005) -- 5-10ms (FAST)
+                                            -- EMERGENCY MODE: Human-like spacing
+                                            targetSpacing = 0.3 + (math.random() * 0.1) -- 300-400ms (Human-like)
                                         elseif bossThreats > 0 then
-                                            -- BOSS MODE: MEDIUM TARGET SWITCHING
-                                            targetSpacing = 0.01 + (math.random() * 0.01) -- 10-20ms (MEDIUM)
+                                            -- BOSS MODE: Human-like spacing
+                                            targetSpacing = 0.35 + (math.random() * 0.1) -- 350-450ms (Human-like)
                                         elseif target.distance < 30 then
-                                            -- CLOSE THREAT: SLOW TARGET SWITCHING
-                                            targetSpacing = 0.02 + (math.random() * 0.01) -- 20-30ms (SLOW)
+                                            -- CLOSE THREAT: Human-like spacing
+                                            targetSpacing = 0.4 + (math.random() * 0.1) -- 400-500ms (Human-like)
                                         else
-                                            -- NORMAL: NORMAL TARGET SWITCHING
-                                            targetSpacing = 0.03 + (math.random() * 0.02) -- 30-50ms (NORMAL)
+                                            -- NORMAL: Human-like spacing
+                                            targetSpacing = 0.5 + (math.random() * 0.1) -- 500-600ms (Human-like)
                                         end
                                         
                                         -- 🚀 KNIGHTMARE'S MOVE() EXPLOIT: They call move() every 0.1s
@@ -510,6 +514,8 @@ CombatTab:CreateToggle({
                                         task.wait(targetSpacing)
                                     end
                                 end
+                                
+                                ::continue::
                             end
                         else
                             print("[DEBUG] No valid targets found")
@@ -519,70 +525,71 @@ CombatTab:CreateToggle({
                     end
                 end)
                     
-                -- 🛡️ KNIGHTMARE KRYPTONITE - ULTIMATE DETECTION EXPLOIT
-                local cycleDelay
-                
-                -- 🚀 ULTRA-FAST BURST CYCLE DELAYS - 700 ZOMBIES IN 60 SECONDS
-                if stealthMode then
-                    -- Conservative: Fast burst cycles
-                    cycleDelay = 0.05 + (math.random() * 0.05) -- 50-100ms (FAST BURST)
-                else
-                    -- 🚀 ULTRA-FAST BURST: Maximum throughput
-                    cycleDelay = 0.01 + (math.random() * 0.02) -- 10-30ms (ULTRA-FAST BURST)
+                    -- 🛡️ KNIGHTMARE KRYPTONITE - ULTIMATE DETECTION EXPLOIT
+                    local cycleDelay
+                    
+                    -- 🚀 ULTRA-FAST BURST CYCLE DELAYS - 700 ZOMBIES IN 60 SECONDS
+                    if stealthMode then
+                        -- Conservative: Fast burst cycles
+                        cycleDelay = 0.05 + (math.random() * 0.05) -- 50-100ms (FAST BURST)
+                    else
+                        -- 🚀 ULTRA-FAST BURST: Maximum throughput
+                        cycleDelay = 0.01 + (math.random() * 0.02) -- 10-30ms (ULTRA-FAST BURST)
+                    end
+                    
+                    -- 🛡️ KNIGHTMARE'S RANDOMSEED EXPLOIT: math.randomseed(tick())
+                    -- KnightMare uses this - we exploit it by syncing with their random patterns
+                    local knightMareSeed = math.floor(tick() * 10) % 1000 -- Match their seed pattern
+                    math.randomseed(knightMareSeed)
+                    
+                    -- 🚀 KNIGHTMARE'S HUMANOID EXPLOIT: They check Humanoid properties
+                    -- We exploit by timing our shots when Humanoid is being processed
+                    local humanoidCheck = tick() % 0.1 -- KnightMare checks every 0.1s
+                    if humanoidCheck < 0.05 then
+                        cycleDelay = cycleDelay * 0.3 -- Triple speed during Humanoid processing
+                    end
+                    
+                    -- 🛡️ KNIGHTMARE'S ANIMATION EXPLOIT: They use playAnimation with 0.1s timing
+                    -- We exploit by syncing with their animation cycles
+                    local animationCycle = (tick() * 10) % 1 -- 0.1s animation cycles
+                    if animationCycle < 0.3 then
+                        cycleDelay = cycleDelay * 0.2 -- 5x speed during animation processing
+                    end
+                    
+                    -- 🚀 INTELLIGENT BURST GAPS: Avoid detection while maintaining speed
+                    local burstGap = 0
+                    local currentTime = tick()
+                    
+                    -- 🚀 BURST PATTERN: Fire in bursts, then pause
+                    local burstCycle = (currentTime * 2) % 4 -- 2-second burst cycles
+                    if burstCycle < 0.5 then
+                        -- BURST PHASE: Ultra-fast firing
+                        cycleDelay = cycleDelay * 0.1 -- 10x faster during burst
+                    elseif burstCycle < 1.0 then
+                        -- COOLDOWN PHASE: Normal speed
+                        cycleDelay = cycleDelay -- Normal speed
+                    elseif burstCycle < 1.5 then
+                        -- PAUSE PHASE: Longer delay to avoid detection
+                        burstGap = 0.2 + (math.random() * 0.3) -- 200-500ms gap
+                    else
+                        -- RECOVERY PHASE: Medium speed
+                        cycleDelay = cycleDelay * 2 -- 2x slower during recovery
+                    end
+                    
+                    -- 🚀 INTELLIGENT INCONSISTENCY: Natural variation
+                    local humanInconsistency = (math.random() - 0.5) * 0.01 -- ±5ms natural variation
+                    cycleDelay = math.max(0.005, cycleDelay + humanInconsistency) -- Minimum 5ms
+                    
+                    -- 🚀 BURST GAP APPLICATION
+                    cycleDelay = cycleDelay + burstGap
+                    
+                    -- Update last shot time for rate limiting
+                    lastShot = tick()
+                    
+                    task.wait(cycleDelay)
                 end
-                
-                -- 🛡️ KNIGHTMARE'S RANDOMSEED EXPLOIT: math.randomseed(tick())
-                -- KnightMare uses this - we exploit it by syncing with their random patterns
-                local knightMareSeed = math.floor(tick() * 10) % 1000 -- Match their seed pattern
-                math.randomseed(knightMareSeed)
-                
-                -- 🚀 KNIGHTMARE'S HUMANOID EXPLOIT: They check Humanoid properties
-                -- We exploit by timing our shots when Humanoid is being processed
-                local humanoidCheck = tick() % 0.1 -- KnightMare checks every 0.1s
-                if humanoidCheck < 0.05 then
-                    cycleDelay = cycleDelay * 0.3 -- Triple speed during Humanoid processing
-                end
-                
-                -- 🛡️ KNIGHTMARE'S ANIMATION EXPLOIT: They use playAnimation with 0.1s timing
-                -- We exploit by syncing with their animation cycles
-                local animationCycle = (tick() * 10) % 1 -- 0.1s animation cycles
-                if animationCycle < 0.3 then
-                    cycleDelay = cycleDelay * 0.2 -- 5x speed during animation processing
-                end
-                
-                -- 🚀 INTELLIGENT BURST GAPS: Avoid detection while maintaining speed
-                local burstGap = 0
-                local currentTime = tick()
-                
-                -- 🚀 BURST PATTERN: Fire in bursts, then pause
-                local burstCycle = (currentTime * 2) % 4 -- 2-second burst cycles
-                if burstCycle < 0.5 then
-                    -- BURST PHASE: Ultra-fast firing
-                    cycleDelay = cycleDelay * 0.1 -- 10x faster during burst
-                elseif burstCycle < 1.0 then
-                    -- COOLDOWN PHASE: Normal speed
-                    cycleDelay = cycleDelay -- Normal speed
-                elseif burstCycle < 1.5 then
-                    -- PAUSE PHASE: Longer delay to avoid detection
-                    burstGap = 0.2 + (math.random() * 0.3) -- 200-500ms gap
-                else
-                    -- RECOVERY PHASE: Medium speed
-                    cycleDelay = cycleDelay * 2 -- 2x slower during recovery
-                end
-                
-                -- 🚀 INTELLIGENT INCONSISTENCY: Natural variation
-                local humanInconsistency = (math.random() - 0.5) * 0.01 -- ±5ms natural variation
-                cycleDelay = math.max(0.005, cycleDelay + humanInconsistency) -- Minimum 5ms
-                
-                -- 🚀 BURST GAP APPLICATION
-                cycleDelay = cycleDelay + burstGap
-                
-                -- Update last shot time for rate limiting
-                lastShot = tick()
-                
-                task.wait(cycleDelay)
-            end
-        end)
+            end)
+        end
     end
 })
 
