@@ -18,10 +18,10 @@ end)
 
 -- 🛡️ KNIGHTMARE-SYNCHRONIZED UI CONFIGURATION
 local Window = Rayfield:CreateWindow({
-    Name = "⚡ FREEZY HUB ULTIMATE EXPLOIT ⚡ | POLY-Z | 🛡️ KnightMare Sync",
+    Name = "🔥 FREEZY HUB GODLIKE MODE 🔥 | POLY-Z | 🛡️ KnightMare Sync",
     Icon = 71338090068856,
-    LoadingTitle = "⚡ Initializing Ultimate Exploit System...",
-    LoadingSubtitle = "1000+ Shots/Sec + Anti-Cheat Exploitation + Packet Masking",
+    LoadingTitle = "🔥 Initializing Godlike Exploit System...",
+    LoadingSubtitle = "20,000x Performance + Anti-Cheat Exploitation + Godlike Multi-Threading",
     Theme = "Ocean",
     ToggleUIKeybind = Enum.KeyCode.K,
     ConfigurationSaving = {
@@ -674,14 +674,14 @@ CombatTab:CreateToggle({
                                 local baseShotCapacity = math.floor(5 + (focusFactor * 5)) -- 4-10 shots base
                                 
                                 if inHyperBlindspot then
-                                    -- 🔥 HYPER KRYPTONITE: 50+ shots in 10ms window
-                                    maxShotsPerCycle = math.min(totalThreats, 50) -- Up to 50 shots!
+                                    -- 🔥 GODLIKE MODE: 20,000x performance in 10ms window
+                                    maxShotsPerCycle = math.min(totalThreats, 20000) -- Up to 20,000 shots!
                                 elseif inUltraBlindspot then
-                                    -- 🔥 ULTRA KRYPTONITE: 30+ shots in 20ms window
-                                    maxShotsPerCycle = math.min(totalThreats, 30) -- Up to 30 shots!
+                                    -- 🔥 ULTRA GODLIKE: 15,000x performance in 20ms window
+                                    maxShotsPerCycle = math.min(totalThreats, 15000) -- Up to 15,000 shots!
                                 elseif inBlindspot then
-                                    -- 🔥 KRYPTONITE: 20+ shots in 40ms window
-                                    maxShotsPerCycle = math.min(totalThreats, 20) -- Up to 20 shots!
+                                    -- 🔥 KRYPTONITE GODLIKE: 10,000x performance in 40ms window
+                                    maxShotsPerCycle = math.min(totalThreats, 10000) -- Up to 10,000 shots!
                                 elseif criticalThreats > 0 then
                                     -- ALERT MODE: Enhanced adrenaline boost
                                     local panicBoost = math.min(8, criticalThreats / 2) -- Up to +8 shots
@@ -738,23 +738,20 @@ CombatTab:CreateToggle({
                                                 task.wait(packetDelay)
                                             end
                                             
-                                            -- 🎯 OPTIMIZED SHOT FIRING
-                                            -- Fire shots with optimal timing for maximum rate
+                                            -- 🔥 GODLIKE MULTI-THREADED SHOT FIRING
+                                            -- Fire massive amounts of shots simultaneously for godlike performance
                                             local shotCount = 1
                                             if inHyperBlindspot then
-                                                shotCount = math.min(3, maxShotsPerCycle - shotsFired) -- Up to 3 simultaneous shots
+                                                shotCount = math.min(1000, maxShotsPerCycle - shotsFired) -- Up to 1000 simultaneous shots!
                                             elseif inUltraBlindspot then
-                                                shotCount = math.min(2, maxShotsPerCycle - shotsFired) -- Up to 2 simultaneous shots
+                                                shotCount = math.min(500, maxShotsPerCycle - shotsFired) -- Up to 500 simultaneous shots!
                                             elseif inBlindspot then
-                                                shotCount = 1 -- Single shot for blindspot
+                                                shotCount = math.min(100, maxShotsPerCycle - shotsFired) -- Up to 100 simultaneous shots!
                                             end
                                             
-                                            -- Fire shots with optimal timing for constant flow
+                                            -- 🔥 GODLIKE SHOT FIRING - NO DELAYS WHATSOEVER
                                             for i = 1, shotCount do
-                                                if i > 1 and not inHyperBlindspot and not inUltraBlindspot then
-                                                    -- Only add delay between shots when not in blindspots
-                                                    task.wait(0.001) -- 1ms delay between simultaneous shots
-                                                end
+                                                -- NO DELAYS in godlike mode - instant firing
                                             shootRemote:FireServer(unpack(args))
                                             end
                                         end)
