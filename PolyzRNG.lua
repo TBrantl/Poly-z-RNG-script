@@ -18,10 +18,10 @@ end)
 
 -- 🛡️ KNIGHTMARE-SYNCHRONIZED UI CONFIGURATION
 local Window = Rayfield:CreateWindow({
-    Name = "🛡️ FREEZY HUB STEALTH 🛡️ | POLY-Z | 🛡️ KnightMare Sync",
+    Name = "🛡️ FREEZY HUB ULTRA-SAFE 🛡️ | POLY-Z | 🛡️ KnightMare Sync",
     Icon = 71338090068856,
-    LoadingTitle = "🛡️ Initializing Stealth Mode...",
-    LoadingSubtitle = "Detection-Safe High Performance Active",
+    LoadingTitle = "🛡️ Initializing Ultra-Safe Mode...",
+    LoadingSubtitle = "Maximum Undetectability Active",
     Theme = "Ocean",
     ToggleUIKeybind = Enum.KeyCode.K,
     ConfigurationSaving = {
@@ -647,30 +647,26 @@ CombatTab:CreateToggle({
                                 local maxShotsPerCycle
                                 local totalThreats = #validTargets
                                 
-                                -- 🛡️ DETECTION-SAFE HIGH PERFORMANCE - Smart blindspot exploitation
+                                -- 🛡️ ULTRA-CONSERVATIVE MODE - Maximum undetectability
                                 local currentTick = tick()
                                 local cyclePosition = currentTick % 0.1
-                                local inBlindspot = cyclePosition < 0.05 -- Conservative 50ms window
-                                local inSuperBlindspot = cyclePosition < 0.03 -- First 30ms = super safe
-                                local inUltraBlindspot = cyclePosition < 0.02 -- First 20ms = ultra safe
+                                local inBlindspot = cyclePosition < 0.03 -- Very conservative 30ms window
+                                local inSuperBlindspot = cyclePosition < 0.02 -- First 20ms = super safe
                                 
-                                if inUltraBlindspot then
-                                    -- 🔥 ULTRA MODE: 50x faster during ultra blindspot (detection-safe)
-                                    maxShotsPerCycle = math.min(totalThreats, 200) -- Up to 200 shots
-                                elseif inSuperBlindspot then
-                                    -- ⚡ SUPER MODE: 25x faster during super blindspot
-                                    maxShotsPerCycle = math.min(totalThreats, 100) -- Up to 100 shots
+                                if inSuperBlindspot then
+                                    -- 🔥 SUPER MODE: 5x faster during super blindspot (ultra-safe)
+                                    maxShotsPerCycle = math.min(totalThreats, 25) -- Up to 25 shots
                                 elseif inBlindspot then
-                                    -- 🚀 KRYPTONITE MODE: 10x faster during normal blindspot
-                                    maxShotsPerCycle = math.min(totalThreats, 50) -- Up to 50 shots
+                                    -- ⚡ KRYPTONITE MODE: 3x faster during normal blindspot
+                                    maxShotsPerCycle = math.min(totalThreats, 15) -- Up to 15 shots
                                 else
                                     -- 🧠 HUMAN MODE: When anti-cheat is watching
-                                    if criticalThreats > 0 then
-                                        local urgentShots = math.min(criticalThreats + 2, totalThreats)
-                                        maxShotsPerCycle = math.min(urgentShots, 6) -- Conservative
+                                if criticalThreats > 0 then
+                                        local urgentShots = math.min(criticalThreats + 1, totalThreats)
+                                        maxShotsPerCycle = math.min(urgentShots, 4) -- Very conservative
                                     else
-                                        local baseShots = 2 + math.floor(effectivenessScale * 3)
-                                        maxShotsPerCycle = math.min(baseShots, 5) -- Human-like
+                                        local baseShots = 1 + math.floor(effectivenessScale * 2)
+                                        maxShotsPerCycle = math.min(baseShots, 3) -- Human-like
                                     end
                                 end
                                 
@@ -700,23 +696,20 @@ CombatTab:CreateToggle({
                                         if success then
                                             shotsFired = shotsFired + 1
                                             
-                                                -- 🛡️ DETECTION-SAFE SPACING - Smart blindspot exploitation
-                                                if shotsFired < maxShotsPerCycle then
-                                                    if inUltraBlindspot then
-                                                        -- 🔥 ULTRA: 1-5ms during ultra blindspot (detection-safe)
-                                                        task.wait(0.001 + (math.random() * 0.004))
-                                                    elseif inSuperBlindspot then
-                                                        -- ⚡ SUPER: 2-8ms during super blindspot
-                                                        task.wait(0.002 + (math.random() * 0.006))
+                                                -- 🛡️ ULTRA-CONSERVATIVE SPACING - Maximum undetectability
+                                            if shotsFired < maxShotsPerCycle then
+                                                    if inSuperBlindspot then
+                                                        -- 🔥 SUPER: 10-25ms during super blindspot (ultra-safe)
+                                                        task.wait(0.01 + (math.random() * 0.015))
                                                     elseif inBlindspot then
-                                                        -- 🚀 KRYPTONITE: 5-15ms during normal blindspot
-                                                        task.wait(0.005 + (math.random() * 0.01))
+                                                        -- ⚡ KRYPTONITE: 15-35ms during normal blindspot
+                                                        task.wait(0.015 + (math.random() * 0.02))
                                                     elseif target.distance < criticalZone then
-                                                        -- Critical: 20-40ms (fast human panic)
-                                                        task.wait(0.02 + (math.random() * 0.02))
+                                                        -- Critical: 30-60ms (fast human panic)
+                                                        task.wait(0.03 + (math.random() * 0.03))
                                                     else
-                                                        -- Normal: 40-80ms (skilled human)
-                                                        task.wait(0.04 + (math.random() * 0.04))
+                                                        -- Normal: 50-100ms (skilled human)
+                                                        task.wait(0.05 + (math.random() * 0.05))
                                                     end
                                                 end
                                             end
@@ -754,33 +747,29 @@ CombatTab:CreateToggle({
                                     end
                                 end
                                 
-                    -- 🛡️ DETECTION-SAFE CYCLE TIMING - Smart blindspot exploitation
+                    -- 🛡️ ULTRA-CONSERVATIVE CYCLE TIMING - Maximum undetectability
                     local cycleDelay
                     local currentTick = tick()
                     local cyclePosition = currentTick % 0.1
-                    local inBlindspot = cyclePosition < 0.05
-                    local inSuperBlindspot = cyclePosition < 0.03
-                    local inUltraBlindspot = cyclePosition < 0.02
+                    local inBlindspot = cyclePosition < 0.03
+                    local inSuperBlindspot = cyclePosition < 0.02
                     
-                    if inUltraBlindspot and hasUrgentThreats then
-                        -- 🔥 ULTRA MODE: 2-8ms fast cycles (detection-safe)
-                        cycleDelay = 0.002 + (math.random() * 0.006) -- 2-8ms
-                    elseif inSuperBlindspot and hasUrgentThreats then
-                        -- ⚡ SUPER MODE: 5-15ms fast cycles
-                        cycleDelay = 0.005 + (math.random() * 0.01) -- 5-15ms
+                    if inSuperBlindspot and hasUrgentThreats then
+                        -- 🔥 SUPER MODE: 15-35ms fast cycles (ultra-safe)
+                        cycleDelay = 0.015 + (math.random() * 0.02) -- 15-35ms
                     elseif inBlindspot and hasUrgentThreats then
-                        -- 🚀 KRYPTONITE MODE: 10-25ms fast cycles
-                        cycleDelay = 0.01 + (math.random() * 0.015) -- 10-25ms
+                        -- ⚡ KRYPTONITE MODE: 25-50ms fast cycles
+                        cycleDelay = 0.025 + (math.random() * 0.025) -- 25-50ms
                     elseif hasUrgentThreats then
                         -- 🧠 ALERT MODE: Fast human reaction
-                        cycleDelay = 0.04 + (math.random() * 0.04) -- 40-80ms
+                        cycleDelay = 0.08 + (math.random() * 0.08) -- 80-160ms
                     else
                         -- 🧠 NORMAL MODE: Human-like timing
-                        cycleDelay = 0.08 + (math.random() * 0.06) -- 80-140ms
+                        cycleDelay = 0.15 + (math.random() * 0.1) -- 150-250ms
                         
-                        -- Occasional pauses only when not in blindspot
-                        if not inBlindspot and math.random() < 0.03 then
-                            cycleDelay = cycleDelay + (0.1 + math.random() * 0.2) -- Quick check
+                        -- Regular pauses for human-like behavior
+                        if not inBlindspot and math.random() < 0.05 then
+                            cycleDelay = cycleDelay + (0.2 + math.random() * 0.3) -- Quick check
                         end
                     end
                     
