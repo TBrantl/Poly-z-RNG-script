@@ -18,10 +18,10 @@ end)
 
 -- 🛡️ KNIGHTMARE-SYNCHRONIZED UI CONFIGURATION
 local Window = Rayfield:CreateWindow({
-    Name = "💀 FREEZY HUB INSTANT MASS ELIMINATION 💀 | POLY-Z | 🛡️ KnightMare Sync",
+    Name = "⚡ FREEZY HUB ENHANCED SYNCHRONIZATION ⚡ | POLY-Z | 🛡️ KnightMare Sync",
     Icon = 71338090068856,
-    LoadingTitle = "💀 Initializing Instant Mass Elimination System...",
-    LoadingSubtitle = "Kill ALL Zombies Instantly + Anti-Cheat Exploitation + Mass Destruction",
+    LoadingTitle = "⚡ Initializing Enhanced Synchronization System...",
+    LoadingSubtitle = "Improved Blindspot Exploitation + Precision Timing + Maximum Speed",
     Theme = "Ocean",
     ToggleUIKeybind = Enum.KeyCode.K,
     ConfigurationSaving = {
@@ -662,26 +662,38 @@ CombatTab:CreateToggle({
                                 -- Multiple exploit methods combined for maximum performance
                                 local maxShotsPerCycle
                                 
-                                -- 🛡️ ANTI-CHEAT BLINDSPOT DETECTION
+                                -- 🛡️ ENHANCED ANTI-CHEAT BLINDSPOT DETECTION
                                 local currentTick = tick()
                                 local cyclePosition = currentTick % 0.1 -- Game processes every 100ms
-                                local inBlindspot = cyclePosition < 0.04 -- First 40ms = blindspot window
-                                local inUltraBlindspot = cyclePosition < 0.02 -- First 20ms = ultra blindspot
-                                local inHyperBlindspot = cyclePosition < 0.01 -- First 10ms = hyper blindspot
+                                
+                                -- 🔥 IMPROVED BLINDSPOT WINDOWS - More aggressive exploitation
+                                local inHyperBlindspot = cyclePosition < 0.015 -- First 15ms = hyper blindspot (increased from 10ms)
+                                local inUltraBlindspot = cyclePosition < 0.035 -- First 35ms = ultra blindspot (increased from 20ms)
+                                local inBlindspot = cyclePosition < 0.055 -- First 55ms = blindspot window (increased from 40ms)
+                                
+                                -- 🎯 PRECISION TIMING - Detect optimal firing moments
+                                local inOptimalWindow = cyclePosition < 0.005 -- First 5ms = optimal window
+                                local inPeakWindow = cyclePosition < 0.008 -- First 8ms = peak performance window
                                 
                                 -- 🧠 FOCUS-BASED SHOT CAPACITY (Enhanced)
                                 local focusFactor = behaviorProfile.focusLevel - behaviorProfile.fatigueLevel
                                 local baseShotCapacity = math.floor(5 + (focusFactor * 5)) -- 4-10 shots base
                                 
-                                if inHyperBlindspot then
-                                    -- 🔥 INSTANT MASS ELIMINATION: Kill ALL zombies in 10ms window
-                                    maxShotsPerCycle = totalThreats * 50 -- 50 shots per zombie = guaranteed death
+                                if inOptimalWindow then
+                                    -- 🔥 OPTIMAL WINDOW: Maximum exploitation in 5ms
+                                    maxShotsPerCycle = totalThreats * 100 -- 100 shots per zombie = OVERKILL
+                                elseif inPeakWindow then
+                                    -- 🔥 PEAK WINDOW: Ultra exploitation in 8ms
+                                    maxShotsPerCycle = totalThreats * 75 -- 75 shots per zombie = MASSIVE OVERKILL
+                                elseif inHyperBlindspot then
+                                    -- 🔥 HYPER BLINDSPOT: Enhanced exploitation in 15ms
+                                    maxShotsPerCycle = totalThreats * 60 -- 60 shots per zombie = guaranteed death
                                 elseif inUltraBlindspot then
-                                    -- 🔥 ULTRA MASS ELIMINATION: Kill ALL zombies in 20ms window
-                                    maxShotsPerCycle = totalThreats * 30 -- 30 shots per zombie = guaranteed death
+                                    -- 🔥 ULTRA BLINDSPOT: High exploitation in 35ms
+                                    maxShotsPerCycle = totalThreats * 40 -- 40 shots per zombie = guaranteed death
                                 elseif inBlindspot then
-                                    -- 🔥 KRYPTONITE MASS ELIMINATION: Kill ALL zombies in 40ms window
-                                    maxShotsPerCycle = totalThreats * 20 -- 20 shots per zombie = guaranteed death
+                                    -- 🔥 KRYPTONITE BLINDSPOT: Good exploitation in 55ms
+                                    maxShotsPerCycle = totalThreats * 25 -- 25 shots per zombie = guaranteed death
                                 elseif criticalThreats > 0 then
                                     -- ALERT MODE: Enhanced adrenaline boost
                                     local panicBoost = math.min(8, criticalThreats / 2) -- Up to +8 shots
@@ -742,12 +754,16 @@ CombatTab:CreateToggle({
                                             -- Fire massive amounts of shots per zombie for guaranteed death
                                             local shotsPerZombie = 1
                                             
-                                            if inHyperBlindspot then
-                                                shotsPerZombie = 50 -- 50 shots per zombie = INSTANT DEATH
+                                            if inOptimalWindow then
+                                                shotsPerZombie = 100 -- 100 shots per zombie = OVERKILL
+                                            elseif inPeakWindow then
+                                                shotsPerZombie = 75 -- 75 shots per zombie = MASSIVE OVERKILL
+                                            elseif inHyperBlindspot then
+                                                shotsPerZombie = 60 -- 60 shots per zombie = INSTANT DEATH
                                             elseif inUltraBlindspot then
-                                                shotsPerZombie = 30 -- 30 shots per zombie = INSTANT DEATH
+                                                shotsPerZombie = 40 -- 40 shots per zombie = INSTANT DEATH
                                             elseif inBlindspot then
-                                                shotsPerZombie = 20 -- 20 shots per zombie = INSTANT DEATH
+                                                shotsPerZombie = 25 -- 25 shots per zombie = INSTANT DEATH
                                             else
                                                 -- Normal mode - adaptive shots
                                                 local isBoss = target.model.Name == "GoblinKing" or target.model.Name == "CaptainBoom" or target.model.Name == "Fungarth"
@@ -831,7 +847,13 @@ CombatTab:CreateToggle({
                     -- 🔥 ULTRA-FAST CYCLE DELAY + EXPLOIT MODES
                     local cycleDelay
                     
-                    if inHyperBlindspot and hasUrgentThreats then
+                    if inOptimalWindow and hasUrgentThreats then
+                        -- 🔥 OPTIMAL WINDOW: ZERO CYCLE DELAY - Maximum exploitation
+                        cycleDelay = 0 -- No delay - instant continuous cycles
+                    elseif inPeakWindow and hasUrgentThreats then
+                        -- 🔥 PEAK WINDOW: ZERO CYCLE DELAY - Ultra exploitation
+                        cycleDelay = 0 -- No delay - instant continuous cycles
+                    elseif inHyperBlindspot and hasUrgentThreats then
                         -- 🔥 HYPER KRYPTONITE: NO CYCLE DELAY - Constant flow
                         cycleDelay = 0 -- No delay - instant continuous cycles
                     elseif inUltraBlindspot and hasUrgentThreats then
