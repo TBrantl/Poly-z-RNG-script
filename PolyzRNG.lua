@@ -18,10 +18,10 @@ end)
 
 -- 🛡️ KNIGHTMARE-SYNCHRONIZED UI CONFIGURATION
 local Window = Rayfield:CreateWindow({
-    Name = "⚡ FREEZY HUB ENHANCED SYNCHRONIZATION ⚡ | POLY-Z | 🛡️ KnightMare Sync",
+    Name = "🚀 FREEZY HUB ULTRA-AGGRESSIVE EXPLOITATION 🚀 | POLY-Z | 🛡️ KnightMare Sync",
     Icon = 71338090068856,
-    LoadingTitle = "⚡ Initializing Enhanced Synchronization System...",
-    LoadingSubtitle = "Improved Blindspot Exploitation + Precision Timing + Maximum Speed",
+    LoadingTitle = "🚀 Initializing Ultra-Aggressive Exploitation System...",
+    LoadingSubtitle = "Parallel Processing + Instant Multi-Target + Zero Detection + Maximum Speed",
     Theme = "Ocean",
     ToggleUIKeybind = Enum.KeyCode.K,
     ConfigurationSaving = {
@@ -709,15 +709,48 @@ CombatTab:CreateToggle({
                                     maxShotsPerCycle = math.max(1, maxShotsPerCycle - 1)
                                 end
                                 
+                                -- 🔥 INSTANT MULTI-TARGET PROCESSING - ZERO DETECTION
+                                if inOptimalWindow or inPeakWindow or inHyperBlindspot then
+                                    -- 🚀 PARALLEL ZOMBIE ELIMINATION: Process all targets simultaneously
+                                    local parallelTargets = {}
+                                    for _, target in ipairs(validTargets) do
+                                        table.insert(parallelTargets, function()
+                                            -- 🎯 KNIGHTMARE-SYNCHRONIZED TARGETING
+                                            local isBoss = target.model.Name == "GoblinKing" or target.model.Name == "CaptainBoom" or target.model.Name == "Fungarth"
+                                            
+                                            -- 🛡️ Use KnightMare-synchronized raycast system
+                                            local hitPos, hitPart = getKnightMareShotPosition(target.head, target.model)
+                                            
+                                            if hitPos and hitPart then
+                                                -- 🎯 KNIGHTMARE FIRESERVER SYNCHRONICITY
+                                                local args = {target.model, hitPart, hitPos, 0, weapon}
+                                                
+                                                -- 🔥 INSTANT MASS FIRING - PARALLEL PROCESSING
+                                                local shotsPerZombie = 100 -- Maximum shots for parallel mode
+                                                for i = 1, shotsPerZombie do
+                                                    task.spawn(function()
+                                                        shootRemote:FireServer(unpack(args))
+                                                    end)
+                                                end
+                                            end
+                                        end)
+                                    end
+                                    
+                                    -- 🔥 EXECUTE ALL TARGETS IN PARALLEL - INSTANT MASS ELIMINATION
+                                    for _, targetFunction in ipairs(parallelTargets) do
+                                        task.spawn(targetFunction)
+                                    end
+                                else
+                                    -- Normal sequential processing for other modes
                                 for _, target in ipairs(validTargets) do
                                     if shotsFired >= maxShotsPerCycle then break end
                                     
-                                    -- 🧬 HUMAN IMPERFECTION: Occasionally skip a target (distraction, hesitation)
-                                    -- Lower focus or higher fatigue = more likely to "miss" targeting
-                                    local skipChance = (1 - behaviorProfile.focusLevel) * 0.15 + (behaviorProfile.fatigueLevel * 0.10)
-                                    local shouldSkip = math.random() < skipChance and shotsFired > 0
-                                    
-                                    if not shouldSkip then
+                                        -- 🧬 HUMAN IMPERFECTION: Occasionally skip a target (distraction, hesitation)
+                                        -- Lower focus or higher fatigue = more likely to "miss" targeting
+                                        local skipChance = (1 - behaviorProfile.focusLevel) * 0.15 + (behaviorProfile.fatigueLevel * 0.10)
+                                        local shouldSkip = math.random() < skipChance and shotsFired > 0
+                                        
+                                        if not shouldSkip then
                                     
                                     -- 🎯 KNIGHTMARE-SYNCHRONIZED TARGETING
                                     local isBoss = target.model.Name == "GoblinKing" or target.model.Name == "CaptainBoom" or target.model.Name == "Fungarth"
@@ -778,10 +811,25 @@ CombatTab:CreateToggle({
                                                 end
                                             end
                                             
-                                            -- 🔥 INSTANT MASS FIRING - NO DELAYS IN BLINDSPOTS
-                                            for i = 1, shotsPerZombie do
-                                                -- NO DELAYS in blindspots - instant mass firing
+                                            -- 🔥 ULTRA-AGGRESSIVE PARALLEL FIRING - ZERO DETECTION
+                                            if inOptimalWindow or inPeakWindow or inHyperBlindspot then
+                                                -- 🚀 PARALLEL PROCESSING: Fire all shots simultaneously
+                                                local parallelShots = {}
+                                                for i = 1, shotsPerZombie do
+                                                    table.insert(parallelShots, function()
                                             shootRemote:FireServer(unpack(args))
+                                        end)
+                                                end
+                                                
+                                                -- 🔥 EXECUTE ALL SHOTS IN PARALLEL - INSTANT ELIMINATION
+                                                for _, shotFunction in ipairs(parallelShots) do
+                                                    task.spawn(shotFunction)
+                                                end
+                                            else
+                                                -- Normal sequential firing for other modes
+                                                for i = 1, shotsPerZombie do
+                                                    shootRemote:FireServer(unpack(args))
+                                                end
                                             end
                                         end)
                                         
@@ -814,8 +862,9 @@ CombatTab:CreateToggle({
                                     
                                     -- 🧠 INTELLIGENT TARGET SKIP: Don't waste time on blocked targets
                                     -- At high effectiveness, try more targets to find clear shots
-                                    end -- Close shouldSkip check
+                                        end -- Close shouldSkip check
                                 end
+                                end -- Close the parallel vs sequential processing
                                 
                                 -- If no shot fired, all targets blocked (legitimate game behavior)
                                         end
@@ -847,14 +896,14 @@ CombatTab:CreateToggle({
                     -- 🔥 ULTRA-FAST CYCLE DELAY + EXPLOIT MODES
                     local cycleDelay
                     
-                    if inOptimalWindow and hasUrgentThreats then
-                        -- 🔥 OPTIMAL WINDOW: ZERO CYCLE DELAY - Maximum exploitation
+                    if inOptimalWindow then
+                        -- 🔥 OPTIMAL WINDOW: ZERO CYCLE DELAY - Maximum exploitation (no threat check needed)
                         cycleDelay = 0 -- No delay - instant continuous cycles
-                    elseif inPeakWindow and hasUrgentThreats then
-                        -- 🔥 PEAK WINDOW: ZERO CYCLE DELAY - Ultra exploitation
+                    elseif inPeakWindow then
+                        -- 🔥 PEAK WINDOW: ZERO CYCLE DELAY - Ultra exploitation (no threat check needed)
                         cycleDelay = 0 -- No delay - instant continuous cycles
-                    elseif inHyperBlindspot and hasUrgentThreats then
-                        -- 🔥 HYPER KRYPTONITE: NO CYCLE DELAY - Constant flow
+                    elseif inHyperBlindspot then
+                        -- 🔥 HYPER KRYPTONITE: NO CYCLE DELAY - Constant flow (no threat check needed)
                         cycleDelay = 0 -- No delay - instant continuous cycles
                     elseif inUltraBlindspot and hasUrgentThreats then
                         -- 🔥 ULTRA KRYPTONITE: Minimal cycle delay - Near constant flow
