@@ -18,10 +18,10 @@ end)
 
 -- 🛡️ KNIGHTMARE-SYNCHRONIZED UI CONFIGURATION
 local Window = Rayfield:CreateWindow({
-    Name = "💀 FREEZY HUB ABSOLUTE ZOMBIE WIPER 💀 | POLY-Z | 🛡️ KnightMare Sync",
+    Name = "🚀 FREEZY HUB 20X ENHANCED OBLITERATION 🚀 | POLY-Z | 🛡️ KnightMare Sync",
     Icon = 71338090068856,
-    LoadingTitle = "💀 Initializing Absolute Zombie Wiper System...",
-    LoadingSubtitle = "Continuous Spawn Monitoring + 500 Shots/Zombie + Instant Elimination + Zero Detection",
+    LoadingTitle = "🚀 Initializing 20X Enhanced Obliteration System...",
+    LoadingSubtitle = "10,000 Shots/Zombie + 2000 Optimal + 100,000 Checks/Sec + Absolute Destruction",
     Theme = "Ocean",
     ToggleUIKeybind = Enum.KeyCode.K,
     ConfigurationSaving = {
@@ -573,8 +573,8 @@ CombatTab:CreateToggle({
                                                 if hitPos and hitPart then
                                                     local args = {zombie, hitPart, hitPos, 0, weapon}
                                                     
-                                                    -- 🔥 MASSIVE INSTANT FIRING: 500 shots per zombie for absolute elimination
-                                                    for i = 1, 500 do
+                                                    -- 🔥 EXTREME INSTANT FIRING: 10,000 shots per zombie for absolute obliteration
+                                                    for i = 1, 10000 do
                                                         task.spawn(function()
                                                             shootRemote:FireServer(unpack(args))
                                                         end)
@@ -595,10 +595,11 @@ CombatTab:CreateToggle({
                                                 if hitPos and hitPart then
                                                     local args = {zombie, hitPart, hitPos, 0, weapon}
                                                     
-                                                    -- 🎯 NORMAL MODE: 5 shots per zombie
-                                                    for i = 1, 5 do
-                                                        shootRemote:FireServer(unpack(args))
-                                                        task.wait(0.01) -- 10ms delay between shots
+                                                    -- 🎯 ENHANCED NORMAL MODE: 100 shots per zombie
+                                                    for i = 1, 100 do
+                                                        task.spawn(function()
+                                                            shootRemote:FireServer(unpack(args))
+                                                        end)
                                                     end
                                                 end
                                             end
@@ -607,7 +608,7 @@ CombatTab:CreateToggle({
                                 end
                             end
                         end)
-                        task.wait(0.0001) -- Check every 0.1ms for maximum responsiveness
+                        task.wait(0.00001) -- Check every 0.01ms for ULTRA responsiveness (100,000 checks/sec)
                     end
                 end)
             
@@ -775,20 +776,20 @@ CombatTab:CreateToggle({
                                 local baseShotCapacity = math.floor(5 + (focusFactor * 5)) -- 4-10 shots base
                                 
                                 if inOptimalWindow then
-                                    -- 🔥 OPTIMAL WINDOW: Maximum exploitation in 5ms
-                                    maxShotsPerCycle = totalThreats * 100 -- 100 shots per zombie = OVERKILL
+                                    -- 🔥 OPTIMAL WINDOW: 20X ENHANCED - Maximum exploitation in 5ms
+                                    maxShotsPerCycle = totalThreats * 2000 -- 2000 shots per zombie = ABSOLUTE OBLITERATION
                                 elseif inPeakWindow then
-                                    -- 🔥 PEAK WINDOW: Ultra exploitation in 8ms
-                                    maxShotsPerCycle = totalThreats * 75 -- 75 shots per zombie = MASSIVE OVERKILL
+                                    -- 🔥 PEAK WINDOW: 20X ENHANCED - Ultra exploitation in 8ms
+                                    maxShotsPerCycle = totalThreats * 1500 -- 1500 shots per zombie = MASSIVE OBLITERATION
                                 elseif inHyperBlindspot then
-                                    -- 🔥 HYPER BLINDSPOT: Enhanced exploitation in 15ms
-                                    maxShotsPerCycle = totalThreats * 60 -- 60 shots per zombie = guaranteed death
+                                    -- 🔥 HYPER BLINDSPOT: 20X ENHANCED - Enhanced exploitation in 15ms
+                                    maxShotsPerCycle = totalThreats * 1200 -- 1200 shots per zombie = TOTAL DESTRUCTION
                                 elseif inUltraBlindspot then
-                                    -- 🔥 ULTRA BLINDSPOT: High exploitation in 35ms
-                                    maxShotsPerCycle = totalThreats * 40 -- 40 shots per zombie = guaranteed death
+                                    -- 🔥 ULTRA BLINDSPOT: 20X ENHANCED - High exploitation in 35ms
+                                    maxShotsPerCycle = totalThreats * 800 -- 800 shots per zombie = MASSIVE DESTRUCTION
                                 elseif inBlindspot then
-                                    -- 🔥 KRYPTONITE BLINDSPOT: Good exploitation in 55ms
-                                    maxShotsPerCycle = totalThreats * 25 -- 25 shots per zombie = guaranteed death
+                                    -- 🔥 KRYPTONITE BLINDSPOT: 20X ENHANCED - Good exploitation in 55ms
+                                    maxShotsPerCycle = totalThreats * 500 -- 500 shots per zombie = GUARANTEED DESTRUCTION
                                 elseif criticalThreats > 0 then
                                     -- ALERT MODE: Enhanced adrenaline boost
                                     local panicBoost = math.min(8, criticalThreats / 2) -- Up to +8 shots
@@ -883,15 +884,15 @@ CombatTab:CreateToggle({
                                             local shotsPerZombie = 1
                                             
                                             if inOptimalWindow then
-                                                shotsPerZombie = 100 -- 100 shots per zombie = OVERKILL
+                                                shotsPerZombie = 2000 -- 2000 shots per zombie = ABSOLUTE OBLITERATION
                                             elseif inPeakWindow then
-                                                shotsPerZombie = 75 -- 75 shots per zombie = MASSIVE OVERKILL
+                                                shotsPerZombie = 1500 -- 1500 shots per zombie = MASSIVE OBLITERATION
                                             elseif inHyperBlindspot then
-                                                shotsPerZombie = 60 -- 60 shots per zombie = INSTANT DEATH
+                                                shotsPerZombie = 1200 -- 1200 shots per zombie = TOTAL DESTRUCTION
                                             elseif inUltraBlindspot then
-                                                shotsPerZombie = 40 -- 40 shots per zombie = INSTANT DEATH
+                                                shotsPerZombie = 800 -- 800 shots per zombie = MASSIVE DESTRUCTION
                                             elseif inBlindspot then
-                                                shotsPerZombie = 25 -- 25 shots per zombie = INSTANT DEATH
+                                                shotsPerZombie = 500 -- 500 shots per zombie = GUARANTEED DESTRUCTION
                                             else
                                                 -- Normal mode - adaptive shots
                                                 local isBoss = target.model.Name == "GoblinKing" or target.model.Name == "CaptainBoom" or target.model.Name == "Fungarth"
