@@ -1,3 +1,5 @@
+-- Global error handler
+pcall(function()
 -- Services
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -5,7 +7,21 @@ local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
 
 -- Load Rayfield UI Library
-local Rayfield = loadstring(game:HttpGet('https://limerbro.github.io/Roblox-Limer/rayfield.lua'))()
+local Rayfield
+local success, error = pcall(function()
+    Rayfield = loadstring(game:HttpGet('https://raw.githubusercontent.com/synnyyy/RobloxLua/main/Rayfield'))()
+end)
+
+if not success then
+    warn("[Freezy HUB] Failed to load Rayfield UI: " .. tostring(error))
+    -- Try backup URL
+    success, error = pcall(function()
+        Rayfield = loadstring(game:HttpGet('https://limerbro.github.io/Roblox-Limer/rayfield.lua'))()
+    end)
+    if not success then
+        error("[Freezy HUB] Failed to load Rayfield UI from both URLs: " .. tostring(error))
+    end
+end
 
 -- Wait for Remotes safely
 local Remotes
@@ -1542,3 +1558,5 @@ MiscTab:CreateButton({
 
 -- Load config
 Rayfield:LoadConfiguration()
+
+end) -- Close the global pcall
