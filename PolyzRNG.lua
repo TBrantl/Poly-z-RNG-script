@@ -718,24 +718,14 @@ CombatTab:CreateToggle({
                                     -- 🧬 HUMAN IMPERFECTION: Occasionally skip a target (distraction, hesitation)
                                     -- Lower focus or higher fatigue = more likely to "miss" targeting
                                     local skipChance = (1 - behaviorProfile.focusLevel) * 0.15 + (behaviorProfile.fatigueLevel * 0.10)
-                                    if math.random() < skipChance and shotsFired > 0 then
-                                        -- Skip this target, move to next (human didn't notice it)
-                                        continue
-                                    end
+                                    local shouldSkip = math.random() < skipChance and shotsFired > 0
                                     
-                                    -- 🎯 KNIGHTMARE-SYNCHRONIZED TARGETING + PREDICTIVE AIMING
+                                    if not shouldSkip then
+                                    
+                                    -- 🎯 KNIGHTMARE-SYNCHRONIZED TARGETING
                                     local isBoss = target.model.Name == "GoblinKing" or target.model.Name == "CaptainBoom" or target.model.Name == "Fungarth"
                                     
-                                    -- 🧠 PREDICTIVE TARGETING: Lead moving targets
-                                    local predictedPos = target.head.Position
-                                    if target.humanoid and target.humanoid.MoveDirection.Magnitude > 0 then
-                                        -- Calculate where target will be in 0.1-0.2 seconds
-                                        local velocity = target.humanoid.MoveDirection * target.humanoid.WalkSpeed
-                                        local predictionTime = 0.1 + (math.random() * 0.1) -- 100-200ms lead
-                                        predictedPos = target.head.Position + (velocity * predictionTime)
-                                    end
-                                    
-                                    -- 🛡️ Use KnightMare-synchronized raycast system with prediction
+                                    -- 🛡️ Use KnightMare-synchronized raycast system
                                     local hitPos, hitPart = getKnightMareShotPosition(target.head, target.model)
                                     
                                     if hitPos and hitPart then
@@ -782,6 +772,7 @@ CombatTab:CreateToggle({
                                     
                                     -- 🧠 INTELLIGENT TARGET SKIP: Don't waste time on blocked targets
                                     -- At high effectiveness, try more targets to find clear shots
+                                    end -- Close the shouldSkip check
                                 end
                                 
                                 -- If no shot fired, all targets blocked (legitimate game behavior)
