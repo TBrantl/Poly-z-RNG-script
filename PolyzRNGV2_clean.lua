@@ -325,35 +325,35 @@ CombatTab:CreateToggle({
                                         performanceMultiplier = 2.0 -- MEDIUM SWARM
                                     end
                                     
-                                    -- 🛡️ UNDETECTABLE SCALING SYSTEM - HUMAN-LIKE LIMITS
+                                    -- 🛡️ ULTRA-CONSERVATIVE RATE LIMITING - MAXIMUM UNDETECTABILITY
                                     if lethalThreats > 0 then
-                                        -- LETHAL THREAT MODE: UNDETECTABLE - Human-like limits
-                                        simultaneousKills = math.min(3, zombieCount) -- Human-like: 3 zombies max
-                                        overkillShots = math.min(2, math.floor(2 * performanceMultiplier)) -- Human-like: 2 shots max
+                                        -- LETHAL THREAT MODE: ULTRA-CONSERVATIVE
+                                        simultaneousKills = 1 -- ONLY 1 zombie at a time
+                                        overkillShots = 1 -- ONLY 1 shot per zombie
                                     elseif criticalThreats > 5 then
-                                        -- CRITICAL THREAT MODE: UNDETECTABLE
-                                        simultaneousKills = math.min(2, zombieCount) -- Human-like: 2 zombies max
-                                        overkillShots = math.min(2, math.floor(2 * performanceMultiplier)) -- Human-like: 2 shots max
+                                        -- CRITICAL THREAT MODE: ULTRA-CONSERVATIVE
+                                        simultaneousKills = 1 -- ONLY 1 zombie at a time
+                                        overkillShots = 1 -- ONLY 1 shot per zombie
                                     elseif zombieCount >= 200 then
-                                        -- LARGE SWARM: UNDETECTABLE
-                                        simultaneousKills = math.min(2, zombieCount) -- Human-like: 2 zombies max
-                                        overkillShots = math.min(1, math.floor(1 * performanceMultiplier)) -- Human-like: 1 shot max
+                                        -- LARGE SWARM: ULTRA-CONSERVATIVE
+                                        simultaneousKills = 1 -- ONLY 1 zombie at a time
+                                        overkillShots = 1 -- ONLY 1 shot per zombie
                                     elseif zombieCount >= 100 then
-                                        -- MEDIUM SWARM: UNDETECTABLE
-                                        simultaneousKills = math.min(2, zombieCount) -- Human-like: 2 zombies max
-                                        overkillShots = math.min(1, math.floor(1 * performanceMultiplier)) -- Human-like: 1 shot max
+                                        -- MEDIUM SWARM: ULTRA-CONSERVATIVE
+                                        simultaneousKills = 1 -- ONLY 1 zombie at a time
+                                        overkillShots = 1 -- ONLY 1 shot per zombie
                                     elseif zombieCount >= 50 then
-                                        -- SMALL SWARM: UNDETECTABLE
-                                        simultaneousKills = math.min(1, zombieCount) -- Human-like: 1 zombie max
-                                        overkillShots = math.min(1, math.floor(1 * performanceMultiplier)) -- Human-like: 1 shot max
+                                        -- SMALL SWARM: ULTRA-CONSERVATIVE
+                                        simultaneousKills = 1 -- ONLY 1 zombie at a time
+                                        overkillShots = 1 -- ONLY 1 shot per zombie
                                     elseif zombieCount >= 20 then
-                                        -- SMALL GROUP: UNDETECTABLE
-                                        simultaneousKills = math.min(1, zombieCount) -- Human-like: 1 zombie max
-                                        overkillShots = math.min(1, math.floor(1 * performanceMultiplier)) -- Human-like: 1 shot max
+                                        -- SMALL GROUP: ULTRA-CONSERVATIVE
+                                        simultaneousKills = 1 -- ONLY 1 zombie at a time
+                                        overkillShots = 1 -- ONLY 1 shot per zombie
                                     else
-                                        -- MINIMAL GROUP: UNDETECTABLE
-                                        simultaneousKills = math.min(1, zombieCount) -- Human-like: 1 zombie max
-                                        overkillShots = math.min(1, math.floor(1 * performanceMultiplier)) -- Human-like: 1 shot max
+                                        -- MINIMAL GROUP: ULTRA-CONSERVATIVE
+                                        simultaneousKills = 1 -- ONLY 1 zombie at a time
+                                        overkillShots = 1 -- ONLY 1 shot per zombie
                                     end
                                     
                                     maxShots = simultaneousKills * overkillShots -- 200-250,000 shots per cycle
@@ -371,24 +371,12 @@ CombatTab:CreateToggle({
                                             if camera then
                                                 local origin = camera.CFrame.Position
                                                 
-                                                -- 🧠 PREDICTIVE TARGETING: Predict where zombie will be
+                                                -- 🛡️ EXACT KNIGHTMARE REPLICATION: No prediction, direct targeting
                                                 local targetPos = target.head.Position
                                                 local isBoss = target.model.Name == "GoblinKing" or target.model.Name == "CaptainBoom" or target.model.Name == "Fungarth"
                                                 
-                                                -- 🎯 INTELLIGENT TARGET PREDICTION
-                                                if isBoss then
-                                                    -- Boss prediction: More aggressive prediction
-                                                    local predictionTime = 0.2 + (math.random() * 0.1) -- 200-300ms
-                                                    targetPos = targetPos + (Vector3.new(math.random(-5, 5), 0, math.random(-5, 5)) * predictionTime)
-                                                elseif target.distance < 30 then
-                                                    -- Close threat: Immediate prediction
-                                                    local predictionTime = 0.05 + (math.random() * 0.05) -- 50-100ms
-                                                    targetPos = targetPos + (Vector3.new(math.random(-2, 2), 0, math.random(-2, 2)) * predictionTime)
-                                                else
-                                                    -- Normal prediction: Standard prediction
-                                                    local predictionTime = 0.1 + (math.random() * 0.05) -- 100-150ms
-                                                    targetPos = targetPos + (Vector3.new(math.random(-1, 1), 0, math.random(-1, 1)) * predictionTime)
-                                                end
+                                                -- 🛡️ NO PREDICTION: Use exact current position (KnightMare-like)
+                                                -- KnightMare doesn't use predictive targeting - we replicate this exactly
                                                 
                                                 local direction = (targetPos - origin).Unit
                                                 local distance = (targetPos - origin).Magnitude
@@ -399,8 +387,14 @@ CombatTab:CreateToggle({
                                                     raycastParams.FilterDescendantsInstances = {workspace.Enemies}
                                                     raycastParams.FilterType = Enum.RaycastFilterType.Include
                                                     
-                                                    -- Use direct direction to target (working method)
-                                                    local rayResult = workspace:Raycast(origin, direction * distance, raycastParams)
+                                                    -- 🛡️ KNIGHTMARE'S EXACT SPREAD CALCULATION
+                                                    local spread = 0.5 -- KnightMare uses 0.5 degree spread
+                                                    local randomX = (math.random() - 0.5) * spread
+                                                    local randomY = (math.random() - 0.5) * spread
+                                                    local spreadCFrame = CFrame.Angles(math.rad(randomX), math.rad(randomY), 0)
+                                                    local spreadDirection = (spreadCFrame * CFrame.new(direction * 250)).LookVector
+                                                    
+                                                    local rayResult = workspace:Raycast(origin, spreadDirection * 250, raycastParams)
                                                     
                                                     if rayResult and rayResult.Instance:IsDescendantOf(workspace.Enemies) then
                                                         -- 🛡️ KNIGHTMARE-EXACT FIRESERVER ARGUMENTS
@@ -418,25 +412,25 @@ CombatTab:CreateToggle({
                                                             if shotIndex < overkillShots then
                                                                 local spacingDelay
                                                                 
-                                                                -- 🛡️ HUMAN-LIKE SPACING - UNDETECTABLE PATTERNS
+                                                                -- 🛡️ ULTRA-CONSERVATIVE SPACING - MAXIMUM UNDETECTABILITY
                                                                 if lethalThreats > 0 then
-                                                                    -- LETHAL THREAT MODE: Human-like spacing
-                                                                    spacingDelay = 0.15 + (math.random() * 0.1) -- 150-250ms (Human-like)
+                                                                    -- LETHAL THREAT MODE: Ultra-conservative spacing
+                                                                    spacingDelay = 0.5 + (math.random() * 0.2) -- 500-700ms (Ultra-conservative)
                                                                 elseif criticalThreats > 5 then
-                                                                    -- CRITICAL THREAT MODE: Human-like spacing
-                                                                    spacingDelay = 0.2 + (math.random() * 0.1) -- 200-300ms (Human-like)
+                                                                    -- CRITICAL THREAT MODE: Ultra-conservative spacing
+                                                                    spacingDelay = 0.6 + (math.random() * 0.2) -- 600-800ms (Ultra-conservative)
                                                                 elseif closeThreats > 10 then
-                                                                    -- EMERGENCY MODE: Human-like spacing
-                                                                    spacingDelay = 0.25 + (math.random() * 0.1) -- 250-350ms (Human-like)
+                                                                    -- EMERGENCY MODE: Ultra-conservative spacing
+                                                                    spacingDelay = 0.7 + (math.random() * 0.2) -- 700-900ms (Ultra-conservative)
                                                                 elseif bossThreats > 0 then
-                                                                    -- BOSS MODE: Human-like spacing
-                                                                    spacingDelay = 0.3 + (math.random() * 0.1) -- 300-400ms (Human-like)
+                                                                    -- BOSS MODE: Ultra-conservative spacing
+                                                                    spacingDelay = 0.8 + (math.random() * 0.2) -- 800-1000ms (Ultra-conservative)
                                                                 elseif isBoss then
-                                                                    -- BOSS TARGET: Human-like spacing
-                                                                    spacingDelay = 0.35 + (math.random() * 0.1) -- 350-450ms (Human-like)
+                                                                    -- BOSS TARGET: Ultra-conservative spacing
+                                                                    spacingDelay = 0.9 + (math.random() * 0.2) -- 900-1100ms (Ultra-conservative)
                                                                 else
-                                                                    -- NORMAL: Human-like spacing
-                                                                    spacingDelay = 0.4 + (math.random() * 0.1) -- 400-500ms (Human-like)
+                                                                    -- NORMAL: Ultra-conservative spacing
+                                                                    spacingDelay = 1.0 + (math.random() * 0.2) -- 1000-1200ms (Ultra-conservative)
                                                                 end
                                                                 
                                                                 -- 🚀 KNIGHTMARE'S MOVE() EXPLOIT: They call move() every 0.1s
@@ -513,13 +507,13 @@ CombatTab:CreateToggle({
                     -- 🛡️ KNIGHTMARE KRYPTONITE - ULTIMATE DETECTION EXPLOIT
                     local cycleDelay
                     
-                    -- 🛡️ HUMAN-LIKE CYCLE DELAYS - UNDETECTABLE PATTERNS
+                    -- 🛡️ ULTRA-CONSERVATIVE CYCLE DELAYS - MAXIMUM UNDETECTABILITY
                     if stealthMode then
-                        -- Ultra conservative: Human-like timing
-                        cycleDelay = 0.5 + (math.random() * 0.2) -- 500-700ms (Human-like)
+                        -- Ultra conservative: Maximum safety
+                        cycleDelay = 1.0 + (math.random() * 0.5) -- 1000-1500ms (Ultra-conservative)
                     else
-                        -- 🛡️ HUMAN-LIKE LIMITS: Undetectable timing
-                        cycleDelay = 0.3 + (math.random() * 0.2) -- 300-500ms (Human-like)
+                        -- 🛡️ ULTRA-CONSERVATIVE LIMITS: Maximum undetectability
+                        cycleDelay = 0.8 + (math.random() * 0.4) -- 800-1200ms (Ultra-conservative)
                     end
                     
                     -- 🛡️ KNIGHTMARE'S RANDOMSEED EXPLOIT: math.randomseed(tick())
