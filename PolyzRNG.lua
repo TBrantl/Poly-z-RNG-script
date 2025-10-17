@@ -721,13 +721,16 @@ CombatTab:CreateToggle({
                                         
                                         -- 🔥 PACKET MASKING + NETWORK MANIPULATION
                                         local success = pcall(function()
-                                            -- 🛡️ PACKET SPOOFING: Mask shot timing with random delays
+                                            -- 🛡️ PACKET SPOOFING: No delays in blindspots for constant flow
                                             local packetDelay = 0
                                             if inHyperBlindspot then
-                                                packetDelay = math.random() * 0.000001 -- 0-0.001ms packet delay
+                                                packetDelay = 0 -- NO PACKET DELAY - Constant flow
                                             elseif inUltraBlindspot then
-                                                packetDelay = math.random() * 0.000005 -- 0-0.005ms packet delay
+                                                packetDelay = 0 -- NO PACKET DELAY - Constant flow
                                             elseif inBlindspot then
+                                                packetDelay = 0 -- NO PACKET DELAY - Constant flow
+                                            else
+                                                -- Only add packet delay when anti-cheat is watching
                                                 packetDelay = math.random() * 0.00001 -- 0-0.01ms packet delay
                                             end
                                             
@@ -746,9 +749,10 @@ CombatTab:CreateToggle({
                                                 shotCount = 1 -- Single shot for blindspot
                                             end
                                             
-                                            -- Fire shots with proper timing
+                                            -- Fire shots with optimal timing for constant flow
                                             for i = 1, shotCount do
-                                                if i > 1 then
+                                                if i > 1 and not inHyperBlindspot and not inUltraBlindspot then
+                                                    -- Only add delay between shots when not in blindspots
                                                     task.wait(0.001) -- 1ms delay between simultaneous shots
                                                 end
                                             shootRemote:FireServer(unpack(args))
@@ -761,25 +765,22 @@ CombatTab:CreateToggle({
                                         if success then
                                             shotsFired = shotsFired + 1
                                             
-                                            -- 🔥 ULTRA-FAST MULTI-SHOT SPACING + EXPLOIT MODES
+                                            -- 🔥 CONSTANT FLOW KILLING - NO DELAYS IN BLINDSPOTS
                                             if shotsFired < maxShotsPerCycle then
                                                 if inHyperBlindspot then
-                                                    -- 🔥 HYPER KRYPTONITE: 1-5ms spacing (fast but practical)
-                                                    local hyperDelay = 0.001 + (math.random() * 0.004) -- 1-5ms
-                                                    task.wait(hyperDelay)
+                                                    -- 🔥 HYPER KRYPTONITE: NO DELAY - Constant flow
+                                                    -- No task.wait() - instant continuous firing
                                                 elseif inUltraBlindspot then
-                                                    -- 🔥 ULTRA KRYPTONITE: 2-8ms spacing (very fast)
-                                                    local ultraDelay = 0.002 + (math.random() * 0.006) -- 2-8ms
-                                                    task.wait(ultraDelay)
+                                                    -- 🔥 ULTRA KRYPTONITE: Minimal delay - Near constant flow
+                                                    task.wait(0.001) -- Only 1ms delay
                                                 elseif inBlindspot then
-                                                    -- 🔥 KRYPTONITE: 5-15ms spacing (fast)
-                                                    local kryptoniteDelay = 0.005 + (math.random() * 0.01) -- 5-15ms
-                                                    task.wait(kryptoniteDelay)
+                                                    -- 🔥 KRYPTONITE: Very small delay - Fast flow
+                                                    task.wait(0.002) -- Only 2ms delay
                                                 else
-                                                    -- 🧠 NORMAL MODE: Human-like spacing
-                                                    local urgentDelay = target.distance < criticalZone and 0.04 or 0.06
-                                                    local variance = math.random() * 0.04 -- 0-40ms variance
-                                                    task.wait(urgentDelay + variance) -- 40-80ms (improved)
+                                                    -- 🧠 NORMAL MODE: Human-like spacing (only when anti-cheat is watching)
+                                                    local urgentDelay = target.distance < criticalZone and 0.02 or 0.03
+                                                    local variance = math.random() * 0.02 -- 0-20ms variance
+                                                    task.wait(urgentDelay + variance) -- 20-50ms (reduced)
                                                 end
                                             end
                                         end
@@ -821,14 +822,14 @@ CombatTab:CreateToggle({
                     local cycleDelay
                     
                     if inHyperBlindspot and hasUrgentThreats then
-                        -- 🔥 HYPER KRYPTONITE: 1-3ms cycles (fast but practical)
-                        cycleDelay = 0.001 + (math.random() * 0.002) -- 1-3ms
+                        -- 🔥 HYPER KRYPTONITE: NO CYCLE DELAY - Constant flow
+                        cycleDelay = 0 -- No delay - instant continuous cycles
                     elseif inUltraBlindspot and hasUrgentThreats then
-                        -- 🔥 ULTRA KRYPTONITE: 2-5ms cycles (very fast)
-                        cycleDelay = 0.002 + (math.random() * 0.003) -- 2-5ms
+                        -- 🔥 ULTRA KRYPTONITE: Minimal cycle delay - Near constant flow
+                        cycleDelay = 0.001 -- Only 1ms cycle delay
                     elseif inBlindspot and hasUrgentThreats then
-                        -- 🔥 KRYPTONITE: 5-10ms cycles (fast)
-                        cycleDelay = 0.005 + (math.random() * 0.005) -- 5-10ms
+                        -- 🔥 KRYPTONITE: Very small cycle delay - Fast flow
+                        cycleDelay = 0.002 -- Only 2ms cycle delay
                     elseif hasUrgentThreats then
                         -- ALERT MODE: Enhanced reaction speed
                         local alertSpeed = 0.06 + ((1 - behaviorProfile.focusLevel) * 0.03) -- 60-90ms
@@ -837,16 +838,14 @@ CombatTab:CreateToggle({
                         -- NORMAL: Use smart delay based on effectiveness
                         cycleDelay = getKnightMareDelay(shootDelay)
                         
-                        -- 🧠 HUMAN PAUSE SIMULATION: Occasionally take a break
+                        -- 🧠 MINIMAL HUMAN PAUSE SIMULATION: Rare breaks for constant flow
                         -- Simulates looking around, checking UI, reloading mentally
-                        if math.random() < 0.06 then -- 6% chance per cycle (reduced for better performance)
+                        if math.random() < 0.02 then -- 2% chance per cycle (minimal for constant flow)
                                 local pauseType = math.random()
-                                if pauseType < 0.4 then
-                                cycleDelay = cycleDelay + (0.2 + math.random() * 0.3) -- Quick glance (200-500ms)
-                                elseif pauseType < 0.7 then
-                                cycleDelay = cycleDelay + (0.6 + math.random() * 0.5) -- Check surroundings (600-1100ms)
-                                else
-                                cycleDelay = cycleDelay + (1.0 + math.random() * 0.8) -- Brief distraction (1.0-1.8s)
+                            if pauseType < 0.5 then
+                                cycleDelay = cycleDelay + (0.1 + math.random() * 0.1) -- Quick glance (100-200ms)
+                            else
+                                cycleDelay = cycleDelay + (0.2 + math.random() * 0.2) -- Brief check (200-400ms)
                         end
                         end
                     end
