@@ -1,14 +1,12 @@
--- Minimal working version to test loading
-print("Starting minimal test...")
+-- Test script to isolate loading issues
+print("Starting test...")
 
--- Basic services
+-- Test 1: Basic services
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local player = Players.LocalPlayer
-
 print("✓ Services loaded")
 
--- Try to load Rayfield
+-- Test 2: Rayfield loading
 local Rayfield
 local success, error = pcall(function()
     Rayfield = loadstring(game:HttpGet('https://limerbro.github.io/Roblox-Limer/rayfield.lua'))()
@@ -18,10 +16,9 @@ if not success then
     warn("Failed to load Rayfield:", error)
     return
 end
+print("✓ Rayfield loaded")
 
-print("✓ Rayfield loaded successfully")
-
--- Create basic window
+-- Test 3: Basic window creation
 local Window = Rayfield:CreateWindow({
     Name = "Test Window",
     Icon = 71338090068856,
@@ -29,31 +26,41 @@ local Window = Rayfield:CreateWindow({
     LoadingSubtitle = "Please wait",
     ConfigurationSaving = {
         Enabled = true,
-        FolderName = "TestHub",
-        FileName = "TestConfig"
+        FolderName = "FreezyHUB",
+        FileName = "Configuration"
+    },
+    Discord = {
+        Enabled = false,
+        Invite = "noinvitelink",
+        RememberJoins = true
+    },
+    KeySystem = false,
+    KeySettings = {
+        Title = "Freezy HUB",
+        Subtitle = "Key System",
+        Note = "Join the discord (discord.gg/freezyhub)",
+        FileName = "Key",
+        SaveKey = true,
+        GrabKeyFromSite = false,
+        Key = {"freezyhub"}
     }
 })
 
 print("✓ Window created")
 
--- Create basic tab
+-- Test 4: Basic tab creation
 local TestTab = Window:CreateTab("Test", "TestIcon")
 print("✓ Tab created")
 
--- Create basic toggle
+-- Test 5: Basic toggle creation
 TestTab:CreateToggle({
     Name = "Test Toggle",
     CurrentValue = false,
     Flag = "TestToggle",
     Callback = function(state)
-        print("Toggle clicked:", state)
+        print("Toggle state:", state)
     end
 })
-
 print("✓ Toggle created")
 
--- Load configuration
-Rayfield:LoadConfiguration()
-
-print("✓ Configuration loaded")
-print("✓ Minimal script loaded successfully!")
+print("✓ All tests passed - script should load successfully!")

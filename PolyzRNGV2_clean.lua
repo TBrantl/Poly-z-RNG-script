@@ -16,13 +16,10 @@ if not success then
 end
 
 -- Wait for Remotes safely
-local Remotes
-task.spawn(function()
-    Remotes = ReplicatedStorage:WaitForChild("Remotes", 10)
-    if not Remotes then
-        warn("[Freezy HUB] Remotes folder not found - some features may not work")
-    end
-end)
+local Remotes = ReplicatedStorage:WaitForChild("Remotes", 10)
+if not Remotes then
+    warn("[Freezy HUB] Remotes folder not found - some features may not work")
+end
 
 -- 🛡️ KNIGHTMARE-SYNCHRONIZED UI CONFIGURATION
 local Window = Rayfield:CreateWindow({
