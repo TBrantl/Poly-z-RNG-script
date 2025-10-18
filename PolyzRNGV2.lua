@@ -1676,8 +1676,8 @@ CombatTab:CreateToggle({
         if state then
             Rayfield:Notify({
                 Title = "⌨️ ARROW KEYS ROTATION ACTIVE",
-                Content = "Use Arrow Keys to rotate character:\n← → Rotate Left/Right\n↑ ↓ Look Up/Down",
-                Duration = 4,
+                Content = "Hold Arrow Keys to rotate character:\n← → Rotate Left/Right\n↑ ↓ Look Up/Down\nSpeed: 0.05 radians/frame",
+                Duration = 5,
                 Image = 4483362458
             })
             
@@ -1702,29 +1702,71 @@ CombatTab:CreateToggle({
                 end
             end
             
-            -- Keyboard input handling
+            -- Keyboard input handling with continuous rotation
+            local keysPressed = {
+                Left = false,
+                Right = false,
+                Up = false,
+                Down = false
+            }
+            
+            -- Key press detection
             rotationConnection = game:GetService("UserInputService").InputBegan:Connect(function(input, gameProcessed)
                 if gameProcessed then return end
                 
+                if input.KeyCode == Enum.KeyCode.Left then
+                    keysPressed.Left = true
+                elseif input.KeyCode == Enum.KeyCode.Right then
+                    keysPressed.Right = true
+                elseif input.KeyCode == Enum.KeyCode.Up then
+                    keysPressed.Up = true
+                elseif input.KeyCode == Enum.KeyCode.Down then
+                    keysPressed.Down = true
+                end
+            end)
+            
+            -- Key release detection
+            game:GetService("UserInputService").InputEnded:Connect(function(input, gameProcessed)
+                if gameProcessed then return end
+                
+                if input.KeyCode == Enum.KeyCode.Left then
+                    keysPressed.Left = false
+                elseif input.KeyCode == Enum.KeyCode.Right then
+                    keysPressed.Right = false
+                elseif input.KeyCode == Enum.KeyCode.Up then
+                    keysPressed.Up = false
+                elseif input.KeyCode == Enum.KeyCode.Down then
+                    keysPressed.Down = false
+                end
+            end)
+            
+            -- Continuous rotation update
+            game:GetService("RunService").Heartbeat:Connect(function()
                 if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
                     local humanoidRootPart = player.Character.HumanoidRootPart
                     local currentCFrame = humanoidRootPart.CFrame
-                    local rotationSpeed = 0.1
+                    local rotationSpeed = 0.05 -- Slower for better control
                     
-                    if input.KeyCode == Enum.KeyCode.Left then -- Rotate left
+                    -- Character rotation (left/right)
+                    if keysPressed.Left then
                         local newCFrame = currentCFrame * CFrame.Angles(0, rotationSpeed, 0)
                         humanoidRootPart.CFrame = newCFrame
-                    elseif input.KeyCode == Enum.KeyCode.Right then -- Rotate right
+                    end
+                    
+                    if keysPressed.Right then
                         local newCFrame = currentCFrame * CFrame.Angles(0, -rotationSpeed, 0)
                         humanoidRootPart.CFrame = newCFrame
-                    elseif input.KeyCode == Enum.KeyCode.Up then -- Look up
-                        if camera then
+                    end
+                    
+                    -- Camera rotation (up/down)
+                    if camera then
+                        if keysPressed.Up then
                             local cameraCFrame = camera.CFrame
                             local newCameraCFrame = cameraCFrame * CFrame.Angles(-rotationSpeed, 0, 0)
                             camera.CFrame = newCameraCFrame
                         end
-                    elseif input.KeyCode == Enum.KeyCode.Down then -- Look down
-                        if camera then
+                        
+                        if keysPressed.Down then
                             local cameraCFrame = camera.CFrame
                             local newCameraCFrame = cameraCFrame * CFrame.Angles(rotationSpeed, 0, 0)
                             camera.CFrame = newCameraCFrame
