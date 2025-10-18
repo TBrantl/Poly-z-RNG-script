@@ -1413,14 +1413,58 @@ CombatTab:CreateToggle({
                 Image = 4483362458
             })
             
-            -- 🖱️ COMPREHENSIVE MOUSE CURSOR UNLOCK SYSTEM
+            -- 🖱️ ULTRA-AGGRESSIVE CURSOR UNLOCK SYSTEM
             local cursorUnlockConnection = nil
             local cursorUnlockLoop = nil
+            local cursorForceLoop = nil
+            
+            -- 🖱️ ULTRA-AGGRESSIVE CURSOR FORCING
+            cursorForceLoop = task.spawn(function()
+                while true do
+                    pcall(function()
+                        local UserInputService = game:GetService("UserInputService")
+                        local Players = game:GetService("Players")
+                        local player = Players.LocalPlayer
+                        
+                        -- FORCE CURSOR VISIBILITY - ULTRA AGGRESSIVE
+                        UserInputService.MouseBehavior = Enum.MouseBehavior.Default
+                        UserInputService.OverrideMouseIconBehavior = Enum.OverrideMouseIconBehavior.None
+                        UserInputService.MouseIconEnabled = true
+                        
+                        -- FORCE CURSOR ICON - MULTIPLE ATTEMPTS
+                        UserInputService:SetMouseIcon("rbxasset://textures/ArrowCursor.png")
+                        UserInputService:SetMouseIcon("rbxasset://textures/ArrowFarCursor.png")
+                        UserInputService:SetMouseIcon("rbxasset://textures/ArrowCursor.png")
+                        
+                        -- OVERRIDE ANY GAME LOCKS IMMEDIATELY
+                        if UserInputService.MouseBehavior ~= Enum.MouseBehavior.Default then
+                            UserInputService.MouseBehavior = Enum.MouseBehavior.Default
+                        end
+                        
+                        -- FORCE CURSOR THROUGH PLAYER CHARACTER
+                        if player and player.Character then
+                            local humanoid = player.Character:FindFirstChild("Humanoid")
+                            if humanoid then
+                                humanoid.AutoRotate = true
+                                humanoid.PlatformStand = false
+                                humanoid.Sit = false
+                            end
+                        end
+                        
+                        -- FORCE CURSOR THROUGH CAMERA
+                        local camera = workspace.CurrentCamera
+                        if camera then
+                            camera.CameraType = Enum.CameraType.Custom
+                        end
+                    end)
+                    task.wait(0.001) -- Check every 1ms for maximum aggression
+                end
+            end)
             
             -- 🖱️ MULTIPLE APPROACHES TO CURSOR UNLOCK
             cursorUnlockLoop = task.spawn(function()
                 while true do
-            pcall(function()
+                    pcall(function()
                         local UserInputService = game:GetService("UserInputService")
                         local Players = game:GetService("Players")
                         local player = Players.LocalPlayer
@@ -1494,35 +1538,94 @@ CombatTab:CreateToggle({
                 end
             end)
             
-            -- 🖱️ AGGRESSIVE CURSOR FORCE (for stubborn games)
+            -- 🖱️ NUCLEAR CURSOR FORCE (for extremely stubborn games)
             task.spawn(function()
                 while true do
-            pcall(function()
+                    pcall(function()
                         local UserInputService = game:GetService("UserInputService")
                         local Players = game:GetService("Players")
                         local player = Players.LocalPlayer
+                        local TweenService = game:GetService("TweenService")
                         
-                        -- Force cursor visibility through multiple methods
+                        -- NUCLEAR FORCE CURSOR VISIBILITY
                         UserInputService.MouseBehavior = Enum.MouseBehavior.Default
                         UserInputService.OverrideMouseIconBehavior = Enum.OverrideMouseIconBehavior.None
                         UserInputService.MouseIconEnabled = true
+                        
+                        -- FORCE MULTIPLE CURSOR ICONS
+                        UserInputService:SetMouseIcon("rbxasset://textures/ArrowCursor.png")
+                        UserInputService:SetMouseIcon("rbxasset://textures/ArrowFarCursor.png")
                         UserInputService:SetMouseIcon("rbxasset://textures/ArrowCursor.png")
                         
-                        -- Override any potential game locks
+                        -- OVERRIDE ANY POTENTIAL GAME LOCKS
                         if UserInputService.MouseBehavior ~= Enum.MouseBehavior.Default then
                             UserInputService.MouseBehavior = Enum.MouseBehavior.Default
                         end
                         
-                        -- Force cursor through player character
+                        -- FORCE CURSOR THROUGH PLAYER CHARACTER
                         if player and player.Character then
                             local humanoid = player.Character:FindFirstChild("Humanoid")
                             if humanoid then
                                 humanoid.AutoRotate = true
                                 humanoid.PlatformStand = false
+                                humanoid.Sit = false
                             end
                         end
+                        
+                        -- FORCE CURSOR THROUGH CAMERA SYSTEM
+                        local camera = workspace.CurrentCamera
+                        if camera then
+                            camera.CameraType = Enum.CameraType.Custom
+                            camera.CameraSubject = player.Character and player.Character:FindFirstChild("Humanoid")
+                        end
+                        
+                        -- FORCE CURSOR THROUGH GUI SYSTEM
+                        local playerGui = player:FindFirstChild("PlayerGui")
+                        if playerGui then
+                            playerGui.ResetOnSpawn = false
+                        end
                     end)
-                    task.wait(0.05) -- Check every 50ms
+                    task.wait(0.001) -- Check every 1ms for maximum force
+                end
+            end)
+            
+            -- 🖱️ CURSOR OVERRIDE THROUGH GUI (alternative method)
+            task.spawn(function()
+                while true do
+                    pcall(function()
+                        local UserInputService = game:GetService("UserInputService")
+                        local Players = game:GetService("Players")
+                        local player = Players.LocalPlayer
+                        
+                        -- Create invisible cursor GUI if needed
+                        local playerGui = player:FindFirstChild("PlayerGui")
+                        if playerGui then
+                            local cursorGui = playerGui:FindFirstChild("CursorOverride")
+                            if not cursorGui then
+                                cursorGui = Instance.new("ScreenGui")
+                                cursorGui.Name = "CursorOverride"
+                                cursorGui.Parent = playerGui
+                                cursorGui.ResetOnSpawn = false
+                                
+                                local cursorFrame = Instance.new("Frame")
+                                cursorFrame.Name = "CursorFrame"
+                                cursorFrame.Size = UDim2.new(0, 20, 0, 20)
+                                cursorFrame.Position = UDim2.new(0, 0, 0, 0)
+                                cursorFrame.BackgroundColor3 = Color3.new(1, 1, 1)
+                                cursorFrame.BorderSizePixel = 1
+                                cursorFrame.BorderColor3 = Color3.new(0, 0, 0)
+                                cursorFrame.Parent = cursorGui
+                                cursorFrame.Visible = false
+                            end
+                        end
+                        
+                        -- Force cursor through multiple methods
+                        UserInputService.MouseBehavior = Enum.MouseBehavior.Default
+                        UserInputService.OverrideMouseIconBehavior = Enum.OverrideMouseIconBehavior.None
+                        UserInputService.MouseIconEnabled = true
+                        UserInputService:SetMouseIcon("rbxasset://textures/ArrowCursor.png")
+                    end)
+                    task.wait(0.01) -- Check every 10ms
                 end
             end)
         else
@@ -1535,6 +1638,23 @@ CombatTab:CreateToggle({
             if cursorUnlockLoop then
                 task.cancel(cursorUnlockLoop)
                 cursorUnlockLoop = nil
+            end
+            
+            if cursorForceLoop then
+                task.cancel(cursorForceLoop)
+                cursorForceLoop = nil
+            end
+            
+            -- Clean up cursor GUI
+            local player = game:GetService("Players").LocalPlayer
+            if player then
+                local playerGui = player:FindFirstChild("PlayerGui")
+                if playerGui then
+                    local cursorGui = playerGui:FindFirstChild("CursorOverride")
+                    if cursorGui then
+                        cursorGui:Destroy()
+                    end
+                end
             end
             
             Rayfield:Notify({
