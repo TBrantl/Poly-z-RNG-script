@@ -1289,8 +1289,8 @@ MiscTab:CreateButton({
             
             -- Force garbage collection
             game:GetService("RunService").Heartbeat:Wait()
-        end)
-    end
+                            end)
+                        end
 })
 
 MiscTab:CreateButton({
@@ -1382,15 +1382,15 @@ CombatTab:CreateToggle({
                                     if head then
                                         -- 🧠 HUMAN SHOOTING: Sometimes miss or decide not to shoot
                                         if math.random() < 0.8 then -- 80% chance to actually shoot
-                                            pcall(function()
+                        pcall(function()
                                                 shootRemote:FireServer(targetZombie, head, head.Position, 0, getEquippedWeaponName())
-                                            end)
+                        end)
                                         end
                                     end
                                 end
-                            end
-                        end
-                    end)
+                    end
+                end
+            end)
                     -- 🧠 HUMAN SCANNING: Realistic scanning time
                     task.wait(2 + math.random() * 8) -- Wait 2-10 seconds between scans
                 end
@@ -1413,48 +1413,116 @@ CombatTab:CreateToggle({
                 Image = 4483362458
             })
             
-            -- 🖱️ ADVANCED MOUSE CURSOR UNLOCK SYSTEM
+            -- 🖱️ COMPREHENSIVE MOUSE CURSOR UNLOCK SYSTEM
             local cursorUnlockConnection = nil
+            local cursorUnlockLoop = nil
             
-            task.spawn(function()
+            -- 🖱️ MULTIPLE APPROACHES TO CURSOR UNLOCK
+            cursorUnlockLoop = task.spawn(function()
                 while true do
-                    pcall(function()
+            pcall(function()
                         local UserInputService = game:GetService("UserInputService")
+                        local Players = game:GetService("Players")
+                        local player = Players.LocalPlayer
                         
-                        -- Force mouse cursor to be visible and unlocked
+                        -- METHOD 1: Force UserInputService properties
                         UserInputService.MouseBehavior = Enum.MouseBehavior.Default
                         UserInputService.OverrideMouseIconBehavior = Enum.OverrideMouseIconBehavior.None
-                        
-                        -- Prevent cursor from being locked by the game
                         UserInputService.MouseIconEnabled = true
                         
-                        -- Set a custom cursor if the default one is hidden
+                        -- METHOD 2: Set custom cursor icon
+                        UserInputService:SetMouseIcon("rbxasset://textures/ArrowCursor.png")
+                        
+                        -- METHOD 3: Override any cursor locks
+                        if UserInputService.MouseBehavior == Enum.MouseBehavior.LockCenter then
+                            UserInputService.MouseBehavior = Enum.MouseBehavior.Default
+                        end
+                        
+                        -- METHOD 4: Force cursor visibility through player
+                        if player and player.Character then
+                            local humanoid = player.Character:FindFirstChild("Humanoid")
+                            if humanoid then
+                                -- Ensure humanoid doesn't lock cursor
+                                humanoid.AutoRotate = true
+                            end
+                        end
+                        
+                        -- METHOD 5: Override game's cursor control
+                        UserInputService.OverrideMouseIconBehavior = Enum.OverrideMouseIconBehavior.None
+                        
+                        -- METHOD 6: Force cursor to be visible
                         if UserInputService:GetMouseIcon() == "" or UserInputService:GetMouseIcon() == nil then
                             UserInputService:SetMouseIcon("rbxasset://textures/ArrowCursor.png")
                         end
-                        
-                        -- Force cursor to be visible by overriding any game locks
-                        if UserInputService.MouseBehavior == Enum.MouseBehavior.LockCenter then
-                            UserInputService.MouseBehavior = Enum.MouseBehavior.Default
-                        end
-                        
-                        -- Ensure cursor is always available for interaction
-                        UserInputService.OverrideMouseIconBehavior = Enum.OverrideMouseIconBehavior.None
                     end)
-                    task.wait(0.05) -- Check every 50ms for faster response
+                    task.wait(0.01) -- Check every 10ms for maximum responsiveness
                 end
             end)
             
-            -- 🖱️ DETECT CURSOR LOCK ATTEMPTS AND IMMEDIATELY UNLOCK
+            -- 🖱️ DETECT ALL CURSOR LOCK ATTEMPTS
             cursorUnlockConnection = game:GetService("UserInputService").Changed:Connect(function(property)
-                if property == "MouseBehavior" then
-                    pcall(function()
+            pcall(function()
+                    local UserInputService = game:GetService("UserInputService")
+                    
+                    -- Immediately override any cursor behavior changes
+                    if property == "MouseBehavior" or property == "OverrideMouseIconBehavior" then
+                        UserInputService.MouseBehavior = Enum.MouseBehavior.Default
+                        UserInputService.OverrideMouseIconBehavior = Enum.OverrideMouseIconBehavior.None
+                        UserInputService.MouseIconEnabled = true
+                        UserInputService:SetMouseIcon("rbxasset://textures/ArrowCursor.png")
+                    end
+                end)
+            end)
+            
+            -- 🖱️ ADDITIONAL CURSOR PROTECTION
+            task.spawn(function()
+                while true do
+            pcall(function()
                         local UserInputService = game:GetService("UserInputService")
-                        if UserInputService.MouseBehavior == Enum.MouseBehavior.LockCenter then
-                            UserInputService.MouseBehavior = Enum.MouseBehavior.Default
-                            UserInputService.OverrideMouseIconBehavior = Enum.OverrideMouseIconBehavior.None
+                        
+                        -- Continuously force cursor to be visible
+                        UserInputService.MouseBehavior = Enum.MouseBehavior.Default
+                        UserInputService.OverrideMouseIconBehavior = Enum.OverrideMouseIconBehavior.None
+                        UserInputService.MouseIconEnabled = true
+                        
+                        -- Set cursor icon if it gets cleared
+                        if UserInputService:GetMouseIcon() == "" or UserInputService:GetMouseIcon() == nil then
+                            UserInputService:SetMouseIcon("rbxasset://textures/ArrowCursor.png")
                         end
                     end)
+                    task.wait(0.1) -- Check every 100ms
+                end
+            end)
+            
+            -- 🖱️ AGGRESSIVE CURSOR FORCE (for stubborn games)
+            task.spawn(function()
+                while true do
+            pcall(function()
+                        local UserInputService = game:GetService("UserInputService")
+                        local Players = game:GetService("Players")
+                        local player = Players.LocalPlayer
+                        
+                        -- Force cursor visibility through multiple methods
+                        UserInputService.MouseBehavior = Enum.MouseBehavior.Default
+                        UserInputService.OverrideMouseIconBehavior = Enum.OverrideMouseIconBehavior.None
+                        UserInputService.MouseIconEnabled = true
+                        UserInputService:SetMouseIcon("rbxasset://textures/ArrowCursor.png")
+                        
+                        -- Override any potential game locks
+                        if UserInputService.MouseBehavior ~= Enum.MouseBehavior.Default then
+                            UserInputService.MouseBehavior = Enum.MouseBehavior.Default
+                        end
+                        
+                        -- Force cursor through player character
+                        if player and player.Character then
+                            local humanoid = player.Character:FindFirstChild("Humanoid")
+                            if humanoid then
+                                humanoid.AutoRotate = true
+                                humanoid.PlatformStand = false
+                            end
+                        end
+                    end)
+                    task.wait(0.05) -- Check every 50ms
                 end
             end)
         else
@@ -1462,6 +1530,11 @@ CombatTab:CreateToggle({
             if cursorUnlockConnection then
                 cursorUnlockConnection:Disconnect()
                 cursorUnlockConnection = nil
+            end
+            
+            if cursorUnlockLoop then
+                task.cancel(cursorUnlockLoop)
+                cursorUnlockLoop = nil
             end
             
             Rayfield:Notify({
