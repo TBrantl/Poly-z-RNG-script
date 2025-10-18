@@ -18,10 +18,10 @@ end)
 
 -- 🛡️ KNIGHTMARE-SYNCHRONIZED UI CONFIGURATION
 local Window = Rayfield:CreateWindow({
-    Name = "⚡ FREEZY HUB V2 ULTRA-FAST ⚡ | POLY-Z | 🛡️ KnightMare Sync",
+    Name = "🚀 FREEZY HUB V2 MAXIMUM SPEED 🚀 | POLY-Z | 🛡️ KnightMare Sync",
     Icon = 71338090068856,
-    LoadingTitle = "⚡ Initializing Ultra-Fast V2 System...",
-    LoadingSubtitle = "MAXIMUM SPEED + 3x Shot Counts + 10x Monitoring + Ultra-Fast Elimination",
+    LoadingTitle = "🚀 Initializing Maximum Speed V2 System...",
+    LoadingSubtitle = "MAXIMUM SPEED + 10x Shot Counts + Zero Delays + Instant Elimination",
     Theme = "Ocean",
     ToggleUIKeybind = Enum.KeyCode.K,
     ConfigurationSaving = {
@@ -553,11 +553,8 @@ CombatTab:CreateToggle({
             task.spawn(function()
                 while autoKill do
                     pcall(function()
-                        -- ⚡ ULTRA-FAST SYNCHRONICITY CHECK
-                        if not shouldAllowKnightMareShot() then
-                            task.wait(0.001) -- Ultra-fast cooldown
-                            return
-                        end
+                        -- ⚡ MAXIMUM SPEED: Bypass all rate limiting
+                        -- No rate limiting checks for maximum speed
                         
                         local enemies = workspace:FindFirstChild("Enemies")
                         local shootRemote = Remotes and Remotes:FindFirstChild("ShootEnemy")
@@ -666,30 +663,27 @@ CombatTab:CreateToggle({
                                 -- Focused player = can track more targets
                                 -- Fatigued player = tracks fewer
                                 local focusFactor = behaviorProfile.focusLevel - behaviorProfile.fatigueLevel
-                                local shotCapacity = math.floor(15 + (focusFactor * 15)) -- 15-30 shots based on state (ULTRA-FAST)
+                                local shotCapacity = math.floor(100 + (focusFactor * 100)) -- 100-200 shots based on state (MAXIMUM SPEED)
                                 
                                 if criticalThreats > 0 then
-                                    -- ⚡ ULTRA-FAST ALERT MODE: Maximum shots for critical threats
-                                    local panicBoost = math.min(12, criticalThreats * 2) -- Up to +12 shots
-                                    maxShotsPerCycle = math.min(criticalThreats * 3, shotCapacity + math.floor(panicBoost), 50)
+                                    -- ⚡ MAXIMUM SPEED ALERT MODE: Unlimited shots for critical threats
+                                    local panicBoost = math.min(100, criticalThreats * 10) -- Up to +100 shots
+                                    maxShotsPerCycle = math.min(criticalThreats * 20, shotCapacity + math.floor(panicBoost), 500)
                                 else
-                                    -- ⚡ ULTRA-FAST NORMAL MODE: Maximum shots for all enemies
-                                    local baseShots = math.floor(15 + (effectivenessScale * 15))
-                                    maxShotsPerCycle = math.min(baseShots, shotCapacity * 2, 30)
+                                    -- ⚡ MAXIMUM SPEED NORMAL MODE: Maximum shots for all enemies
+                                    local baseShots = math.floor(50 + (effectivenessScale * 50))
+                                    maxShotsPerCycle = math.min(baseShots, shotCapacity, 200)
                                 end
                                 
-                                -- ⚡ ULTRA-FAST VARIATION: Minimal variation for maximum speed
-                                if math.random() < 0.05 then -- 5% chance (reduced for speed)
-                                    maxShotsPerCycle = math.max(1, maxShotsPerCycle - 1)
-                                end
+                                -- ⚡ MAXIMUM SPEED: No variation for maximum performance
+                                -- No random reduction for maximum speed
                                 
                                 for _, target in ipairs(validTargets) do
                                     if shotsFired >= maxShotsPerCycle then break end
                                     
-                                    -- 🧬 HUMAN IMPERFECTION: Occasionally skip a target (distraction, hesitation)
-                                    -- Lower focus or higher fatigue = more likely to "miss" targeting
-                                    local skipChance = (1 - behaviorProfile.focusLevel) * 0.15 + (behaviorProfile.fatigueLevel * 0.10)
-                                    local shouldSkip = math.random() < skipChance and shotsFired > 0
+                                    -- ⚡ MAXIMUM SPEED: No target skipping for maximum efficiency
+                                    -- Target every enemy for maximum speed
+                                    local shouldSkip = false -- Never skip targets for maximum speed
                                     
                                     if not shouldSkip then
                                     
@@ -715,14 +709,8 @@ CombatTab:CreateToggle({
                                         if success then
                                             shotsFired = shotsFired + 1
                                             
-                                            -- ⚡ ULTRA-FAST MULTI-SHOT SPACING (maximum speed)
-                                            if shotsFired < maxShotsPerCycle then
-                                                -- Critical threats = ultra-fast spacing
-                                                -- Ultra-fast: 1-5ms between rapid shots
-                                                local urgentDelay = target.distance < criticalZone and 0.001 or 0.003
-                                                local variance = math.random() * 0.002 -- 0-2ms variance
-                                                task.wait(urgentDelay + variance) -- 1-5ms (ULTRA-FAST)
-                                            end
+                                            -- ⚡ MAXIMUM SPEED: Zero delays for instant firing
+                                            -- No delays between shots for maximum speed
                                         end
                                     end
                                     
@@ -784,7 +772,7 @@ CombatTab:CreateToggle({
                         end
                     end
                     
-                    task.wait(cycleDelay * 0.1) -- 10x faster cycle processing
+                    task.wait(0.001) -- Maximum speed cycle processing (1ms)
                 end
             end)
         end
