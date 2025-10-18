@@ -1314,45 +1314,58 @@ local fastStealthKill = false
 
 -- Add ultra-stealth toggle to combat tab
 CombatTab:CreateToggle({
-    Name = "🥷 Ultra-Stealth Auto-Kill",
+    Name = "🧠 Advanced Human Behavior",
     CurrentValue = false,
     Flag = "UltraStealthKill",
     Callback = function(state)
         ultraStealthKill = state
         if state then
             Rayfield:Notify({
-                Title = "🥷 ULTRA-CONSERVATIVE MODE ACTIVE",
-                Content = "15% activity + 3-8s delays + 1 shot + maximum stealth safety",
+                Title = "🧠 ADVANCED HUMAN BEHAVIOR ACTIVE",
+                Content = "Realistic human simulation: distraction, reaction time, hesitation, aiming, scanning patterns",
                 Duration = 4,
                 Image = 4483362458
             })
             
-            -- 🥷 ULTRA-STEALTH MODE: Minimal Activity
+            -- 🧠 ADVANCED HUMAN BEHAVIOR SIMULATION
             task.spawn(function()
                 while ultraStealthKill do
                     pcall(function()
+                        -- 🧠 HUMAN DISTRACTION SIMULATION: Sometimes player is distracted
+                        if math.random() < 0.3 then -- 30% chance to be "distracted"
+                            task.wait(5 + math.random() * 10) -- Wait 5-15 seconds (distracted)
+                            return
+                        end
+                        
+                        -- 🧠 HUMAN REACTION TIME: Realistic reaction time
+                        local reactionTime = 0.2 + (math.random() * 0.8) -- 200-1000ms human reaction
+                        task.wait(reactionTime)
+                        
                         local enemies = workspace:FindFirstChild("Enemies")
                         local shootRemote = Remotes and Remotes:FindFirstChild("ShootEnemy")
                         
                         if enemies and shootRemote then
-                            -- 🥷 ULTRA-CONSERVATIVE ACTIVITY: Very rare shooting to avoid detection
-                            -- Add human imperfection - sometimes skip even when chance hits
-                            if math.random() < 0.15 and math.random() < 0.8 then -- 15% chance to shoot, 80% chance to actually shoot
-                                local targetZombie = nil
-                                local closestDistance = math.huge
-                                local playerRoot = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-                                
-                                -- 🎯 PRIORITY: Find closest zombie (always targets closest enemy first)
+                            -- 🧠 HUMAN DECISION MAKING: Sometimes player decides not to shoot
+                            if math.random() < 0.7 then -- 70% chance to decide not to shoot (human hesitation)
+                                task.wait(1 + math.random() * 3) -- Wait 1-4 seconds (hesitation)
+                                return
+                            end
+                            
+                            -- 🧠 HUMAN TARGETING: Find target with human-like scanning
+                            local targetZombie = nil
+                            local closestDistance = math.huge
+                            local playerRoot = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+                            
+                            if playerRoot then
                                 for _, zombie in ipairs(enemies:GetChildren()) do
                                     if zombie:IsA("Model") then
                                         local humanoid = zombie:FindFirstChild("Humanoid")
                                         local head = zombie:FindFirstChild("Head")
                                         local root = zombie:FindFirstChild("HumanoidRootPart")
                                         
-                                        if humanoid and head and root and humanoid.Health > 0 and playerRoot then
-                                            -- Calculate distance from player to zombie head
+                                        if humanoid and head and root and humanoid.Health > 0 then
                                             local distance = (head.Position - playerRoot.Position).Magnitude
-                                            if distance < closestDistance then
+                                            if distance < closestDistance and distance < 100 then -- Only target close enemies
                                                 closestDistance = distance
                                                 targetZombie = zombie
                                             end
@@ -1361,24 +1374,25 @@ CombatTab:CreateToggle({
                                 end
                                 
                                 if targetZombie then
+                                    -- 🧠 HUMAN AIMING: Realistic aiming time
+                                    local aimingTime = 0.3 + (math.random() * 0.7) -- 300-1000ms aiming
+                                    task.wait(aimingTime)
+                                    
                                     local head = targetZombie:FindFirstChild("Head")
                                     if head then
-                                        -- 🥷 SINGLE SHOT: Fire only 1 shot to avoid detection
-                                        local shotsToFire = 1
-                                        for i = 1, shotsToFire do
+                                        -- 🧠 HUMAN SHOOTING: Sometimes miss or decide not to shoot
+                                        if math.random() < 0.8 then -- 80% chance to actually shoot
                                             pcall(function()
                                                 shootRemote:FireServer(targetZombie, head, head.Position, 0, getEquippedWeaponName())
                                             end)
-                                            -- Small delay between shots (10-30ms)
-                                            task.wait(0.01 + math.random() * 0.02)
                                         end
                                     end
                                 end
                             end
                         end
                     end)
-                    -- 🥷 ULTRA-CONSERVATIVE DELAY: Wait 3-8 seconds between activities (very safe)
-                    task.wait(3 + math.random() * 5)
+                    -- 🧠 HUMAN SCANNING: Realistic scanning time
+                    task.wait(2 + math.random() * 8) -- Wait 2-10 seconds between scans
                 end
             end)
         end
@@ -1387,45 +1401,58 @@ CombatTab:CreateToggle({
 
 -- Add fast stealth toggle to combat tab
 CombatTab:CreateToggle({
-    Name = "⚡ Fast Stealth Auto-Kill",
+    Name = "🧠 Advanced Human Behavior (Fast)",
     CurrentValue = false,
     Flag = "FastStealthKill",
     Callback = function(state)
         fastStealthKill = state
         if state then
             Rayfield:Notify({
-                Title = "⚡ CONSERVATIVE STEALTH MODE ACTIVE",
-                Content = "25% activity + 1.5-4s delays + 1-2 shots + safe stealth speed",
+                Title = "🧠 ADVANCED HUMAN BEHAVIOR (FAST) ACTIVE",
+                Content = "Faster human simulation: less distraction, quicker reactions, burst shooting patterns",
                 Duration = 4,
                 Image = 4483362458
             })
             
-            -- ⚡ FAST STEALTH MODE: High Activity
+            -- 🧠 ADVANCED HUMAN BEHAVIOR SIMULATION (FAST MODE)
             task.spawn(function()
                 while fastStealthKill do
                     pcall(function()
+                        -- 🧠 HUMAN DISTRACTION SIMULATION: Sometimes player is distracted (less often in fast mode)
+                        if math.random() < 0.15 then -- 15% chance to be "distracted"
+                            task.wait(3 + math.random() * 5) -- Wait 3-8 seconds (distracted)
+                            return
+                        end
+                        
+                        -- 🧠 HUMAN REACTION TIME: Faster but still realistic reaction time
+                        local reactionTime = 0.15 + (math.random() * 0.4) -- 150-550ms human reaction
+                        task.wait(reactionTime)
+                        
                         local enemies = workspace:FindFirstChild("Enemies")
                         local shootRemote = Remotes and Remotes:FindFirstChild("ShootEnemy")
                         
                         if enemies and shootRemote then
-                            -- ⚡ CONSERVATIVE STEALTH ACTIVITY: Moderate shooting to avoid detection
-                            -- Add human imperfection - sometimes skip even when chance hits
-                            if math.random() < 0.25 and math.random() < 0.9 then -- 25% chance to shoot, 90% chance to actually shoot
-                                local targetZombie = nil
-                                local closestDistance = math.huge
-                                local playerRoot = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-                                
-                                -- 🎯 PRIORITY: Find closest zombie (always targets closest enemy first)
+                            -- 🧠 HUMAN DECISION MAKING: Sometimes player decides not to shoot (less hesitation in fast mode)
+                            if math.random() < 0.4 then -- 40% chance to decide not to shoot (human hesitation)
+                                task.wait(0.5 + math.random() * 1.5) -- Wait 0.5-2 seconds (hesitation)
+                                return
+                            end
+                            
+                            -- 🧠 HUMAN TARGETING: Find target with human-like scanning
+                            local targetZombie = nil
+                            local closestDistance = math.huge
+                            local playerRoot = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+                            
+                            if playerRoot then
                                 for _, zombie in ipairs(enemies:GetChildren()) do
                                     if zombie:IsA("Model") then
                                         local humanoid = zombie:FindFirstChild("Humanoid")
                                         local head = zombie:FindFirstChild("Head")
                                         local root = zombie:FindFirstChild("HumanoidRootPart")
                                         
-                                        if humanoid and head and root and humanoid.Health > 0 and playerRoot then
-                                            -- Calculate distance from player to zombie head
+                                        if humanoid and head and root and humanoid.Health > 0 then
                                             local distance = (head.Position - playerRoot.Position).Magnitude
-                                            if distance < closestDistance then
+                                            if distance < closestDistance and distance < 150 then -- Target slightly further enemies in fast mode
                                                 closestDistance = distance
                                                 targetZombie = zombie
                                             end
@@ -1434,24 +1461,38 @@ CombatTab:CreateToggle({
                                 end
                                 
                                 if targetZombie then
+                                    -- 🧠 HUMAN AIMING: Realistic aiming time (faster in fast mode)
+                                    local aimingTime = 0.2 + (math.random() * 0.4) -- 200-600ms aiming
+                                    task.wait(aimingTime)
+                                    
                                     local head = targetZombie:FindFirstChild("Head")
                                     if head then
-                                        -- ⚡ CONSERVATIVE SHOT: Fire 1-2 shots to avoid detection
-                                        local shotsToFire = math.random(1, 2)
-                                        for i = 1, shotsToFire do
-                                            pcall(function()
-                                                shootRemote:FireServer(targetZombie, head, head.Position, 0, getEquippedWeaponName())
-                                            end)
-                                            -- Very small delay between shots (5-15ms)
-                                            task.wait(0.005 + math.random() * 0.01)
+                                        -- 🧠 HUMAN SHOOTING: Sometimes miss or decide not to shoot
+                                        if math.random() < 0.85 then -- 85% chance to actually shoot
+                                            -- 🧠 HUMAN BURST: Sometimes fire multiple shots (like a panicked player)
+                                            local burstChance = math.random()
+                                            if burstChance < 0.3 then -- 30% chance for burst
+                                                local shots = math.random(2, 3)
+                                                for i = 1, shots do
+                                                    pcall(function()
+                                                        shootRemote:FireServer(targetZombie, head, head.Position, 0, getEquippedWeaponName())
+                                                    end)
+                                                    task.wait(0.1 + math.random() * 0.2) -- 100-300ms between burst shots
+                                                end
+                                            else
+                                                -- Single shot
+                                                pcall(function()
+                                                    shootRemote:FireServer(targetZombie, head, head.Position, 0, getEquippedWeaponName())
+                                                end)
+                                            end
                                         end
                                     end
                                 end
                             end
                         end
                     end)
-                    -- ⚡ CONSERVATIVE STEALTH DELAY: Wait 1.5-4 seconds between activities (safe)
-                    task.wait(1.5 + math.random() * 2.5)
+                    -- 🧠 HUMAN SCANNING: Realistic scanning time (faster in fast mode)
+                    task.wait(1 + math.random() * 4) -- Wait 1-5 seconds between scans
                 end
             end)
         end
