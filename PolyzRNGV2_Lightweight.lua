@@ -1,5 +1,3 @@
--- Global error protection
-local success, error = pcall(function()
 -- Services
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -551,7 +549,7 @@ local function createLightweightInstance()
     }
     
     -- Lightweight auto-kill function (no GUI, just killing)
-    function instance.lightweightAutoKill()
+    local function lightweightAutoKill()
         while instance.active do
             pcall(function()
                 -- 🛡️ KNIGHTMARE SYNCHRONICITY CHECK
@@ -1187,9 +1185,3 @@ CombatTab:CreateToggle({
 
 -- Load config
 Rayfield:LoadConfiguration()
-
-end) -- Close pcall wrapper
-
-if not success then
-    warn("[Lightweight] Script failed to load:", error)
-end
