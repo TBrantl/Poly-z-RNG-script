@@ -1310,6 +1310,7 @@ MiscTab:CreateButton({
 
 -- 🥷 ULTRA-STEALTH AUTO-KILL FUNCTION
 local ultraStealthKill = false
+local fastStealthKill = false
 
 -- Add ultra-stealth toggle to combat tab
 CombatTab:CreateToggle({
@@ -1321,7 +1322,7 @@ CombatTab:CreateToggle({
         if state then
             Rayfield:Notify({
                 Title = "🥷 ULTRA-STEALTH MODE ACTIVE",
-                Content = "10% activity + 2-5s delays + single shots + minimal detection",
+                Content = "40% activity + 0.5-1.5s delays + 2-4 shots + stealth efficiency",
                 Duration = 4,
                 Image = 4483362458
             })
@@ -1334,8 +1335,8 @@ CombatTab:CreateToggle({
                         local shootRemote = Remotes and Remotes:FindFirstChild("ShootEnemy")
                         
                         if enemies and shootRemote then
-                            -- 🥷 RARE ACTIVITY: Only shoot occasionally (like a cautious player)
-                            if math.random() < 0.1 then -- 10% chance to shoot
+                            -- 🥷 STEALTH ACTIVITY: Shoot more frequently but still stealthy
+                            if math.random() < 0.4 then -- 40% chance to shoot (increased from 10%)
                                 local targetZombie = nil
                                 local closestDistance = math.huge
                                 
@@ -1359,17 +1360,92 @@ CombatTab:CreateToggle({
                                 if targetZombie then
                                     local head = targetZombie:FindFirstChild("Head")
                                     if head then
-                                        -- 🥷 SINGLE SHOT: Fire only 1 shot
-                                        pcall(function()
-                                            shootRemote:FireServer(targetZombie, head, head.Position, 0, getEquippedWeaponName())
-                                        end)
+                                        -- 🥷 MULTI-SHOT: Fire 2-4 shots for better efficiency
+                                        local shotsToFire = math.random(2, 4)
+                                        for i = 1, shotsToFire do
+                                            pcall(function()
+                                                shootRemote:FireServer(targetZombie, head, head.Position, 0, getEquippedWeaponName())
+                                            end)
+                                            -- Small delay between shots (10-30ms)
+                                            task.wait(0.01 + math.random() * 0.02)
+                                        end
                                     end
                                 end
                             end
                         end
                     end)
-                    -- 🥷 LONG INACTIVITY: Wait 2-5 seconds between activities
-                    task.wait(2 + math.random() * 3)
+                    -- 🥷 STEALTH DELAY: Wait 0.5-1.5 seconds between activities (faster)
+                    task.wait(0.5 + math.random() * 1)
+                end
+            end)
+        end
+    end
+})
+
+-- Add fast stealth toggle to combat tab
+CombatTab:CreateToggle({
+    Name = "⚡ Fast Stealth Auto-Kill",
+    CurrentValue = false,
+    Flag = "FastStealthKill",
+    Callback = function(state)
+        fastStealthKill = state
+        if state then
+            Rayfield:Notify({
+                Title = "⚡ FAST STEALTH MODE ACTIVE",
+                Content = "70% activity + 0.2-0.8s delays + 3-6 shots + maximum stealth speed",
+                Duration = 4,
+                Image = 4483362458
+            })
+            
+            -- ⚡ FAST STEALTH MODE: High Activity
+            task.spawn(function()
+                while fastStealthKill do
+                    pcall(function()
+                        local enemies = workspace:FindFirstChild("Enemies")
+                        local shootRemote = Remotes and Remotes:FindFirstChild("ShootEnemy")
+                        
+                        if enemies and shootRemote then
+                            -- ⚡ FAST STEALTH ACTIVITY: Shoot frequently but still stealthy
+                            if math.random() < 0.7 then -- 70% chance to shoot
+                                local targetZombie = nil
+                                local closestDistance = math.huge
+                                
+                                -- Find closest zombie
+                                for _, zombie in ipairs(enemies:GetChildren()) do
+                                    if zombie:IsA("Model") then
+                                        local humanoid = zombie:FindFirstChild("Humanoid")
+                                        local head = zombie:FindFirstChild("Head")
+                                        local root = zombie:FindFirstChild("HumanoidRootPart")
+                                        
+                                        if humanoid and head and root and humanoid.Health > 0 then
+                                            local distance = root and (head.Position - root.Position).Magnitude or 999999
+                                            if distance < closestDistance then
+                                                closestDistance = distance
+                                                targetZombie = zombie
+                                            end
+                                        end
+                                    end
+                                end
+                                
+                                if targetZombie then
+                                    local head = targetZombie:FindFirstChild("Head")
+                                    if head then
+                                        -- ⚡ FAST MULTI-SHOT: Fire 3-6 shots for maximum efficiency
+                                        local shotsToFire = math.random(3, 6)
+                                        for i = 1, shotsToFire do
+                                            pcall(function()
+                                                shootRemote:FireServer(targetZombie, head, head.Position, 0, getEquippedWeaponName())
+                                            end)
+                                            -- Very small delay between shots (5-15ms)
+                                            task.wait(0.005 + math.random() * 0.01)
+                                        end
+                                    end
+                                end
+                            end
+                        end
+                    end)
+                    -- ⚡ FAST STEALTH DELAY: Wait 0.2-0.8 seconds between activities (very fast)
+                    task.wait(0.2 + math.random() * 0.6)
                 end
             end)
         end
