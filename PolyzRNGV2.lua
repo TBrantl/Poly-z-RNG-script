@@ -18,10 +18,10 @@ end)
 
 -- 🛡️ KNIGHTMARE-SYNCHRONIZED UI CONFIGURATION
 local Window = Rayfield:CreateWindow({
-    Name = "🚀 FREEZY HUB V2 MAXIMUM SPEED 🚀 | POLY-Z | 🛡️ KnightMare Sync",
+    Name = "🛡️ FREEZY HUB V2 DETECTION-SAFE 🛡️ | POLY-Z | 🛡️ KnightMare Sync",
     Icon = 71338090068856,
-    LoadingTitle = "🚀 Initializing Maximum Speed V2 System...",
-    LoadingSubtitle = "MAXIMUM SPEED + 10x Shot Counts + Zero Delays + Instant Elimination",
+    LoadingTitle = "🛡️ Initializing Detection-Safe V2 System...",
+    LoadingSubtitle = "DETECTION-SAFE + Human-Like Behavior + Aggressive but Realistic + Anti-Cheat Bypass",
     Theme = "Ocean",
     ToggleUIKeybind = Enum.KeyCode.K,
     ConfigurationSaving = {
@@ -550,11 +550,46 @@ CombatTab:CreateToggle({
                 Image = 4483362458
             })
             
+            -- 🛡️ DETECTION-SAFE MASS ELIMINATION SYSTEM
             task.spawn(function()
                 while autoKill do
                     pcall(function()
-                        -- ⚡ MAXIMUM SPEED: Bypass all rate limiting
-                        -- No rate limiting checks for maximum speed
+                        local enemies = workspace:FindFirstChild("Enemies")
+                        local shootRemote = Remotes and Remotes:FindFirstChild("ShootEnemy")
+                        
+                        if enemies and shootRemote then
+                            for _, zombie in ipairs(enemies:GetChildren()) do
+                                if zombie:IsA("Model") then
+                                    local humanoid = zombie:FindFirstChild("Humanoid")
+                                    local head = zombie:FindFirstChild("Head")
+                                    local root = zombie:FindFirstChild("HumanoidRootPart")
+                                    
+                                    if humanoid and head and root and humanoid.Health > 0 then
+                                        -- 🛡️ DETECTION-SAFE: Fire 5-10 shots per zombie with human-like spacing
+                                        local shotsToFire = math.random(5, 10)
+                                        for i = 1, shotsToFire do
+                                            pcall(function()
+                                                shootRemote:FireServer(zombie, head, head.Position, 0, getEquippedWeaponName())
+                                            end)
+                                            task.wait(0.01 + math.random() * 0.02) -- 10-30ms spacing (human-like)
+                                        end
+                                    end
+                                end
+                            end
+                        end
+                    end)
+                    task.wait(0.05) -- Human-like monitoring (20 checks/sec)
+                end
+            end)
+            
+            task.spawn(function()
+                while autoKill do
+                    pcall(function()
+                        -- 🛡️ DETECTION-SAFE RATE LIMITING: Aggressive but human-like
+                        if not shouldAllowKnightMareShot() then
+                            task.wait(0.05) -- Human-like cooldown
+                            return
+                        end
                         
                         local enemies = workspace:FindFirstChild("Enemies")
                         local shootRemote = Remotes and Remotes:FindFirstChild("ShootEnemy")
@@ -663,27 +698,30 @@ CombatTab:CreateToggle({
                                 -- Focused player = can track more targets
                                 -- Fatigued player = tracks fewer
                                 local focusFactor = behaviorProfile.focusLevel - behaviorProfile.fatigueLevel
-                                local shotCapacity = math.floor(100 + (focusFactor * 100)) -- 100-200 shots based on state (MAXIMUM SPEED)
+                                local shotCapacity = math.floor(8 + (focusFactor * 4)) -- 8-12 shots based on state (DETECTION-SAFE)
                                 
                                 if criticalThreats > 0 then
-                                    -- ⚡ MAXIMUM SPEED ALERT MODE: Unlimited shots for critical threats
-                                    local panicBoost = math.min(100, criticalThreats * 10) -- Up to +100 shots
-                                    maxShotsPerCycle = math.min(criticalThreats * 20, shotCapacity + math.floor(panicBoost), 500)
+                                    -- 🛡️ DETECTION-SAFE ALERT MODE: Aggressive but realistic shots for critical threats
+                                    local panicBoost = math.min(3, criticalThreats) -- Up to +3 shots
+                                    maxShotsPerCycle = math.min(criticalThreats * 2, shotCapacity + math.floor(panicBoost), 15)
                                 else
-                                    -- ⚡ MAXIMUM SPEED NORMAL MODE: Maximum shots for all enemies
-                                    local baseShots = math.floor(50 + (effectivenessScale * 50))
-                                    maxShotsPerCycle = math.min(baseShots, shotCapacity, 200)
+                                    -- 🛡️ DETECTION-SAFE NORMAL MODE: Realistic shots for all enemies
+                                    local baseShots = math.floor(6 + (effectivenessScale * 4))
+                                    maxShotsPerCycle = math.min(baseShots, shotCapacity, 12)
                                 end
                                 
-                                -- ⚡ MAXIMUM SPEED: No variation for maximum performance
-                                -- No random reduction for maximum speed
+                                -- 🛡️ DETECTION-SAFE VARIATION: Human-like variation for realism
+                                if math.random() < 0.15 then -- 15% chance (human-like)
+                                    maxShotsPerCycle = math.max(1, maxShotsPerCycle - 1)
+                                end
                                 
                                 for _, target in ipairs(validTargets) do
                                     if shotsFired >= maxShotsPerCycle then break end
                                     
-                                    -- ⚡ MAXIMUM SPEED: No target skipping for maximum efficiency
-                                    -- Target every enemy for maximum speed
-                                    local shouldSkip = false -- Never skip targets for maximum speed
+                                    -- 🛡️ DETECTION-SAFE TARGET SKIPPING: Human-like imperfection
+                                    -- Lower focus or higher fatigue = more likely to "miss" targeting
+                                    local skipChance = (1 - behaviorProfile.focusLevel) * 0.10 + (behaviorProfile.fatigueLevel * 0.05)
+                                    local shouldSkip = math.random() < skipChance and shotsFired > 0
                                     
                                     if not shouldSkip then
                                     
@@ -709,8 +747,12 @@ CombatTab:CreateToggle({
                                         if success then
                                             shotsFired = shotsFired + 1
                                             
-                                            -- ⚡ MAXIMUM SPEED: Zero delays for instant firing
-                                            -- No delays between shots for maximum speed
+                                            -- 🛡️ DETECTION-SAFE SHOT SPACING: Human-like spacing
+                                            if shotsFired < maxShotsPerCycle then
+                                                -- Human-like spacing: 20-50ms between shots
+                                                local humanDelay = 0.02 + (math.random() * 0.03) -- 20-50ms
+                                                task.wait(humanDelay)
+                                            end
                                         end
                                     end
                                     
@@ -772,7 +814,7 @@ CombatTab:CreateToggle({
                         end
                     end
                     
-                    task.wait(0.001) -- Maximum speed cycle processing (1ms)
+                    task.wait(0.1 + math.random() * 0.1) -- Human-like cycle processing (100-200ms)
                 end
             end)
         end
