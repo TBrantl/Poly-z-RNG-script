@@ -1314,16 +1314,16 @@ local fastStealthKill = false
 
 -- Add ultra-stealth toggle to combat tab
 CombatTab:CreateToggle({
-    Name = "🧠 Advanced Human Behavior",
+    Name = "🧠 Ultra Stealth",
     CurrentValue = false,
     Flag = "UltraStealthKill",
     Callback = function(state)
         ultraStealthKill = state
         if state then
             Rayfield:Notify({
-                Title = "🧠 ADVANCED HUMAN BEHAVIOR ACTIVE",
-                Content = "Realistic human simulation: distraction, reaction time, hesitation, aiming, scanning patterns",
-                Duration = 4,
+                Title = "🧠 ULTRA STEALTH ACTIVE",
+                Content = "Maximum stealth with human-like behavior patterns",
+                Duration = 3,
                 Image = 4483362458
             })
             
@@ -1667,163 +1667,82 @@ CombatTab:CreateToggle({
     end
 })
 
--- Add mouse look toggle to combat tab
+-- Add keyboard character rotation toggle to combat tab
 CombatTab:CreateToggle({
-    Name = "🖱️ Right-Click Mouse Look",
+    Name = "⌨️ Arrow Keys Character Rotation",
     CurrentValue = false,
-    Flag = "RightClickMouseLook",
+    Flag = "ArrowKeysRotation",
     Callback = function(state)
         if state then
             Rayfield:Notify({
-                Title = "🖱️ MOUSE LOOK ACTIVE",
-                Content = "Right-click OR Middle-click and drag to rotate character view\nSensitivity: 0.05 | Camera Override: ON",
-                Duration = 5,
+                Title = "⌨️ ARROW KEYS ROTATION ACTIVE",
+                Content = "Use Arrow Keys to rotate character:\n← → Rotate Left/Right\n↑ ↓ Look Up/Down",
+                Duration = 4,
                 Image = 4483362458
             })
             
-            -- 🖱️ RIGHT-CLICK MOUSE LOOK SYSTEM
-            local mouseLookConnection = nil
-            local mouseLookConnection2 = nil
-            local isMouseLookActive = false
-            local lastMousePosition = Vector2.new(0, 0)
-            local camera = workspace.CurrentCamera
+            -- ⌨️ KEYBOARD CHARACTER ROTATION SYSTEM
+            local rotationConnection = nil
             local player = game:GetService("Players").LocalPlayer
+            local camera = workspace.CurrentCamera
             
-            -- Override game's weapon aiming system
-            local function overrideWeaponAiming()
-                if player.Character and player.Character:FindFirstChild("Humanoid") then
-                    local humanoid = player.Character.Humanoid
-                    -- Disable weapon aiming when mouse look is active
-                    if isMouseLookActive then
-                        humanoid.AutoRotate = true
-                        humanoid.PlatformStand = false
-                    end
-                end
-            end
-            
-            -- Mouse look function with game camera override
-            local function updateMouseLook()
-                if isMouseLookActive and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-                    local mouse = player:GetMouse()
-                    local currentMousePosition = Vector2.new(mouse.X, mouse.Y)
-                    local deltaPosition = currentMousePosition - lastMousePosition
-                    
-                    -- Calculate rotation based on mouse movement
-                    local sensitivity = 0.05 -- Much higher sensitivity
-                    local rotationY = deltaPosition.X * sensitivity
-                    local rotationX = deltaPosition.Y * sensitivity
-                    
-                    -- FORCE CAMERA CONTROL - Override game's camera system
-                    if camera then
-                        -- Disable game's camera control
-                        camera.CameraType = Enum.CameraType.Custom
-                        camera.CameraSubject = player.Character:FindFirstChild("Humanoid")
-                        
-                        -- Get current camera position and rotation
-                        local currentCFrame = camera.CFrame
-                        local position = currentCFrame.Position
-                        local lookDirection = currentCFrame.LookVector
-                        
-                        -- Apply horizontal rotation (Y-axis)
-                        local horizontalRotation = CFrame.Angles(0, rotationY, 0)
-                        local newLookDirection = horizontalRotation * lookDirection
-                        
-                        -- Apply vertical rotation (X-axis) with limits
-                        local verticalRotation = CFrame.Angles(-rotationX, 0, 0)
-                        local finalLookDirection = verticalRotation * newLookDirection
-                        
-                        -- Update camera
-                        camera.CFrame = CFrame.lookAt(position, position + finalLookDirection)
-                    end
-                    
-                    -- Apply character rotation
+            -- Character rotation function
+            local function rotateCharacter()
+                if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
                     local humanoidRootPart = player.Character.HumanoidRootPart
-                    if humanoidRootPart then
-                        local currentCFrame = humanoidRootPart.CFrame
-                        local newCFrame = currentCFrame * CFrame.Angles(0, rotationY, 0)
-                        humanoidRootPart.CFrame = newCFrame
-                    end
+                    local currentCFrame = humanoidRootPart.CFrame
+                    local rotationSpeed = 0.1 -- Adjust rotation speed
                     
-                    lastMousePosition = currentMousePosition
+                    -- Get current rotation
+                    local _, yRotation, _ = currentCFrame:ToEulerAnglesXYZ()
                     
-                    -- Override weapon aiming
-                    overrideWeaponAiming()
+                    -- Apply rotation based on key presses
+                    local newCFrame = currentCFrame * CFrame.Angles(0, 0, 0) -- Will be updated by key presses
+                    humanoidRootPart.CFrame = newCFrame
                 end
             end
             
-            -- Mouse input handling with game behavior override
-            mouseLookConnection = game:GetService("UserInputService").InputBegan:Connect(function(input, gameProcessed)
-                if input.UserInputType == Enum.UserInputType.MouseButton2 then -- Right mouse button
-                    -- Override game's default right-click behavior
-                    isMouseLookActive = true
-                    local mouse = player:GetMouse()
-                    lastMousePosition = Vector2.new(mouse.X, mouse.Y)
+            -- Keyboard input handling
+            rotationConnection = game:GetService("UserInputService").InputBegan:Connect(function(input, gameProcessed)
+                if gameProcessed then return end
+                
+                if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                    local humanoidRootPart = player.Character.HumanoidRootPart
+                    local currentCFrame = humanoidRootPart.CFrame
+                    local rotationSpeed = 0.1
                     
-                    -- Prevent game from processing right-click
-                    return true
-                end
-            end)
-            
-            -- Mouse input ended
-            game:GetService("UserInputService").InputEnded:Connect(function(input, gameProcessed)
-                if input.UserInputType == Enum.UserInputType.MouseButton2 then -- Right mouse button
-                    isMouseLookActive = false
-                    
-                    -- Prevent game from processing right-click release
-                    return true
-                end
-            end)
-            
-            -- Alternative input method - Middle mouse button
-            mouseLookConnection2 = game:GetService("UserInputService").InputBegan:Connect(function(input, gameProcessed)
-                if input.UserInputType == Enum.UserInputType.MouseButton3 then -- Middle mouse button
-                    isMouseLookActive = true
-                    local mouse = player:GetMouse()
-                    lastMousePosition = Vector2.new(mouse.X, mouse.Y)
-                end
-            end)
-            
-            -- Middle mouse button release
-            game:GetService("UserInputService").InputEnded:Connect(function(input, gameProcessed)
-                if input.UserInputType == Enum.UserInputType.MouseButton3 then -- Middle mouse button
-                    isMouseLookActive = false
-                end
-            end)
-            
-            -- Update mouse look every frame
-            game:GetService("RunService").Heartbeat:Connect(updateMouseLook)
-            
-            -- AGGRESSIVE CAMERA OVERRIDE - Continuously override game's camera
-            task.spawn(function()
-                while true do
-                    if isMouseLookActive then
-        pcall(function()
-                            -- Force camera to stay in our control
-                            if camera then
-                                camera.CameraType = Enum.CameraType.Custom
-                                camera.CameraSubject = player.Character and player.Character:FindFirstChild("Humanoid")
-                            end
-                        end)
+                    if input.KeyCode == Enum.KeyCode.Left then -- Rotate left
+                        local newCFrame = currentCFrame * CFrame.Angles(0, rotationSpeed, 0)
+                        humanoidRootPart.CFrame = newCFrame
+                    elseif input.KeyCode == Enum.KeyCode.Right then -- Rotate right
+                        local newCFrame = currentCFrame * CFrame.Angles(0, -rotationSpeed, 0)
+                        humanoidRootPart.CFrame = newCFrame
+                    elseif input.KeyCode == Enum.KeyCode.Up then -- Look up
+                        if camera then
+                            local cameraCFrame = camera.CFrame
+                            local newCameraCFrame = cameraCFrame * CFrame.Angles(-rotationSpeed, 0, 0)
+                            camera.CFrame = newCameraCFrame
+                        end
+                    elseif input.KeyCode == Enum.KeyCode.Down then -- Look down
+                        if camera then
+                            local cameraCFrame = camera.CFrame
+                            local newCameraCFrame = cameraCFrame * CFrame.Angles(rotationSpeed, 0, 0)
+                            camera.CFrame = newCameraCFrame
+                        end
                     end
-                    task.wait(0.01) -- Check every 10ms
                 end
             end)
             
         else
-            -- Clean up mouse look system
-            if mouseLookConnection then
-                mouseLookConnection:Disconnect()
-                mouseLookConnection = nil
-            end
-            
-            if mouseLookConnection2 then
-                mouseLookConnection2:Disconnect()
-                mouseLookConnection2 = nil
+            -- Clean up rotation system
+            if rotationConnection then
+                rotationConnection:Disconnect()
+                rotationConnection = nil
             end
             
             Rayfield:Notify({
-                Title = "🖱️ RIGHT-CLICK MOUSE LOOK DISABLED",
-                Content = "Character view rotation disabled",
+                Title = "⌨️ ARROW KEYS ROTATION DISABLED",
+                Content = "Character rotation disabled",
                 Duration = 3,
                 Image = 4483362458
             })
@@ -1831,18 +1750,18 @@ CombatTab:CreateToggle({
     end
 })
 
--- Add fast stealth toggle to combat tab
+-- Add simplified stealth toggle to combat tab
 CombatTab:CreateToggle({
-    Name = "🧠 Advanced Human Behavior (Fast)",
+    Name = "🧠 Stealth Mode",
     CurrentValue = false,
     Flag = "FastStealthKill",
     Callback = function(state)
         fastStealthKill = state
         if state then
             Rayfield:Notify({
-                Title = "🧠 ADVANCED HUMAN BEHAVIOR (FAST) ACTIVE",
-                Content = "Faster human simulation: less distraction, quicker reactions, burst shooting patterns",
-                Duration = 4,
+                Title = "🧠 STEALTH MODE ACTIVE",
+                Content = "Human-like behavior simulation with realistic patterns",
+                Duration = 3,
                 Image = 4483362458
             })
             
