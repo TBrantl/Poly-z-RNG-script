@@ -1399,6 +1399,81 @@ CombatTab:CreateToggle({
     end
 })
 
+-- Add mouse cursor unlock toggle to combat tab
+CombatTab:CreateToggle({
+    Name = "🖱️ Always Show Mouse Cursor",
+    CurrentValue = false,
+    Flag = "AlwaysShowCursor",
+    Callback = function(state)
+        if state then
+            Rayfield:Notify({
+                Title = "🖱️ MOUSE CURSOR UNLOCKED",
+                Content = "Mouse cursor will always be visible and available",
+                Duration = 3,
+                Image = 4483362458
+            })
+            
+            -- 🖱️ ADVANCED MOUSE CURSOR UNLOCK SYSTEM
+            local cursorUnlockConnection = nil
+            
+            task.spawn(function()
+                while true do
+                    pcall(function()
+                        local UserInputService = game:GetService("UserInputService")
+                        
+                        -- Force mouse cursor to be visible and unlocked
+                        UserInputService.MouseBehavior = Enum.MouseBehavior.Default
+                        UserInputService.OverrideMouseIconBehavior = Enum.OverrideMouseIconBehavior.None
+                        
+                        -- Prevent cursor from being locked by the game
+                        UserInputService.MouseIconEnabled = true
+                        
+                        -- Set a custom cursor if the default one is hidden
+                        if UserInputService:GetMouseIcon() == "" or UserInputService:GetMouseIcon() == nil then
+                            UserInputService:SetMouseIcon("rbxasset://textures/ArrowCursor.png")
+                        end
+                        
+                        -- Force cursor to be visible by overriding any game locks
+                        if UserInputService.MouseBehavior == Enum.MouseBehavior.LockCenter then
+                            UserInputService.MouseBehavior = Enum.MouseBehavior.Default
+                        end
+                        
+                        -- Ensure cursor is always available for interaction
+                        UserInputService.OverrideMouseIconBehavior = Enum.OverrideMouseIconBehavior.None
+                    end)
+                    task.wait(0.05) -- Check every 50ms for faster response
+                end
+            end)
+            
+            -- 🖱️ DETECT CURSOR LOCK ATTEMPTS AND IMMEDIATELY UNLOCK
+            cursorUnlockConnection = game:GetService("UserInputService").Changed:Connect(function(property)
+                if property == "MouseBehavior" then
+                    pcall(function()
+                        local UserInputService = game:GetService("UserInputService")
+                        if UserInputService.MouseBehavior == Enum.MouseBehavior.LockCenter then
+                            UserInputService.MouseBehavior = Enum.MouseBehavior.Default
+                            UserInputService.OverrideMouseIconBehavior = Enum.OverrideMouseIconBehavior.None
+                        end
+                    end)
+                end
+            end)
+        else
+            -- Clean up cursor unlock system
+            if cursorUnlockConnection then
+                cursorUnlockConnection:Disconnect()
+                cursorUnlockConnection = nil
+            end
+            
+            Rayfield:Notify({
+                Title = "🖱️ MOUSE CURSOR LOCKED",
+                Content = "Mouse cursor will follow game's default behavior",
+                Duration = 3,
+                Image = 4483362458
+            })
+        end
+    end
+})
+
 -- Add fast stealth toggle to combat tab
 CombatTab:CreateToggle({
     Name = "🧠 Advanced Human Behavior (Fast)",
