@@ -1289,8 +1289,8 @@ MiscTab:CreateButton({
             
             -- Force garbage collection
             game:GetService("RunService").Heartbeat:Wait()
-                            end)
-                        end
+        end)
+    end
 })
 
 MiscTab:CreateButton({
@@ -1305,527 +1305,53 @@ MiscTab:CreateButton({
                 Image = 4483362458
             })
         end)
-    end
+                    end
 })
 
--- 🥷 ULTRA-STEALTH AUTO-KILL FUNCTION
-local ultraStealthKill = false
-local fastStealthKill = false
 
--- Add ultra-stealth toggle to combat tab
+
+
+
+-- Add main combat toggle to combat tab
 CombatTab:CreateToggle({
-    Name = "🧠 Ultra Stealth",
+    Name = "⚔️ Auto-Kill System",
     CurrentValue = false,
-    Flag = "UltraStealthKill",
+    Flag = "AutoKillSystem",
     Callback = function(state)
-        ultraStealthKill = state
+        autoKill = state
         if state then
             Rayfield:Notify({
-                Title = "🧠 ULTRA STEALTH ACTIVE",
-                Content = "Maximum stealth with human-like behavior patterns",
-                Duration = 3,
-                Image = 4483362458
-            })
-            
-            -- 🧠 ADVANCED HUMAN BEHAVIOR SIMULATION
-            task.spawn(function()
-                while ultraStealthKill do
-                    pcall(function()
-                        -- 🧠 HUMAN DISTRACTION SIMULATION: Sometimes player is distracted
-                        if math.random() < 0.3 then -- 30% chance to be "distracted"
-                            task.wait(5 + math.random() * 10) -- Wait 5-15 seconds (distracted)
-                            return
-                        end
-                        
-                        -- 🧠 HUMAN REACTION TIME: Realistic reaction time
-                        local reactionTime = 0.2 + (math.random() * 0.8) -- 200-1000ms human reaction
-                        task.wait(reactionTime)
-                        
-                        local enemies = workspace:FindFirstChild("Enemies")
-                        local shootRemote = Remotes and Remotes:FindFirstChild("ShootEnemy")
-                        
-                        if enemies and shootRemote then
-                            -- 🧠 HUMAN DECISION MAKING: Sometimes player decides not to shoot
-                            if math.random() < 0.7 then -- 70% chance to decide not to shoot (human hesitation)
-                                task.wait(1 + math.random() * 3) -- Wait 1-4 seconds (hesitation)
-                                return
-                            end
-                            
-                            -- 🧠 HUMAN TARGETING: Find target with human-like scanning
-                            local targetZombie = nil
-                            local closestDistance = math.huge
-                            local playerRoot = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-                            
-                            if playerRoot then
-                                for _, zombie in ipairs(enemies:GetChildren()) do
-                                    if zombie:IsA("Model") then
-                                        local humanoid = zombie:FindFirstChild("Humanoid")
-                                        local head = zombie:FindFirstChild("Head")
-                                        local root = zombie:FindFirstChild("HumanoidRootPart")
-                                        
-                                        if humanoid and head and root and humanoid.Health > 0 then
-                                            local distance = (head.Position - playerRoot.Position).Magnitude
-                                            if distance < closestDistance and distance < 100 then -- Only target close enemies
-                                                closestDistance = distance
-                                                targetZombie = zombie
-                                            end
-                                        end
-                                    end
-                                end
-                                
-                                if targetZombie then
-                                    -- 🧠 HUMAN AIMING: Realistic aiming time
-                                    local aimingTime = 0.3 + (math.random() * 0.7) -- 300-1000ms aiming
-                                    task.wait(aimingTime)
-                                    
-                                    local head = targetZombie:FindFirstChild("Head")
-                                    if head then
-                                        -- 🧠 HUMAN SHOOTING: Sometimes miss or decide not to shoot
-                                        if math.random() < 0.8 then -- 80% chance to actually shoot
-                        pcall(function()
-                                                shootRemote:FireServer(targetZombie, head, head.Position, 0, getEquippedWeaponName())
-                        end)
-                                        end
-                                    end
-                                end
-                    end
-                end
-            end)
-                    -- 🧠 HUMAN SCANNING: Realistic scanning time
-                    task.wait(2 + math.random() * 8) -- Wait 2-10 seconds between scans
-                end
-            end)
-        end
-    end
-})
-
--- Add mouse cursor unlock toggle to combat tab
-CombatTab:CreateToggle({
-    Name = "🖱️ Always Show Mouse Cursor",
-    CurrentValue = false,
-    Flag = "AlwaysShowCursor",
-    Callback = function(state)
-        if state then
-            Rayfield:Notify({
-                Title = "🖱️ MOUSE CURSOR UNLOCKED",
-                Content = "Mouse cursor will always be visible and available",
-                Duration = 3,
-                Image = 4483362458
-            })
-            
-            -- 🖱️ ULTRA-AGGRESSIVE CURSOR UNLOCK SYSTEM
-            local cursorUnlockConnection = nil
-            local cursorUnlockLoop = nil
-            local cursorForceLoop = nil
-            
-            -- 🖱️ ULTRA-AGGRESSIVE CURSOR FORCING
-            cursorForceLoop = task.spawn(function()
-                while true do
-            pcall(function()
-                        local UserInputService = game:GetService("UserInputService")
-                        local Players = game:GetService("Players")
-                        local player = Players.LocalPlayer
-                        
-                        -- FORCE CURSOR VISIBILITY - ULTRA AGGRESSIVE
-                        UserInputService.MouseBehavior = Enum.MouseBehavior.Default
-                        UserInputService.OverrideMouseIconBehavior = Enum.OverrideMouseIconBehavior.None
-                        UserInputService.MouseIconEnabled = true
-                        
-                        -- FORCE CURSOR ICON - MULTIPLE ATTEMPTS
-                        UserInputService:SetMouseIcon("rbxasset://textures/ArrowCursor.png")
-                        UserInputService:SetMouseIcon("rbxasset://textures/ArrowFarCursor.png")
-                        UserInputService:SetMouseIcon("rbxasset://textures/ArrowCursor.png")
-                        
-                        -- OVERRIDE ANY GAME LOCKS IMMEDIATELY
-                        if UserInputService.MouseBehavior ~= Enum.MouseBehavior.Default then
-                            UserInputService.MouseBehavior = Enum.MouseBehavior.Default
-                        end
-                        
-                        -- FORCE CURSOR THROUGH PLAYER CHARACTER
-                        if player and player.Character then
-                            local humanoid = player.Character:FindFirstChild("Humanoid")
-                            if humanoid then
-                                humanoid.AutoRotate = true
-                                humanoid.PlatformStand = false
-                                humanoid.Sit = false
-                            end
-                        end
-                        
-                        -- FORCE CURSOR THROUGH CAMERA
-                        local camera = workspace.CurrentCamera
-                        if camera then
-                            camera.CameraType = Enum.CameraType.Custom
-                        end
-                    end)
-                    task.wait(0.001) -- Check every 1ms for maximum aggression
-                end
-            end)
-            
-            -- 🖱️ MULTIPLE APPROACHES TO CURSOR UNLOCK
-            cursorUnlockLoop = task.spawn(function()
-                while true do
-                    pcall(function()
-                        local UserInputService = game:GetService("UserInputService")
-                        local Players = game:GetService("Players")
-                        local player = Players.LocalPlayer
-                        
-                        -- METHOD 1: Force UserInputService properties
-                        UserInputService.MouseBehavior = Enum.MouseBehavior.Default
-                        UserInputService.OverrideMouseIconBehavior = Enum.OverrideMouseIconBehavior.None
-                        UserInputService.MouseIconEnabled = true
-                        
-                        -- METHOD 2: Set custom cursor icon
-                        UserInputService:SetMouseIcon("rbxasset://textures/ArrowCursor.png")
-                        
-                        -- METHOD 3: Override any cursor locks
-                        if UserInputService.MouseBehavior == Enum.MouseBehavior.LockCenter then
-                            UserInputService.MouseBehavior = Enum.MouseBehavior.Default
-                        end
-                        
-                        -- METHOD 4: Force cursor visibility through player
-                        if player and player.Character then
-                            local humanoid = player.Character:FindFirstChild("Humanoid")
-                            if humanoid then
-                                -- Ensure humanoid doesn't lock cursor
-                                humanoid.AutoRotate = true
-                            end
-                        end
-                        
-                        -- METHOD 5: Override game's cursor control
-                        UserInputService.OverrideMouseIconBehavior = Enum.OverrideMouseIconBehavior.None
-                        
-                        -- METHOD 6: Force cursor to be visible
-                        if UserInputService:GetMouseIcon() == "" or UserInputService:GetMouseIcon() == nil then
-                            UserInputService:SetMouseIcon("rbxasset://textures/ArrowCursor.png")
-                        end
-                    end)
-                    task.wait(0.01) -- Check every 10ms for maximum responsiveness
-                end
-            end)
-            
-            -- 🖱️ DETECT ALL CURSOR LOCK ATTEMPTS
-            cursorUnlockConnection = game:GetService("UserInputService").Changed:Connect(function(property)
-            pcall(function()
-                    local UserInputService = game:GetService("UserInputService")
-                    
-                    -- Immediately override any cursor behavior changes
-                    if property == "MouseBehavior" or property == "OverrideMouseIconBehavior" then
-                        UserInputService.MouseBehavior = Enum.MouseBehavior.Default
-                        UserInputService.OverrideMouseIconBehavior = Enum.OverrideMouseIconBehavior.None
-                        UserInputService.MouseIconEnabled = true
-                        UserInputService:SetMouseIcon("rbxasset://textures/ArrowCursor.png")
-                    end
-                end)
-            end)
-            
-            -- 🖱️ ADDITIONAL CURSOR PROTECTION
-            task.spawn(function()
-                while true do
-            pcall(function()
-                        local UserInputService = game:GetService("UserInputService")
-                        
-                        -- Continuously force cursor to be visible
-                        UserInputService.MouseBehavior = Enum.MouseBehavior.Default
-                        UserInputService.OverrideMouseIconBehavior = Enum.OverrideMouseIconBehavior.None
-                        UserInputService.MouseIconEnabled = true
-                        
-                        -- Set cursor icon if it gets cleared
-                        if UserInputService:GetMouseIcon() == "" or UserInputService:GetMouseIcon() == nil then
-                            UserInputService:SetMouseIcon("rbxasset://textures/ArrowCursor.png")
-                        end
-                    end)
-                    task.wait(0.1) -- Check every 100ms
-                end
-            end)
-            
-            -- 🖱️ NUCLEAR CURSOR FORCE (for extremely stubborn games)
-            task.spawn(function()
-                while true do
-                    pcall(function()
-                        local UserInputService = game:GetService("UserInputService")
-                        local Players = game:GetService("Players")
-                        local player = Players.LocalPlayer
-                        local TweenService = game:GetService("TweenService")
-                        
-                        -- NUCLEAR FORCE CURSOR VISIBILITY
-                        UserInputService.MouseBehavior = Enum.MouseBehavior.Default
-                        UserInputService.OverrideMouseIconBehavior = Enum.OverrideMouseIconBehavior.None
-                        UserInputService.MouseIconEnabled = true
-                        
-                        -- FORCE MULTIPLE CURSOR ICONS
-                        UserInputService:SetMouseIcon("rbxasset://textures/ArrowCursor.png")
-                        UserInputService:SetMouseIcon("rbxasset://textures/ArrowFarCursor.png")
-                        UserInputService:SetMouseIcon("rbxasset://textures/ArrowCursor.png")
-                        
-                        -- OVERRIDE ANY POTENTIAL GAME LOCKS
-                        if UserInputService.MouseBehavior ~= Enum.MouseBehavior.Default then
-                            UserInputService.MouseBehavior = Enum.MouseBehavior.Default
-                        end
-                        
-                        -- FORCE CURSOR THROUGH PLAYER CHARACTER
-                        if player and player.Character then
-                            local humanoid = player.Character:FindFirstChild("Humanoid")
-                            if humanoid then
-                                humanoid.AutoRotate = true
-                                humanoid.PlatformStand = false
-                                humanoid.Sit = false
-                            end
-                        end
-                        
-                        -- FORCE CURSOR THROUGH CAMERA SYSTEM
-                        local camera = workspace.CurrentCamera
-                        if camera then
-                            camera.CameraType = Enum.CameraType.Custom
-                            camera.CameraSubject = player.Character and player.Character:FindFirstChild("Humanoid")
-                        end
-                        
-                        -- FORCE CURSOR THROUGH GUI SYSTEM
-                        local playerGui = player:FindFirstChild("PlayerGui")
-                        if playerGui then
-                            playerGui.ResetOnSpawn = false
-                        end
-                    end)
-                    task.wait(0.001) -- Check every 1ms for maximum force
-                end
-            end)
-            
-            -- 🖱️ CURSOR OVERRIDE THROUGH GUI (alternative method)
-            task.spawn(function()
-                while true do
-        pcall(function()
-                        local UserInputService = game:GetService("UserInputService")
-                        local Players = game:GetService("Players")
-                        local player = Players.LocalPlayer
-                        
-                        -- Create invisible cursor GUI if needed
-                        local playerGui = player:FindFirstChild("PlayerGui")
-                        if playerGui then
-                            local cursorGui = playerGui:FindFirstChild("CursorOverride")
-                            if not cursorGui then
-                                cursorGui = Instance.new("ScreenGui")
-                                cursorGui.Name = "CursorOverride"
-                                cursorGui.Parent = playerGui
-                                cursorGui.ResetOnSpawn = false
-                                
-                                local cursorFrame = Instance.new("Frame")
-                                cursorFrame.Name = "CursorFrame"
-                                cursorFrame.Size = UDim2.new(0, 20, 0, 20)
-                                cursorFrame.Position = UDim2.new(0, 0, 0, 0)
-                                cursorFrame.BackgroundColor3 = Color3.new(1, 1, 1)
-                                cursorFrame.BorderSizePixel = 1
-                                cursorFrame.BorderColor3 = Color3.new(0, 0, 0)
-                                cursorFrame.Parent = cursorGui
-                                cursorFrame.Visible = false
-                            end
-                        end
-                        
-                        -- Force cursor through multiple methods
-                        UserInputService.MouseBehavior = Enum.MouseBehavior.Default
-                        UserInputService.OverrideMouseIconBehavior = Enum.OverrideMouseIconBehavior.None
-                        UserInputService.MouseIconEnabled = true
-                        UserInputService:SetMouseIcon("rbxasset://textures/ArrowCursor.png")
-                    end)
-                    task.wait(0.01) -- Check every 10ms
-                end
-            end)
-        else
-            -- Clean up cursor unlock system
-            if cursorUnlockConnection then
-                cursorUnlockConnection:Disconnect()
-                cursorUnlockConnection = nil
-            end
-            
-            if cursorUnlockLoop then
-                task.cancel(cursorUnlockLoop)
-                cursorUnlockLoop = nil
-            end
-            
-            if cursorForceLoop then
-                task.cancel(cursorForceLoop)
-                cursorForceLoop = nil
-            end
-            
-            -- Clean up cursor GUI
-            local player = game:GetService("Players").LocalPlayer
-            if player then
-                local playerGui = player:FindFirstChild("PlayerGui")
-                if playerGui then
-                    local cursorGui = playerGui:FindFirstChild("CursorOverride")
-                    if cursorGui then
-                        cursorGui:Destroy()
-                    end
-                end
-            end
-            
-            Rayfield:Notify({
-                Title = "🖱️ MOUSE CURSOR LOCKED",
-                Content = "Mouse cursor will follow game's default behavior",
-                Duration = 3,
-                Image = 4483362458
-            })
-        end
-    end
-})
-
--- Add click and drag camera rotation toggle to combat tab
-CombatTab:CreateToggle({
-    Name = "🖱️ Click & Drag Camera Rotation",
-    CurrentValue = false,
-    Flag = "ClickDragCamera",
-    Callback = function(state)
-        if state then
-            Rayfield:Notify({
-                Title = "🖱️ CLICK & DRAG CAMERA ACTIVE",
-                Content = "Click and drag to rotate camera view\nLeft-click and drag to look around",
+                Title = "⚔️ AUTO-KILL SYSTEM ACTIVE",
+                Content = "Perfect Defense + Stealth Mode + Mouse Cursor + All Features Enabled",
                 Duration = 4,
                 Image = 4483362458
             })
             
-            -- 🖱️ CLICK & DRAG CAMERA ROTATION SYSTEM
-            local cameraConnection = nil
-            local cameraUpdateConnection = nil
-            local isDragging = false
-            local lastMousePosition = Vector2.new(0, 0)
-            local player = game:GetService("Players").LocalPlayer
-            local camera = workspace.CurrentCamera
-            
-            -- Store original camera settings
-            local originalCameraType = camera.CameraType
-            local originalCameraSubject = camera.CameraSubject
-            
-            -- Mouse input handling
-            cameraConnection = game:GetService("UserInputService").InputBegan:Connect(function(input, gameProcessed)
-                if gameProcessed then return end
-                
-                if input.UserInputType == Enum.UserInputType.MouseButton1 then -- Left mouse button
-                    isDragging = true
-                    local mouse = player:GetMouse()
-                    lastMousePosition = Vector2.new(mouse.X, mouse.Y)
-                    
-                    -- Override camera settings for rotation
-                    camera.CameraType = Enum.CameraType.Custom
-                    camera.CameraSubject = nil
-                end
-            end)
-            
-            -- Mouse input ended
-            game:GetService("UserInputService").InputEnded:Connect(function(input, gameProcessed)
-                if gameProcessed then return end
-                
-                if input.UserInputType == Enum.UserInputType.MouseButton1 then -- Left mouse button
-                    isDragging = false
-                    
-                    -- Restore original camera settings
-                    camera.CameraType = originalCameraType
-                    camera.CameraSubject = originalCameraSubject
-                end
-            end)
-            
-            -- Camera rotation update with proper CFrame handling
-            cameraUpdateConnection = game:GetService("RunService").Heartbeat:Connect(function()
-                if isDragging and camera then
-                    local mouse = player:GetMouse()
-                    local currentMousePosition = Vector2.new(mouse.X, mouse.Y)
-                    local deltaPosition = currentMousePosition - lastMousePosition
-                    
-                    -- Only update if mouse actually moved
-                    if deltaPosition.Magnitude > 0 then
-                        -- Calculate rotation based on mouse movement
-                        local sensitivity = 0.005 -- Reduced sensitivity for better control
-                        local rotationY = deltaPosition.X * sensitivity
-                        local rotationX = deltaPosition.Y * sensitivity
-                        
-                        -- Get current camera CFrame
-                        local currentCFrame = camera.CFrame
-                        local position = currentCFrame.Position
-                        local lookDirection = currentCFrame.LookVector
-                        local rightDirection = currentCFrame.RightVector
-                        local upDirection = currentCFrame.UpVector
-                        
-                        -- Apply horizontal rotation (Y-axis) - rotate around up vector
-                        local horizontalRotation = CFrame.fromAxisAngle(upDirection, rotationY)
-                        local newLookDirection = horizontalRotation * lookDirection
-                        
-                        -- Apply vertical rotation (X-axis) - rotate around right vector
-                        local verticalRotation = CFrame.fromAxisAngle(rightDirection, -rotationX)
-                        local finalLookDirection = verticalRotation * newLookDirection
-                        
-                        -- Update camera with proper positioning
-                        camera.CFrame = CFrame.lookAt(position, position + finalLookDirection)
-                        
-                        lastMousePosition = currentMousePosition
-                    end
-                end
-            end)
-            
-        else
-            -- Clean up camera system
-            if cameraConnection then
-                cameraConnection:Disconnect()
-                cameraConnection = nil
-            end
-            
-            if cameraUpdateConnection then
-                cameraUpdateConnection:Disconnect()
-                cameraUpdateConnection = nil
-            end
-            
-            -- Restore original camera settings
-            if camera then
-                camera.CameraType = originalCameraType
-                camera.CameraSubject = originalCameraSubject
-            end
-            
-            Rayfield:Notify({
-                Title = "🖱️ CLICK & DRAG CAMERA DISABLED",
-                Content = "Camera rotation disabled",
-                Duration = 3,
-                Image = 4483362458
-            })
-        end
-    end
-})
-
--- Add simplified stealth toggle to combat tab
-CombatTab:CreateToggle({
-    Name = "🧠 Stealth Mode",
-    CurrentValue = false,
-    Flag = "FastStealthKill",
-    Callback = function(state)
-        fastStealthKill = state
-        if state then
-            Rayfield:Notify({
-                Title = "🧠 STEALTH MODE ACTIVE",
-                Content = "Human-like behavior simulation with realistic patterns",
-                Duration = 3,
-                Image = 4483362458
-            })
-            
-            -- 🧠 ADVANCED HUMAN BEHAVIOR SIMULATION (FAST MODE)
+            -- ⚔️ COMPREHENSIVE AUTO-KILL SYSTEM
             task.spawn(function()
-                while fastStealthKill do
+                while autoKill do
                     pcall(function()
-                        -- 🧠 HUMAN DISTRACTION SIMULATION: Sometimes player is distracted (less often in fast mode)
-                        if math.random() < 0.15 then -- 15% chance to be "distracted"
-                            task.wait(3 + math.random() * 5) -- Wait 3-8 seconds (distracted)
+                        -- 🧠 HUMAN BEHAVIOR SIMULATION
+                        if math.random() < 0.2 then -- 20% chance to be "distracted"
+                            task.wait(2 + math.random() * 3) -- Wait 2-5 seconds (distracted)
                             return
                         end
                         
-                        -- 🧠 HUMAN REACTION TIME: Faster but still realistic reaction time
-                        local reactionTime = 0.15 + (math.random() * 0.4) -- 150-550ms human reaction
+                        -- 🧠 HUMAN REACTION TIME
+                        local reactionTime = 0.1 + (math.random() * 0.3) -- 100-400ms human reaction
                         task.wait(reactionTime)
                         
                         local enemies = workspace:FindFirstChild("Enemies")
                         local shootRemote = Remotes and Remotes:FindFirstChild("ShootEnemy")
                         
                         if enemies and shootRemote then
-                            -- 🧠 HUMAN DECISION MAKING: Sometimes player decides not to shoot (less hesitation in fast mode)
-                            if math.random() < 0.4 then -- 40% chance to decide not to shoot (human hesitation)
-                                task.wait(0.5 + math.random() * 1.5) -- Wait 0.5-2 seconds (hesitation)
+                            -- 🧠 HUMAN DECISION MAKING
+                            if math.random() < 0.3 then -- 30% chance to decide not to shoot
+                                task.wait(0.5 + math.random() * 1) -- Wait 0.5-1.5 seconds (hesitation)
                                 return
                             end
                             
-                            -- 🧠 HUMAN TARGETING: Find target with human-like scanning
+                            -- 🎯 TARGET FINDING
                             local targetZombie = nil
                             local closestDistance = math.huge
                             local playerRoot = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
@@ -1839,7 +1365,7 @@ CombatTab:CreateToggle({
                                         
                                         if humanoid and head and root and humanoid.Health > 0 then
                                             local distance = (head.Position - playerRoot.Position).Magnitude
-                                            if distance < closestDistance and distance < 150 then -- Target slightly further enemies in fast mode
+                                            if distance < closestDistance and distance < 200 then
                                                 closestDistance = distance
                                                 targetZombie = zombie
                                             end
@@ -1848,38 +1374,41 @@ CombatTab:CreateToggle({
                                 end
                                 
                                 if targetZombie then
-                                    -- 🧠 HUMAN AIMING: Realistic aiming time (faster in fast mode)
-                                    local aimingTime = 0.2 + (math.random() * 0.4) -- 200-600ms aiming
+                                    -- 🧠 HUMAN AIMING
+                                    local aimingTime = 0.15 + (math.random() * 0.3) -- 150-450ms aiming
                                     task.wait(aimingTime)
                                     
                                     local head = targetZombie:FindFirstChild("Head")
                                     if head then
-                                        -- 🧠 HUMAN SHOOTING: Sometimes miss or decide not to shoot
-                                        if math.random() < 0.85 then -- 85% chance to actually shoot
-                                            -- 🧠 HUMAN BURST: Sometimes fire multiple shots (like a panicked player)
-                                            local burstChance = math.random()
-                                            if burstChance < 0.3 then -- 30% chance for burst
-                                                local shots = math.random(2, 3)
-                                                for i = 1, shots do
-                                                    pcall(function()
-                                                        shootRemote:FireServer(targetZombie, head, head.Position, 0, getEquippedWeaponName())
-                                                    end)
-                                                    task.wait(0.1 + math.random() * 0.2) -- 100-300ms between burst shots
-                                                end
-                                            else
-                                                -- Single shot
-                                                pcall(function()
-                                                    shootRemote:FireServer(targetZombie, head, head.Position, 0, getEquippedWeaponName())
-                                                end)
-                                            end
+                                        -- 🧠 HUMAN SHOOTING
+                                        if math.random() < 0.9 then -- 90% chance to actually shoot
+                                            pcall(function()
+                                                shootRemote:FireServer(targetZombie, head, head.Position, 0, getEquippedWeaponName())
+                                            end)
                                         end
                                     end
                                 end
                             end
                         end
                     end)
-                    -- 🧠 HUMAN SCANNING: Realistic scanning time (faster in fast mode)
-                    task.wait(1 + math.random() * 4) -- Wait 1-5 seconds between scans
+                    -- 🧠 HUMAN SCANNING
+                    task.wait(0.5 + math.random() * 1.5) -- Wait 0.5-2 seconds between scans
+                end
+            end)
+            
+            -- 🖱️ MOUSE CURSOR UNLOCK (Always Active)
+            task.spawn(function()
+                while autoKill do
+                    pcall(function()
+                        local UserInputService = game:GetService("UserInputService")
+                        
+                        -- Force cursor to be visible
+                        UserInputService.MouseBehavior = Enum.MouseBehavior.Default
+                        UserInputService.OverrideMouseIconBehavior = Enum.OverrideMouseIconBehavior.None
+                        UserInputService.MouseIconEnabled = true
+                        UserInputService:SetMouseIcon("rbxasset://textures/ArrowCursor.png")
+                    end)
+                    task.wait(0.1) -- Check every 100ms
                 end
             end)
         end
