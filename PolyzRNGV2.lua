@@ -1321,8 +1321,8 @@ CombatTab:CreateToggle({
         ultraStealthKill = state
         if state then
             Rayfield:Notify({
-                Title = "🥷 ULTRA-STEALTH MODE ACTIVE",
-                Content = "40% activity + 0.5-1.5s delays + 2-4 shots + stealth efficiency",
+                Title = "🥷 ULTRA-CONSERVATIVE MODE ACTIVE",
+                Content = "15% activity + 3-8s delays + 1 shot + maximum stealth safety",
                 Duration = 4,
                 Image = 4483362458
             })
@@ -1335,8 +1335,9 @@ CombatTab:CreateToggle({
                         local shootRemote = Remotes and Remotes:FindFirstChild("ShootEnemy")
                         
                         if enemies and shootRemote then
-                            -- 🥷 STEALTH ACTIVITY: Shoot more frequently but still stealthy
-                            if math.random() < 0.4 then -- 40% chance to shoot (increased from 10%)
+                            -- 🥷 ULTRA-CONSERVATIVE ACTIVITY: Very rare shooting to avoid detection
+                            -- Add human imperfection - sometimes skip even when chance hits
+                            if math.random() < 0.15 and math.random() < 0.8 then -- 15% chance to shoot, 80% chance to actually shoot
                                 local targetZombie = nil
                                 local closestDistance = math.huge
                                 local playerRoot = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
@@ -1362,8 +1363,8 @@ CombatTab:CreateToggle({
                                 if targetZombie then
                                     local head = targetZombie:FindFirstChild("Head")
                                     if head then
-                                        -- 🥷 MULTI-SHOT: Fire 2-4 shots for better efficiency
-                                        local shotsToFire = math.random(2, 4)
+                                        -- 🥷 SINGLE SHOT: Fire only 1 shot to avoid detection
+                                        local shotsToFire = 1
                                         for i = 1, shotsToFire do
                                             pcall(function()
                                                 shootRemote:FireServer(targetZombie, head, head.Position, 0, getEquippedWeaponName())
@@ -1376,8 +1377,8 @@ CombatTab:CreateToggle({
                             end
                         end
                     end)
-                    -- 🥷 STEALTH DELAY: Wait 0.5-1.5 seconds between activities (faster)
-                    task.wait(0.5 + math.random() * 1)
+                    -- 🥷 ULTRA-CONSERVATIVE DELAY: Wait 3-8 seconds between activities (very safe)
+                    task.wait(3 + math.random() * 5)
                 end
             end)
         end
@@ -1393,8 +1394,8 @@ CombatTab:CreateToggle({
         fastStealthKill = state
         if state then
             Rayfield:Notify({
-                Title = "⚡ FAST STEALTH MODE ACTIVE",
-                Content = "70% activity + 0.2-0.8s delays + 3-6 shots + maximum stealth speed",
+                Title = "⚡ CONSERVATIVE STEALTH MODE ACTIVE",
+                Content = "25% activity + 1.5-4s delays + 1-2 shots + safe stealth speed",
                 Duration = 4,
                 Image = 4483362458
             })
@@ -1407,8 +1408,9 @@ CombatTab:CreateToggle({
                         local shootRemote = Remotes and Remotes:FindFirstChild("ShootEnemy")
                         
                         if enemies and shootRemote then
-                            -- ⚡ FAST STEALTH ACTIVITY: Shoot frequently but still stealthy
-                            if math.random() < 0.7 then -- 70% chance to shoot
+                            -- ⚡ CONSERVATIVE STEALTH ACTIVITY: Moderate shooting to avoid detection
+                            -- Add human imperfection - sometimes skip even when chance hits
+                            if math.random() < 0.25 and math.random() < 0.9 then -- 25% chance to shoot, 90% chance to actually shoot
                                 local targetZombie = nil
                                 local closestDistance = math.huge
                                 local playerRoot = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
@@ -1434,8 +1436,8 @@ CombatTab:CreateToggle({
                                 if targetZombie then
                                     local head = targetZombie:FindFirstChild("Head")
                                     if head then
-                                        -- ⚡ FAST MULTI-SHOT: Fire 3-6 shots for maximum efficiency
-                                        local shotsToFire = math.random(3, 6)
+                                        -- ⚡ CONSERVATIVE SHOT: Fire 1-2 shots to avoid detection
+                                        local shotsToFire = math.random(1, 2)
                                         for i = 1, shotsToFire do
                                             pcall(function()
                                                 shootRemote:FireServer(targetZombie, head, head.Position, 0, getEquippedWeaponName())
@@ -1448,8 +1450,8 @@ CombatTab:CreateToggle({
                             end
                         end
                     end)
-                    -- ⚡ FAST STEALTH DELAY: Wait 0.2-0.8 seconds between activities (very fast)
-                    task.wait(0.2 + math.random() * 0.6)
+                    -- ⚡ CONSERVATIVE STEALTH DELAY: Wait 1.5-4 seconds between activities (safe)
+                    task.wait(1.5 + math.random() * 2.5)
                 end
             end)
         end
