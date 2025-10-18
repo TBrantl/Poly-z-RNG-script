@@ -1,3 +1,5 @@
+-- Global error protection
+local success, error = pcall(function()
 -- Services
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -5,7 +7,15 @@ local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
 
 -- Load Rayfield UI Library
-local Rayfield = loadstring(game:HttpGet('https://limerbro.github.io/Roblox-Limer/rayfield.lua'))()
+local Rayfield
+local rayfieldSuccess, rayfieldError = pcall(function()
+    Rayfield = loadstring(game:HttpGet('https://limerbro.github.io/Roblox-Limer/rayfield.lua'))()
+end)
+
+if not rayfieldSuccess then
+    warn("[Lightweight] Failed to load Rayfield UI Library:", rayfieldError)
+    return
+end
 
 -- Wait for Remotes safely
 local Remotes
@@ -1185,3 +1195,9 @@ CombatTab:CreateToggle({
 
 -- Load config
 Rayfield:LoadConfiguration()
+
+end) -- Close pcall wrapper
+
+if not success then
+    warn("[Lightweight] Script failed to load:", error)
+end
