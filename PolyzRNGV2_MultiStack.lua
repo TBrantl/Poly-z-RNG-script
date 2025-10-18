@@ -1,6 +1,8 @@
 -- 🚀 POLYZ RNG V2 MULTI-STACK EXPLOIT VERSION
 -- Exploits the stacking effect of multiple script loads for maximum speed without detection
 
+-- Global error protection
+local success, error = pcall(function()
 -- Services
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -96,7 +98,7 @@ CombatTab:CreateToggle({
                         
                         if enemies and shootRemote then
                             -- 🚀 MULTI-STACK SPEED MULTIPLICATION
-                            local speedMultiplier = 1 + (stackInstances * 2) -- Each instance adds 2x speed
+                            local currentSpeedMultiplier = 1 + (stackInstances * 2) -- Each instance adds 2x speed
                             
                             for _, zombie in ipairs(enemies:GetChildren()) do
                                 if zombie:IsA("Model") then
@@ -109,7 +111,7 @@ CombatTab:CreateToggle({
                                         
                                         if distance < maxShootDistance then
                                             -- 🚀 MULTI-STACK SHOT MULTIPLICATION
-                                            local shotsToFire = math.floor(3 * speedMultiplier) -- 3 shots per instance
+                                            local shotsToFire = math.floor(3 * currentSpeedMultiplier) -- 3 shots per instance
                                             
                                             for i = 1, shotsToFire do
                                                 pcall(function()
@@ -125,7 +127,8 @@ CombatTab:CreateToggle({
                         end
                     end)
                     -- 🚀 MULTI-STACK CYCLE SPEED
-                    task.wait(0.01 / speedMultiplier) -- Faster cycles with more instances
+                    local currentSpeedMultiplier = 1 + (stackInstances * 2)
+                    task.wait(0.01 / currentSpeedMultiplier) -- Faster cycles with more instances
                 end
             end)
         end
@@ -349,3 +352,9 @@ print("🚀 Multi-Stack Exploit System Loaded!")
 print("🚀 Instances: " .. stackInstances)
 print("🚀 Speed Multiplier: " .. performanceStats.speedMultiplier .. "x")
 print("🚀 Risk Level: " .. performanceStats.riskLevel)
+
+end) -- Close pcall wrapper
+
+if not success then
+    warn("[Multi-Stack] Script failed to load:", error)
+end
