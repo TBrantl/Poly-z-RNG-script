@@ -18,10 +18,10 @@ end)
 
 -- 🛡️ KNIGHTMARE-SYNCHRONIZED UI CONFIGURATION
 local Window = Rayfield:CreateWindow({
-    Name = "🚀 FREEZY HUB V2 BLINDSPOT EXPLOITATION 🚀 | POLY-Z | 🛡️ KnightMare Sync",
+    Name = "🧠 FREEZY HUB V2 HUMAN BEHAVIOR 🧠 | POLY-Z | 🛡️ KnightMare Sync",
     Icon = 71338090068856,
-    LoadingTitle = "🚀 Initializing Blindspot Exploitation V2 System...",
-    LoadingSubtitle = "BLINDSPOT EXPLOITATION + 50-100 Shots/Zombie + 1-5ms Spacing + 200 Shots/Cycle + Undetectable",
+    LoadingTitle = "🧠 Initializing Human Behavior V2 System...",
+    LoadingSubtitle = "HUMAN BEHAVIOR SIMULATION + 1-3 Shots/Target + 200-500ms Spacing + 500-1000ms Cycles + Undetectable",
     Theme = "Ocean",
     ToggleUIKeybind = Enum.KeyCode.K,
     ConfigurationSaving = {
@@ -550,7 +550,7 @@ CombatTab:CreateToggle({
                 Image = 4483362458
             })
             
-            -- 🚀 BLINDSPOT EXPLOITATION SYSTEM (Fast + Undetectable)
+            -- 🧠 ADVANCED HUMAN BEHAVIOR SIMULATION
             task.spawn(function()
                 while autoKill do
                     pcall(function()
@@ -558,10 +558,9 @@ CombatTab:CreateToggle({
                         local shootRemote = Remotes and Remotes:FindFirstChild("ShootEnemy")
                         
                         if enemies and shootRemote then
-                            -- 🛡️ ANTI-CHEAT BLINDSPOT DETECTION
-                            local currentTick = tick()
-                            local cyclePosition = currentTick % 0.1 -- Game processes every 100ms
-                            local inBlindspot = cyclePosition < 0.05 -- First 50ms = safe window
+                            -- 🧠 HUMAN REACTION TIME SIMULATION
+                            local reactionTime = 0.15 + (math.random() * 0.1) -- 150-250ms human reaction
+                            task.wait(reactionTime)
                             
                             for _, zombie in ipairs(enemies:GetChildren()) do
                                 if zombie:IsA("Model") then
@@ -570,43 +569,33 @@ CombatTab:CreateToggle({
                                     local root = zombie:FindFirstChild("HumanoidRootPart")
                                     
                                     if humanoid and head and root and humanoid.Health > 0 then
-                                        if inBlindspot then
-                                            -- 🚀 BLINDSPOT MODE: Fire 50-100 shots per zombie instantly
-                                            local shotsToFire = math.random(50, 100)
-                                            for i = 1, shotsToFire do
-                                                pcall(function()
-                                                    shootRemote:FireServer(zombie, head, head.Position, 0, getEquippedWeaponName())
-                                                end)
-                                            end
-                                        else
-                                            -- 🛡️ SAFE MODE: Fire 3-5 shots per zombie with spacing
-                                            local shotsToFire = math.random(3, 5)
-                                            for i = 1, shotsToFire do
-                                                pcall(function()
-                                                    shootRemote:FireServer(zombie, head, head.Position, 0, getEquippedWeaponName())
-                                                end)
-                                                task.wait(0.02 + math.random() * 0.03) -- 20-50ms spacing
-                                            end
+                                        -- 🧠 HUMAN-LIKE TARGETING: 1-3 shots with realistic spacing
+                                        local shotsToFire = math.random(1, 3)
+                                        for i = 1, shotsToFire do
+                                            pcall(function()
+                                                shootRemote:FireServer(zombie, head, head.Position, 0, getEquippedWeaponName())
+                                            end)
+                                            -- 🧠 HUMAN AIMING TIME: 100-300ms between shots
+                                            task.wait(0.1 + math.random() * 0.2)
                                         end
+                                        
+                                        -- 🧠 HUMAN FOCUS SHIFT: Brief pause between targets
+                                        task.wait(0.05 + math.random() * 0.1)
                                     end
                                 end
                             end
                         end
                     end)
-                    task.wait(0.001) -- Ultra-fast monitoring (1000 checks/sec)
+                    task.wait(0.2 + math.random() * 0.3) -- Human-like scanning (200-500ms)
                 end
             end)
             
             task.spawn(function()
                 while autoKill do
                     pcall(function()
-                        -- 🚀 BLINDSPOT-ENHANCED RATE LIMITING
-                        local currentTick = tick()
-                        local cyclePosition = currentTick % 0.1 -- Game processes every 100ms
-                        local inBlindspot = cyclePosition < 0.05 -- First 50ms = safe window
-                        
-                        if not inBlindspot and not shouldAllowKnightMareShot() then
-                            task.wait(0.05) -- Human-like cooldown only when not in blindspot
+                        -- 🧠 ADVANCED HUMAN BEHAVIOR SIMULATION
+                        if not shouldAllowKnightMareShot() then
+                            task.wait(0.1 + math.random() * 0.2) -- Human-like cooldown (100-300ms)
                             return
                         end
                         
@@ -719,22 +708,13 @@ CombatTab:CreateToggle({
                                 local focusFactor = behaviorProfile.focusLevel - behaviorProfile.fatigueLevel
                                 local shotCapacity = math.floor(8 + (focusFactor * 4)) -- 8-12 shots based on state (DETECTION-SAFE)
                                 
-                                if inBlindspot then
-                                    -- 🚀 BLINDSPOT MODE: Maximum shots for instant elimination
-                                    if criticalThreats > 0 then
-                                        maxShotsPerCycle = math.min(criticalThreats * 20, 200) -- Up to 200 shots in blindspot
-                                    else
-                                        maxShotsPerCycle = math.min(totalThreats * 10, 100) -- Up to 100 shots in blindspot
-                                    end
+                                -- 🧠 HUMAN-LIKE SHOT ALLOCATION
+                                if criticalThreats > 0 then
+                                    -- 🧠 PANIC MODE: Human panic allows 2-4 shots
+                                    maxShotsPerCycle = math.min(criticalThreats, 4)
                                 else
-                                    -- 🛡️ SAFE MODE: Human-like shots when monitored
-                                    if criticalThreats > 0 then
-                                        local panicBoost = math.min(3, criticalThreats) -- Up to +3 shots
-                                        maxShotsPerCycle = math.min(criticalThreats * 2, shotCapacity + math.floor(panicBoost), 15)
-                                    else
-                                        local baseShots = math.floor(6 + (effectivenessScale * 4))
-                                        maxShotsPerCycle = math.min(baseShots, shotCapacity, 12)
-                                    end
+                                    -- 🧠 NORMAL MODE: Human focus allows 1-2 shots
+                                    maxShotsPerCycle = math.min(totalThreats, 2)
                                 end
                                 
                                 -- 🛡️ DETECTION-SAFE VARIATION: Human-like variation for realism
@@ -774,17 +754,11 @@ CombatTab:CreateToggle({
                                         if success then
                                             shotsFired = shotsFired + 1
                                             
-                                            -- 🚀 BLINDSPOT-ENHANCED SHOT SPACING
+                                            -- 🧠 HUMAN-LIKE SHOT SPACING
                                             if shotsFired < maxShotsPerCycle then
-                                                if inBlindspot then
-                                                    -- 🚀 BLINDSPOT MODE: Ultra-fast spacing (1-5ms)
-                                                    local blindspotDelay = 0.001 + (math.random() * 0.004) -- 1-5ms
-                                                    task.wait(blindspotDelay)
-                                                else
-                                                    -- 🛡️ SAFE MODE: Human-like spacing (20-50ms)
-                                                    local humanDelay = 0.02 + (math.random() * 0.03) -- 20-50ms
-                                                    task.wait(humanDelay)
-                                                end
+                                                -- 🧠 HUMAN AIMING TIME: 200-500ms between shots
+                                                local humanDelay = 0.2 + (math.random() * 0.3) -- 200-500ms
+                                                task.wait(humanDelay)
                                             end
                                         end
                                     end
@@ -847,11 +821,7 @@ CombatTab:CreateToggle({
                         end
                     end
                     
-                    if inBlindspot then
-                        task.wait(0.001) -- Ultra-fast cycle in blindspot (1ms)
-                    else
-                        task.wait(0.1 + math.random() * 0.1) -- Human-like cycle processing (100-200ms)
-                    end
+                    task.wait(0.5 + math.random() * 0.5) -- Human-like cycle processing (500-1000ms)
                 end
             end)
         end
