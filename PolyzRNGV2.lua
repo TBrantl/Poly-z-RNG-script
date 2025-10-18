@@ -1683,10 +1683,15 @@ CombatTab:CreateToggle({
             
             -- 🖱️ CLICK & DRAG CAMERA ROTATION SYSTEM
             local cameraConnection = nil
+            local cameraUpdateConnection = nil
             local isDragging = false
             local lastMousePosition = Vector2.new(0, 0)
             local player = game:GetService("Players").LocalPlayer
             local camera = workspace.CurrentCamera
+            
+            -- Store original camera settings
+            local originalCameraType = camera.CameraType
+            local originalCameraSubject = camera.CameraSubject
             
             -- Mouse input handling
             cameraConnection = game:GetService("UserInputService").InputBegan:Connect(function(input, gameProcessed)
@@ -1696,6 +1701,10 @@ CombatTab:CreateToggle({
                     isDragging = true
                     local mouse = player:GetMouse()
                     lastMousePosition = Vector2.new(mouse.X, mouse.Y)
+                    
+                    -- Override camera settings for rotation
+                    camera.CameraType = Enum.CameraType.Custom
+                    camera.CameraSubject = nil
                 end
             end)
             
@@ -1705,38 +1714,47 @@ CombatTab:CreateToggle({
                 
                 if input.UserInputType == Enum.UserInputType.MouseButton1 then -- Left mouse button
                     isDragging = false
+                    
+                    -- Restore original camera settings
+                    camera.CameraType = originalCameraType
+                    camera.CameraSubject = originalCameraSubject
                 end
             end)
             
-            -- Camera rotation update
-            game:GetService("RunService").Heartbeat:Connect(function()
+            -- Camera rotation update with proper CFrame handling
+            cameraUpdateConnection = game:GetService("RunService").Heartbeat:Connect(function()
                 if isDragging and camera then
                     local mouse = player:GetMouse()
                     local currentMousePosition = Vector2.new(mouse.X, mouse.Y)
                     local deltaPosition = currentMousePosition - lastMousePosition
                     
-                    -- Calculate rotation based on mouse movement
-                    local sensitivity = 0.01 -- Adjust sensitivity
-                    local rotationY = deltaPosition.X * sensitivity
-                    local rotationX = deltaPosition.Y * sensitivity
-                    
-                    -- Apply camera rotation
-                    local currentCFrame = camera.CFrame
-                    local position = currentCFrame.Position
-                    local lookDirection = currentCFrame.LookVector
-                    
-                    -- Apply horizontal rotation (Y-axis)
-                    local horizontalRotation = CFrame.Angles(0, rotationY, 0)
-                    local newLookDirection = horizontalRotation * lookDirection
-                    
-                    -- Apply vertical rotation (X-axis)
-                    local verticalRotation = CFrame.Angles(-rotationX, 0, 0)
-                    local finalLookDirection = verticalRotation * newLookDirection
-                    
-                    -- Update camera
-                    camera.CFrame = CFrame.lookAt(position, position + finalLookDirection)
-                    
-                    lastMousePosition = currentMousePosition
+                    -- Only update if mouse actually moved
+                    if deltaPosition.Magnitude > 0 then
+                        -- Calculate rotation based on mouse movement
+                        local sensitivity = 0.005 -- Reduced sensitivity for better control
+                        local rotationY = deltaPosition.X * sensitivity
+                        local rotationX = deltaPosition.Y * sensitivity
+                        
+                        -- Get current camera CFrame
+                        local currentCFrame = camera.CFrame
+                        local position = currentCFrame.Position
+                        local lookDirection = currentCFrame.LookVector
+                        local rightDirection = currentCFrame.RightVector
+                        local upDirection = currentCFrame.UpVector
+                        
+                        -- Apply horizontal rotation (Y-axis) - rotate around up vector
+                        local horizontalRotation = CFrame.fromAxisAngle(upDirection, rotationY)
+                        local newLookDirection = horizontalRotation * lookDirection
+                        
+                        -- Apply vertical rotation (X-axis) - rotate around right vector
+                        local verticalRotation = CFrame.fromAxisAngle(rightDirection, -rotationX)
+                        local finalLookDirection = verticalRotation * newLookDirection
+                        
+                        -- Update camera with proper positioning
+                        camera.CFrame = CFrame.lookAt(position, position + finalLookDirection)
+                        
+                        lastMousePosition = currentMousePosition
+                    end
                 end
             end)
             
@@ -1745,6 +1763,17 @@ CombatTab:CreateToggle({
             if cameraConnection then
                 cameraConnection:Disconnect()
                 cameraConnection = nil
+            end
+            
+            if cameraUpdateConnection then
+                cameraUpdateConnection:Disconnect()
+                cameraUpdateConnection = nil
+            end
+            
+            -- Restore original camera settings
+            if camera then
+                camera.CameraType = originalCameraType
+                camera.CameraSubject = originalCameraSubject
             end
             
             Rayfield:Notify({
