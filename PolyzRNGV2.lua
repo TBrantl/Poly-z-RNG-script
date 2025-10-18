@@ -1676,8 +1676,8 @@ CombatTab:CreateToggle({
         if state then
             Rayfield:Notify({
                 Title = "🖱️ MOUSE LOOK ACTIVE",
-                Content = "Right-click OR Middle-click and drag to rotate character view",
-                Duration = 4,
+                Content = "Right-click OR Middle-click and drag to rotate character view\nSensitivity: 0.05 | Camera Override: ON",
+                Duration = 5,
                 Image = 4483362458
             })
             
@@ -1701,7 +1701,7 @@ CombatTab:CreateToggle({
                 end
             end
             
-            -- Mouse look function
+            -- Mouse look function with game camera override
             local function updateMouseLook()
                 if isMouseLookActive and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
                     local mouse = player:GetMouse()
@@ -1709,23 +1709,39 @@ CombatTab:CreateToggle({
                     local deltaPosition = currentMousePosition - lastMousePosition
                     
                     -- Calculate rotation based on mouse movement
-                    local sensitivity = 0.01 -- Increased sensitivity
+                    local sensitivity = 0.05 -- Much higher sensitivity
                     local rotationY = deltaPosition.X * sensitivity
                     local rotationX = deltaPosition.Y * sensitivity
                     
-                    -- Apply rotation to character
-                    local humanoidRootPart = player.Character.HumanoidRootPart
-                    local currentCFrame = humanoidRootPart.CFrame
-                    local newCFrame = currentCFrame * CFrame.Angles(0, rotationY, 0)
-                    
-                    -- Update character rotation
-                    humanoidRootPart.CFrame = newCFrame
-                    
-                    -- Update camera rotation
+                    -- FORCE CAMERA CONTROL - Override game's camera system
                     if camera then
-                        local cameraCFrame = camera.CFrame
-                        local newCameraCFrame = cameraCFrame * CFrame.Angles(-rotationX, 0, 0)
-                        camera.CFrame = newCameraCFrame
+                        -- Disable game's camera control
+                        camera.CameraType = Enum.CameraType.Custom
+                        camera.CameraSubject = player.Character:FindFirstChild("Humanoid")
+                        
+                        -- Get current camera position and rotation
+                        local currentCFrame = camera.CFrame
+                        local position = currentCFrame.Position
+                        local lookDirection = currentCFrame.LookVector
+                        
+                        -- Apply horizontal rotation (Y-axis)
+                        local horizontalRotation = CFrame.Angles(0, rotationY, 0)
+                        local newLookDirection = horizontalRotation * lookDirection
+                        
+                        -- Apply vertical rotation (X-axis) with limits
+                        local verticalRotation = CFrame.Angles(-rotationX, 0, 0)
+                        local finalLookDirection = verticalRotation * newLookDirection
+                        
+                        -- Update camera
+                        camera.CFrame = CFrame.lookAt(position, position + finalLookDirection)
+                    end
+                    
+                    -- Apply character rotation
+                    local humanoidRootPart = player.Character.HumanoidRootPart
+                    if humanoidRootPart then
+                        local currentCFrame = humanoidRootPart.CFrame
+                        local newCFrame = currentCFrame * CFrame.Angles(0, rotationY, 0)
+                        humanoidRootPart.CFrame = newCFrame
                     end
                     
                     lastMousePosition = currentMousePosition
@@ -1776,6 +1792,22 @@ CombatTab:CreateToggle({
             
             -- Update mouse look every frame
             game:GetService("RunService").Heartbeat:Connect(updateMouseLook)
+            
+            -- AGGRESSIVE CAMERA OVERRIDE - Continuously override game's camera
+            task.spawn(function()
+                while true do
+                    if isMouseLookActive then
+        pcall(function()
+                            -- Force camera to stay in our control
+                            if camera then
+                                camera.CameraType = Enum.CameraType.Custom
+                                camera.CameraSubject = player.Character and player.Character:FindFirstChild("Humanoid")
+                            end
+                        end)
+                    end
+                    task.wait(0.01) -- Check every 10ms
+                end
+            end)
             
         else
             -- Clean up mouse look system
