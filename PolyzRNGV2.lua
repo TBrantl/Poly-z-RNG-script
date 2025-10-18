@@ -18,10 +18,10 @@ end)
 
 -- 🛡️ KNIGHTMARE-SYNCHRONIZED UI CONFIGURATION
 local Window = Rayfield:CreateWindow({
-    Name = "🚀 FREEZY HUB V2 ENHANCED 🚀 | POLY-Z | 🛡️ KnightMare Sync",
+    Name = "⚡ FREEZY HUB V2 ULTRA-FAST ⚡ | POLY-Z | 🛡️ KnightMare Sync",
     Icon = 71338090068856,
-    LoadingTitle = "🚀 Initializing Enhanced V2 System...",
-    LoadingSubtitle = "Improved Performance + Anti-Cheat Synchronization",
+    LoadingTitle = "⚡ Initializing Ultra-Fast V2 System...",
+    LoadingSubtitle = "MAXIMUM SPEED + 3x Shot Counts + 10x Monitoring + Ultra-Fast Elimination",
     Theme = "Ocean",
     ToggleUIKeybind = Enum.KeyCode.K,
     ConfigurationSaving = {
@@ -553,9 +553,9 @@ CombatTab:CreateToggle({
             task.spawn(function()
                 while autoKill do
                     pcall(function()
-                        -- 🛡️ KNIGHTMARE SYNCHRONICITY CHECK
+                        -- ⚡ ULTRA-FAST SYNCHRONICITY CHECK
                         if not shouldAllowKnightMareShot() then
-                            task.wait(0.05) -- KnightMare-safe cooldown
+                            task.wait(0.001) -- Ultra-fast cooldown
                             return
                         end
                         
@@ -666,20 +666,20 @@ CombatTab:CreateToggle({
                                 -- Focused player = can track more targets
                                 -- Fatigued player = tracks fewer
                                 local focusFactor = behaviorProfile.focusLevel - behaviorProfile.fatigueLevel
-                                local shotCapacity = math.floor(5 + (focusFactor * 5)) -- 4-10 shots based on state
+                                local shotCapacity = math.floor(15 + (focusFactor * 15)) -- 15-30 shots based on state (ULTRA-FAST)
                                 
                                 if criticalThreats > 0 then
-                                    -- ALERT MODE: Adrenaline boost allows more shots
-                                    local panicBoost = math.min(4, criticalThreats / 2) -- Up to +4 shots
-                                    maxShotsPerCycle = math.min(criticalThreats, shotCapacity + math.floor(panicBoost), 12)
+                                    -- ⚡ ULTRA-FAST ALERT MODE: Maximum shots for critical threats
+                                    local panicBoost = math.min(12, criticalThreats * 2) -- Up to +12 shots
+                                    maxShotsPerCycle = math.min(criticalThreats * 3, shotCapacity + math.floor(panicBoost), 50)
                                 else
-                                    -- NORMAL MODE: Scale with effectiveness AND player state
-                                    local baseShots = math.floor(4 + (effectivenessScale * 6))
-                                    maxShotsPerCycle = math.min(baseShots, shotCapacity, 10)
+                                    -- ⚡ ULTRA-FAST NORMAL MODE: Maximum shots for all enemies
+                                    local baseShots = math.floor(15 + (effectivenessScale * 15))
+                                    maxShotsPerCycle = math.min(baseShots, shotCapacity * 2, 30)
                                 end
                                 
-                                -- RANDOM VARIATION: Sometimes shoot fewer (distraction, hesitation)
-                                if math.random() < 0.20 then -- 20% chance
+                                -- ⚡ ULTRA-FAST VARIATION: Minimal variation for maximum speed
+                                if math.random() < 0.05 then -- 5% chance (reduced for speed)
                                     maxShotsPerCycle = math.max(1, maxShotsPerCycle - 1)
                                 end
                                 
@@ -715,13 +715,13 @@ CombatTab:CreateToggle({
                                         if success then
                                             shotsFired = shotsFired + 1
                                             
-                                            -- 🎯 SMART MULTI-SHOT SPACING (human panic simulation)
+                                            -- ⚡ ULTRA-FAST MULTI-SHOT SPACING (maximum speed)
                                             if shotsFired < maxShotsPerCycle then
-                                                -- Critical threats = faster but still human-like
-                                                -- Human panic: 40-80ms between rapid shots
-                                                local urgentDelay = target.distance < criticalZone and 0.04 or 0.06
-                                                local variance = math.random() * 0.04 -- 0-40ms variance
-                                                task.wait(urgentDelay + variance) -- 40-80ms (improved)
+                                                -- Critical threats = ultra-fast spacing
+                                                -- Ultra-fast: 1-5ms between rapid shots
+                                                local urgentDelay = target.distance < criticalZone and 0.001 or 0.003
+                                                local variance = math.random() * 0.002 -- 0-2ms variance
+                                                task.wait(urgentDelay + variance) -- 1-5ms (ULTRA-FAST)
                                             end
                                         end
                                     end
@@ -773,18 +773,18 @@ CombatTab:CreateToggle({
                         -- 🧠 HUMAN PAUSE SIMULATION: Occasionally take a break
                         -- Simulates looking around, checking UI, reloading mentally
                         if math.random() < 0.06 then -- 6% chance per cycle (reduced for better performance)
-                            local pauseType = math.random()
-                            if pauseType < 0.4 then
+                                local pauseType = math.random()
+                                if pauseType < 0.4 then
                                 cycleDelay = cycleDelay + (0.2 + math.random() * 0.3) -- Quick glance (200-500ms)
-                            elseif pauseType < 0.7 then
+                                elseif pauseType < 0.7 then
                                 cycleDelay = cycleDelay + (0.6 + math.random() * 0.5) -- Check surroundings (600-1100ms)
-                            else
+                                else
                                 cycleDelay = cycleDelay + (1.0 + math.random() * 0.8) -- Brief distraction (1.0-1.8s)
-                            end
+                        end
                         end
                     end
                     
-                    task.wait(cycleDelay)
+                    task.wait(cycleDelay * 0.1) -- 10x faster cycle processing
                 end
             end)
         end
@@ -1262,7 +1262,7 @@ MiscTab:CreateButton({
             task.wait(1.5)
             
             -- More aggressive GUI cleanup
-            pcall(function()
+        pcall(function()
                 -- Try multiple destruction methods
                 if Rayfield then
                     if Rayfield.Main then
