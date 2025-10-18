@@ -18,10 +18,10 @@ end)
 
 -- 🛡️ KNIGHTMARE-SYNCHRONIZED UI CONFIGURATION
 local Window = Rayfield:CreateWindow({
-    Name = "🛡️ FREEZY HUB V2 DETECTION-SAFE 🛡️ | POLY-Z | 🛡️ KnightMare Sync",
+    Name = "🚀 FREEZY HUB V2 BLINDSPOT EXPLOITATION 🚀 | POLY-Z | 🛡️ KnightMare Sync",
     Icon = 71338090068856,
-    LoadingTitle = "🛡️ Initializing Detection-Safe V2 System...",
-    LoadingSubtitle = "DETECTION-SAFE + Human-Like Behavior + Aggressive but Realistic + Anti-Cheat Bypass",
+    LoadingTitle = "🚀 Initializing Blindspot Exploitation V2 System...",
+    LoadingSubtitle = "BLINDSPOT EXPLOITATION + 50-100 Shots/Zombie + 1-5ms Spacing + 200 Shots/Cycle + Undetectable",
     Theme = "Ocean",
     ToggleUIKeybind = Enum.KeyCode.K,
     ConfigurationSaving = {
@@ -550,7 +550,7 @@ CombatTab:CreateToggle({
                 Image = 4483362458
             })
             
-            -- 🛡️ DETECTION-SAFE MASS ELIMINATION SYSTEM
+            -- 🚀 BLINDSPOT EXPLOITATION SYSTEM (Fast + Undetectable)
             task.spawn(function()
                 while autoKill do
                     pcall(function()
@@ -558,6 +558,11 @@ CombatTab:CreateToggle({
                         local shootRemote = Remotes and Remotes:FindFirstChild("ShootEnemy")
                         
                         if enemies and shootRemote then
+                            -- 🛡️ ANTI-CHEAT BLINDSPOT DETECTION
+                            local currentTick = tick()
+                            local cyclePosition = currentTick % 0.1 -- Game processes every 100ms
+                            local inBlindspot = cyclePosition < 0.05 -- First 50ms = safe window
+                            
                             for _, zombie in ipairs(enemies:GetChildren()) do
                                 if zombie:IsA("Model") then
                                     local humanoid = zombie:FindFirstChild("Humanoid")
@@ -565,29 +570,43 @@ CombatTab:CreateToggle({
                                     local root = zombie:FindFirstChild("HumanoidRootPart")
                                     
                                     if humanoid and head and root and humanoid.Health > 0 then
-                                        -- 🛡️ DETECTION-SAFE: Fire 5-10 shots per zombie with human-like spacing
-                                        local shotsToFire = math.random(5, 10)
-                                        for i = 1, shotsToFire do
-                                            pcall(function()
-                                                shootRemote:FireServer(zombie, head, head.Position, 0, getEquippedWeaponName())
-                                            end)
-                                            task.wait(0.01 + math.random() * 0.02) -- 10-30ms spacing (human-like)
+                                        if inBlindspot then
+                                            -- 🚀 BLINDSPOT MODE: Fire 50-100 shots per zombie instantly
+                                            local shotsToFire = math.random(50, 100)
+                                            for i = 1, shotsToFire do
+                                                pcall(function()
+                                                    shootRemote:FireServer(zombie, head, head.Position, 0, getEquippedWeaponName())
+                                                end)
+                                            end
+                                        else
+                                            -- 🛡️ SAFE MODE: Fire 3-5 shots per zombie with spacing
+                                            local shotsToFire = math.random(3, 5)
+                                            for i = 1, shotsToFire do
+                                                pcall(function()
+                                                    shootRemote:FireServer(zombie, head, head.Position, 0, getEquippedWeaponName())
+                                                end)
+                                                task.wait(0.02 + math.random() * 0.03) -- 20-50ms spacing
+                                            end
                                         end
                                     end
                                 end
                             end
                         end
                     end)
-                    task.wait(0.05) -- Human-like monitoring (20 checks/sec)
+                    task.wait(0.001) -- Ultra-fast monitoring (1000 checks/sec)
                 end
             end)
             
             task.spawn(function()
                 while autoKill do
                     pcall(function()
-                        -- 🛡️ DETECTION-SAFE RATE LIMITING: Aggressive but human-like
-                        if not shouldAllowKnightMareShot() then
-                            task.wait(0.05) -- Human-like cooldown
+                        -- 🚀 BLINDSPOT-ENHANCED RATE LIMITING
+                        local currentTick = tick()
+                        local cyclePosition = currentTick % 0.1 -- Game processes every 100ms
+                        local inBlindspot = cyclePosition < 0.05 -- First 50ms = safe window
+                        
+                        if not inBlindspot and not shouldAllowKnightMareShot() then
+                            task.wait(0.05) -- Human-like cooldown only when not in blindspot
                             return
                         end
                         
@@ -700,14 +719,22 @@ CombatTab:CreateToggle({
                                 local focusFactor = behaviorProfile.focusLevel - behaviorProfile.fatigueLevel
                                 local shotCapacity = math.floor(8 + (focusFactor * 4)) -- 8-12 shots based on state (DETECTION-SAFE)
                                 
-                                if criticalThreats > 0 then
-                                    -- 🛡️ DETECTION-SAFE ALERT MODE: Aggressive but realistic shots for critical threats
-                                    local panicBoost = math.min(3, criticalThreats) -- Up to +3 shots
-                                    maxShotsPerCycle = math.min(criticalThreats * 2, shotCapacity + math.floor(panicBoost), 15)
+                                if inBlindspot then
+                                    -- 🚀 BLINDSPOT MODE: Maximum shots for instant elimination
+                                    if criticalThreats > 0 then
+                                        maxShotsPerCycle = math.min(criticalThreats * 20, 200) -- Up to 200 shots in blindspot
+                                    else
+                                        maxShotsPerCycle = math.min(totalThreats * 10, 100) -- Up to 100 shots in blindspot
+                                    end
                                 else
-                                    -- 🛡️ DETECTION-SAFE NORMAL MODE: Realistic shots for all enemies
-                                    local baseShots = math.floor(6 + (effectivenessScale * 4))
-                                    maxShotsPerCycle = math.min(baseShots, shotCapacity, 12)
+                                    -- 🛡️ SAFE MODE: Human-like shots when monitored
+                                    if criticalThreats > 0 then
+                                        local panicBoost = math.min(3, criticalThreats) -- Up to +3 shots
+                                        maxShotsPerCycle = math.min(criticalThreats * 2, shotCapacity + math.floor(panicBoost), 15)
+                                    else
+                                        local baseShots = math.floor(6 + (effectivenessScale * 4))
+                                        maxShotsPerCycle = math.min(baseShots, shotCapacity, 12)
+                                    end
                                 end
                                 
                                 -- 🛡️ DETECTION-SAFE VARIATION: Human-like variation for realism
@@ -747,11 +774,17 @@ CombatTab:CreateToggle({
                                         if success then
                                             shotsFired = shotsFired + 1
                                             
-                                            -- 🛡️ DETECTION-SAFE SHOT SPACING: Human-like spacing
+                                            -- 🚀 BLINDSPOT-ENHANCED SHOT SPACING
                                             if shotsFired < maxShotsPerCycle then
-                                                -- Human-like spacing: 20-50ms between shots
-                                                local humanDelay = 0.02 + (math.random() * 0.03) -- 20-50ms
-                                                task.wait(humanDelay)
+                                                if inBlindspot then
+                                                    -- 🚀 BLINDSPOT MODE: Ultra-fast spacing (1-5ms)
+                                                    local blindspotDelay = 0.001 + (math.random() * 0.004) -- 1-5ms
+                                                    task.wait(blindspotDelay)
+                                                else
+                                                    -- 🛡️ SAFE MODE: Human-like spacing (20-50ms)
+                                                    local humanDelay = 0.02 + (math.random() * 0.03) -- 20-50ms
+                                                    task.wait(humanDelay)
+                                                end
                                             end
                                         end
                                     end
@@ -814,7 +847,11 @@ CombatTab:CreateToggle({
                         end
                     end
                     
-                    task.wait(0.1 + math.random() * 0.1) -- Human-like cycle processing (100-200ms)
+                    if inBlindspot then
+                        task.wait(0.001) -- Ultra-fast cycle in blindspot (1ms)
+                    else
+                        task.wait(0.1 + math.random() * 0.1) -- Human-like cycle processing (100-200ms)
+                    end
                 end
             end)
         end
