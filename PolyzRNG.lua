@@ -1,5 +1,3 @@
--- Global error handler
-pcall(function()
 -- Services
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -7,21 +5,7 @@ local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
 
 -- Load Rayfield UI Library
-local Rayfield
-local success, error = pcall(function()
-    Rayfield = loadstring(game:HttpGet('https://raw.githubusercontent.com/synnyyy/RobloxLua/main/Rayfield'))()
-end)
-
-if not success then
-    warn("[Freezy HUB] Failed to load Rayfield UI: " .. tostring(error))
-    -- Try backup URL
-    success, error = pcall(function()
-        Rayfield = loadstring(game:HttpGet('https://limerbro.github.io/Roblox-Limer/rayfield.lua'))()
-    end)
-    if not success then
-        error("[Freezy HUB] Failed to load Rayfield UI from both URLs: " .. tostring(error))
-    end
-end
+local Rayfield = loadstring(game:HttpGet('https://limerbro.github.io/Roblox-Limer/rayfield.lua'))()
 
 -- Wait for Remotes safely
 local Remotes
@@ -34,10 +18,10 @@ end)
 
 -- 🛡️ KNIGHTMARE-SYNCHRONIZED UI CONFIGURATION
 local Window = Rayfield:CreateWindow({
-    Name = "🎯 FREEZY HUB ENEMY DESTROYER 🎯 | POLY-Z | 🛡️ KnightMare Sync",
+    Name = "🚀 FREEZY HUB V2 ENHANCED 🚀 | POLY-Z | 🛡️ KnightMare Sync",
     Icon = 71338090068856,
-    LoadingTitle = "🎯 Initializing Enemy Destroyer...",
-    LoadingSubtitle = "Target ALL Enemies + 100 Shots/Enemy + 2x Range + Multi-Layer Safety Net + Guaranteed Elimination",
+    LoadingTitle = "🚀 Initializing Enhanced V2 System...",
+    LoadingSubtitle = "Improved Performance + Anti-Cheat Synchronization",
     Theme = "Ocean",
     ToggleUIKeybind = Enum.KeyCode.K,
     ConfigurationSaving = {
@@ -491,8 +475,15 @@ local function isValidTarget(zombie, head, humanoid)
         return false
     end
     
-    -- 🎯 ENHANCED ENEMY DETECTION: Target ALL enemies in the enemies folder
-    -- Simple health check for all enemies
+    -- BOSS PRIORITY: Always allow bosses regardless of health
+    local isBoss = zombie.Name == "GoblinKing" or zombie.Name == "CaptainBoom" or zombie.Name == "Fungarth"
+    
+    if isBoss then
+        -- For bosses, only check if they exist - ignore health checks that might be wrong
+        return true
+    end
+    
+    -- For regular enemies, do normal health check
     if not humanoid or humanoid.Health <= 0 then
         return false
     end
@@ -559,123 +550,20 @@ CombatTab:CreateToggle({
                 Image = 4483362458
             })
             
-                -- 🔥 CONTINUOUS SPAWN MONITORING SYSTEM - MAXIMUM EFFECTIVENESS
             task.spawn(function()
                 while autoKill do
                     pcall(function()
-                            local enemies = workspace:FindFirstChild("Enemies")
-                            if enemies then
-                                local currentTick = tick()
-                                local cyclePosition = currentTick % 0.1
-                                local inBlindspot = cyclePosition < 0.055
-                                
-                                if inBlindspot then
-                                    -- 🚀 INSTANT SPAWN WIPE: Eliminate all zombies as they spawn
-                                    for _, zombie in pairs(enemies:GetChildren()) do
-                                        if zombie:IsA("Model") then
-                                            local head = zombie:FindFirstChild("Head")
-                                            local humanoid = zombie:FindFirstChild("Humanoid")
-                                            
-                                            if head and humanoid and humanoid.Health > 0 then
-                                                -- 🎯 INSTANT ELIMINATION: Fire massive shots immediately
-                                                local hitPos, hitPart = getKnightMareShotPosition(head, zombie)
-                                                if hitPos and hitPart then
-                                                    local args = {zombie, hitPart, hitPos, 0, weapon}
-                                                    
-                                                    -- 🔥 CONSTANT 200+ ZOMBIE CONFIGURATION: Always 2 shots per zombie
-                                                    local shotsPerZombie = 2 -- 2 shots per zombie = FAST CROWD CLEARING
-                                                    
-                                                    for i = 1, shotsPerZombie do
-                                                        task.spawn(function()
-                                                            shootRemote:FireServer(unpack(args))
-                                                        end)
-                                                    end
-                                                end
-                                            end
-                                        end
-                                    end
-                                else
-                                    -- 🧠 NORMAL MODE: Still aggressive but human-like
-                                    for _, zombie in pairs(enemies:GetChildren()) do
-                                        if zombie:IsA("Model") then
-                                            local head = zombie:FindFirstChild("Head")
-                                            local humanoid = zombie:FindFirstChild("Humanoid")
-                                            
-                                            if head and humanoid and humanoid.Health > 0 then
-                                                local hitPos, hitPart = getKnightMareShotPosition(head, zombie)
-                                                if hitPos and hitPart then
-                                                    local args = {zombie, hitPart, hitPos, 0, weapon}
-                                                    
-                                                    -- ⚡ SMOOTH NORMAL MODE: Equal targeting for all enemies
-                                                    local shotsPerZombie = 20 -- 20 shots for all enemies
-                                                    
-                                                    for i = 1, shotsPerZombie do
-                                                        task.spawn(function()
-                                                            shootRemote:FireServer(unpack(args))
-                                                        end)
-                                                    end
-                                                end
-                                            end
-                                        end
-                                    end
-                                end
-                            end
-                        end)
-                        -- ⚡ ULTRA-SMOOTH MONITORING: Maximum efficiency
-                        task.wait(0.0001) -- 0.1ms ultra-smooth monitoring (10,000 checks/sec)
-                    end
-                end)
-            
-            task.spawn(function()
-                while autoKill do
-                    pcall(function()
-                        -- ⚡ OPTIMIZED SYNCHRONICITY CHECK
+                        -- 🛡️ KNIGHTMARE SYNCHRONICITY CHECK
                         if not shouldAllowKnightMareShot() then
-                            task.wait(0.01) -- Ultra-smooth cooldown
+                            task.wait(0.05) -- KnightMare-safe cooldown
                             return
                         end
                         
-                        -- 🔧 DEFINE VARIABLES FIRST
                         local enemies = workspace:FindFirstChild("Enemies")
                         local shootRemote = Remotes and Remotes:FindFirstChild("ShootEnemy")
-                        local weapon = getEquippedWeaponName()
                         
                         if enemies and shootRemote then
-                            -- 🔥 INSTANT SPAWN DETECTION & ELIMINATION
-                            -- Check for newly spawned zombies and eliminate them immediately
-                                local currentTick = tick()
-                                local cyclePosition = currentTick % 0.1
-                                local inBlindspot = cyclePosition < 0.055
-                                
-                                if inBlindspot then
-                                    -- 🚀 INSTANT SPAWN WIPE: Eliminate all zombies as they spawn
-                                    for _, zombie in pairs(enemies:GetChildren()) do
-                                        if zombie:IsA("Model") then
-                                            local head = zombie:FindFirstChild("Head")
-                                            local humanoid = zombie:FindFirstChild("Humanoid")
-                                            
-                                            if head and humanoid and humanoid.Health > 0 then
-                                                -- 🎯 INSTANT ELIMINATION: Fire massive shots immediately
-                                                local hitPos, hitPart = getKnightMareShotPosition(head, zombie)
-                                                if hitPos and hitPart then
-                                                    local args = {zombie, hitPart, hitPos, 0, weapon}
-                                                    
-                                                    -- ⚡ ULTRA-SMOOTH INSTANT FIRING: Optimized parallel execution for all enemies
-                                                    local shotsPerZombie = 100 -- 100 shots for all enemies
-                                                    
-                                                    for i = 1, shotsPerZombie do
-                                                        task.spawn(function()
-                                                            shootRemote:FireServer(unpack(args))
-                                                        end)
-                                                    end
-                                                end
-                                            end
-                                        end
-                                    end
-                                end
-                            end
-                        
-                        -- Variables already defined above
+                            local weapon = getEquippedWeaponName()
                             local validTargets = {}
                             
                             -- Collect ALL living enemies with distance info
@@ -695,17 +583,14 @@ CombatTab:CreateToggle({
                                         -- Only include targets within effective range (scales with effectiveness)
                                         local effectiveRange = maxShootDistance
                                         
-                                    -- 🎯 ENHANCED ENEMY TARGETING: Target all enemies equally
-                                    -- All enemies get maximum range
-                                    effectiveRange = maxShootDistance * 2 -- Double range for all enemies
-                                    
-                                    if distance <= effectiveRange then
+                                        if distance <= effectiveRange then
                                         table.insert(validTargets, {
                                             model = zombie,
                                             head = head,
                                             humanoid = humanoid,
                                             distance = distance
                                         })
+                                        end
                                     end
                                 end
                             end
@@ -720,7 +605,8 @@ CombatTab:CreateToggle({
                                 local preemptiveZone = 50 + (effectivenessScale * 50) -- 50-100 studs
                                 
                                 table.sort(validTargets, function(a, b)
-                                    -- 🎯 ENHANCED ENEMY SORTING: Prioritize closest enemies
+                                    local aBoss = a.model.Name == "GoblinKing" or a.model.Name == "CaptainBoom" or a.model.Name == "Fungarth"
+                                    local bBoss = b.model.Name == "GoblinKing" or b.model.Name == "CaptainBoom" or b.model.Name == "Fungarth"
                                     
                                     -- CRITICAL ZONE: Immediate danger (dynamic based on effectiveness)
                                     local aCritical = a.distance < criticalZone
@@ -772,96 +658,43 @@ CombatTab:CreateToggle({
                                     end
                                 end
                                 
-                                -- 🔥 ULTIMATE EXPLOIT SYSTEM - 1000+ SHOTS/SEC
-                                -- Multiple exploit methods combined for maximum performance
+                                -- 🧠 INTELLIGENT ADAPTIVE ALLOCATION
+                                -- Varies based on player state, not just effectiveness
                                 local maxShotsPerCycle
                                 
-                                -- 🛡️ ENHANCED ANTI-CHEAT BLINDSPOT DETECTION
-                                local currentTick = tick()
-                                local cyclePosition = currentTick % 0.1 -- Game processes every 100ms
-                                
-                                -- 🔥 IMPROVED BLINDSPOT WINDOWS - More aggressive exploitation
-                                local inHyperBlindspot = cyclePosition < 0.015 -- First 15ms = hyper blindspot (increased from 10ms)
-                                local inUltraBlindspot = cyclePosition < 0.035 -- First 35ms = ultra blindspot (increased from 20ms)
-                                local inBlindspot = cyclePosition < 0.055 -- First 55ms = blindspot window (increased from 40ms)
-                                
-                                -- 🎯 PRECISION TIMING - Detect optimal firing moments
-                                local inOptimalWindow = cyclePosition < 0.005 -- First 5ms = optimal window
-                                local inPeakWindow = cyclePosition < 0.008 -- First 8ms = peak performance window
-                                
-                                -- 🧠 FOCUS-BASED SHOT CAPACITY (Enhanced)
+                                -- FOCUS-BASED SHOT CAPACITY
+                                -- Focused player = can track more targets
+                                -- Fatigued player = tracks fewer
                                 local focusFactor = behaviorProfile.focusLevel - behaviorProfile.fatigueLevel
-                                local baseShotCapacity = math.floor(5 + (focusFactor * 5)) -- 4-10 shots base
+                                local shotCapacity = math.floor(5 + (focusFactor * 5)) -- 4-10 shots based on state
                                 
-                                -- ⚡ ULTRA-SMOOTH PERFORMANCE - Optimized for maximum efficiency
-                                if inOptimalWindow then
-                                    maxShotsPerCycle = totalThreats * 5 -- 5 shots per zombie = ULTRA-SMOOTH CLEARING
-                                elseif inPeakWindow then
-                                    maxShotsPerCycle = totalThreats * 4 -- 4 shots per zombie = SMOOTH CLEARING
-                                elseif inHyperBlindspot then
-                                    maxShotsPerCycle = totalThreats * 3 -- 3 shots per zombie = FAST CLEARING
+                                if criticalThreats > 0 then
+                                    -- ALERT MODE: Adrenaline boost allows more shots
+                                    local panicBoost = math.min(4, criticalThreats / 2) -- Up to +4 shots
+                                    maxShotsPerCycle = math.min(criticalThreats, shotCapacity + math.floor(panicBoost), 12)
                                 else
-                                    maxShotsPerCycle = totalThreats * 2 -- 2 shots per zombie = EFFICIENT CLEARING
+                                    -- NORMAL MODE: Scale with effectiveness AND player state
+                                    local baseShots = math.floor(4 + (effectivenessScale * 6))
+                                    maxShotsPerCycle = math.min(baseShots, shotCapacity, 10)
                                 end
                                 
-                                -- ⚡ SMOOTH VARIATION: Reduced for better consistency
-                                if math.random() < 0.10 then -- 10% chance (reduced for smoother performance)
+                                -- RANDOM VARIATION: Sometimes shoot fewer (distraction, hesitation)
+                                if math.random() < 0.20 then -- 20% chance
                                     maxShotsPerCycle = math.max(1, maxShotsPerCycle - 1)
                                 end
                                 
-                                -- 🔥 INSTANT MULTI-TARGET PROCESSING - ZERO DETECTION
-                                if inOptimalWindow or inPeakWindow or inHyperBlindspot then
-                                    -- 🚀 PARALLEL ZOMBIE ELIMINATION: Process all targets simultaneously
-                                    local parallelTargets = {}
-                                    for _, target in ipairs(validTargets) do
-                                        table.insert(parallelTargets, function()
-                                            -- 🎯 KNIGHTMARE-SYNCHRONIZED TARGETING FOR ALL ENEMIES
-                                            
-                                            -- 🛡️ Use KnightMare-synchronized raycast system
-                                            local hitPos, hitPart = getKnightMareShotPosition(target.head, target.model)
-                                            
-                                            if hitPos and hitPart then
-                                                -- 🎯 KNIGHTMARE FIRESERVER SYNCHRONICITY
-                                                local args = {target.model, hitPart, hitPos, 0, weapon}
-                                                
-                                                -- 🔥 INSTANT MASS FIRING - PARALLEL PROCESSING
-                                                local shotsPerZombie = 100 -- Maximum shots for parallel mode
-                                                for i = 1, shotsPerZombie do
-                                                    task.spawn(function()
-                                                        shootRemote:FireServer(unpack(args))
-                                                    end)
-                                                end
-                                            end
-                                        end)
-                                    end
-                                    
-                                    -- 🔥 EXECUTE ALL TARGETS IN PARALLEL - INSTANT MASS ELIMINATION
-                                    for _, targetFunction in ipairs(parallelTargets) do
-                                        task.spawn(targetFunction)
-                                    end
-                                else
-                                    -- Normal sequential processing for other modes
                                 for _, target in ipairs(validTargets) do
                                     if shotsFired >= maxShotsPerCycle then break end
                                     
-                                        -- 🧬 HUMAN IMPERFECTION: Occasionally skip a target (distraction, hesitation)
-                                        -- Lower focus or higher fatigue = more likely to "miss" targeting
-                                        local skipChance = (1 - behaviorProfile.focusLevel) * 0.15 + (behaviorProfile.fatigueLevel * 0.10)
-                                        local shouldSkip = math.random() < skipChance and shotsFired > 0
-                                        
-                                        if not shouldSkip then
+                                    -- 🧬 HUMAN IMPERFECTION: Occasionally skip a target (distraction, hesitation)
+                                    -- Lower focus or higher fatigue = more likely to "miss" targeting
+                                    local skipChance = (1 - behaviorProfile.focusLevel) * 0.15 + (behaviorProfile.fatigueLevel * 0.10)
+                                    local shouldSkip = math.random() < skipChance and shotsFired > 0
                                     
-                                    -- 🎯 KNIGHTMARE-SYNCHRONIZED TARGETING WITH ENHANCED BOSS DETECTION
+                                    if not shouldSkip then
+                                    
+                                    -- 🎯 KNIGHTMARE-SYNCHRONIZED TARGETING
                                     local isBoss = target.model.Name == "GoblinKing" or target.model.Name == "CaptainBoom" or target.model.Name == "Fungarth"
-                                    
-                                    -- Enhanced boss detection
-                                    if not isBoss then
-                                        isBoss = (target.humanoid and target.humanoid.MaxHealth > 500) or 
-                                               (target.model:FindFirstChild("Boss") ~= nil) or
-                                               (target.model.Name:find("Boss") ~= nil) or
-                                               (target.model.Name:find("King") ~= nil) or
-                                               (target.model.Name:find("Captain") ~= nil)
-                                    end
                                     
                                     -- 🛡️ Use KnightMare-synchronized raycast system
                                     local hitPos, hitPart = getKnightMareShotPosition(target.head, target.model)
@@ -872,106 +705,31 @@ CombatTab:CreateToggle({
                                         -- Synchronized with place file line 12178
                                         local args = {target.model, hitPart, hitPos, 0, weapon}
                                         
-                                        -- 🔥 PACKET MASKING + NETWORK MANIPULATION
                                         local success = pcall(function()
-                                            -- 🛡️ PACKET SPOOFING: No delays in blindspots for constant flow
-                                            local packetDelay = 0
-                                            if inHyperBlindspot then
-                                                packetDelay = 0 -- NO PACKET DELAY - Constant flow
-                                            elseif inUltraBlindspot then
-                                                packetDelay = 0 -- NO PACKET DELAY - Constant flow
-                                            elseif inBlindspot then
-                                                packetDelay = 0 -- NO PACKET DELAY - Constant flow
-                                            else
-                                                -- Only add packet delay when anti-cheat is watching
-                                                packetDelay = math.random() * 0.00001 -- 0-0.01ms packet delay
-                                            end
-                                            
-                                            if packetDelay > 0 then
-                                                task.wait(packetDelay)
-                                            end
-                                            
-                                            -- 🔥 INSTANT MASS ZOMBIE ELIMINATION
-                                            -- Fire massive amounts of shots per zombie for guaranteed death
-                                            local shotsPerZombie = 1
-                                            
-                                            if inOptimalWindow then
-                                                shotsPerZombie = 8 -- 8 shots per zombie = ULTRA-SMOOTH ELIMINATION
-                                            elseif inPeakWindow then
-                                                shotsPerZombie = 6 -- 6 shots per zombie = SMOOTH ELIMINATION
-                                            elseif inHyperBlindspot then
-                                                shotsPerZombie = 5 -- 5 shots per zombie = FAST ELIMINATION
-                                            elseif inUltraBlindspot then
-                                                shotsPerZombie = 4 -- 4 shots per zombie = EFFICIENT ELIMINATION
-                                            elseif inBlindspot then
-                                                shotsPerZombie = 3 -- 3 shots per zombie = RELIABLE ELIMINATION
-                                            else
-                                                -- Normal mode - adaptive shots for all enemies
-                                                local isStrongZombie = target.humanoid and target.humanoid.MaxHealth > 100
-                                                
-                                                if isStrongZombie then
-                                                    shotsPerZombie = 25 -- 25 shots for strong zombies
-                                                else
-                                                    shotsPerZombie = 15 -- 15 shots for normal zombies
-                                                end
-                                            end
-                                            
-                                            -- 🔥 ULTRA-AGGRESSIVE PARALLEL FIRING - ZERO DETECTION
-                                            if inOptimalWindow or inPeakWindow or inHyperBlindspot then
-                                                -- 🚀 PARALLEL PROCESSING: Fire all shots simultaneously
-                                                local parallelShots = {}
-                                                for i = 1, shotsPerZombie do
-                                                    table.insert(parallelShots, function()
                                             shootRemote:FireServer(unpack(args))
-                                        end)
-                                                end
-                                                
-                                                -- 🔥 EXECUTE ALL SHOTS IN PARALLEL - INSTANT ELIMINATION
-                                                for _, shotFunction in ipairs(parallelShots) do
-                                                    task.spawn(shotFunction)
-                                                end
-                                            else
-                                                -- Normal sequential firing for other modes
-                                                for i = 1, shotsPerZombie do
-                                                    shootRemote:FireServer(unpack(args))
-                                                end
-                                            end
                                         end)
                                         
                                         -- 📊 Record shot for adaptive learning
                                         recordShotSuccess(success)
                                         
                                         if success then
-                                            shotsFired = shotsFired + shotsPerZombie
+                                            shotsFired = shotsFired + 1
                                             
-                                            -- ⚡ ULTRA-SMOOTH FLOW - Optimized timing for maximum efficiency
+                                            -- 🎯 SMART MULTI-SHOT SPACING (human panic simulation)
                                             if shotsFired < maxShotsPerCycle then
-                                                if inOptimalWindow then
-                                                    -- ⚡ OPTIMAL: Zero delay for maximum smoothness
-                                                    -- No task.wait() - instant continuous firing
-                                                elseif inPeakWindow then
-                                                    task.wait(0.0001) -- 0.1ms ultra-smooth
-                                                elseif inHyperBlindspot then
-                                                    task.wait(0.0005) -- 0.5ms smooth
-                                                elseif inUltraBlindspot then
-                                                    task.wait(0.001) -- 1ms fast
-                                                elseif inBlindspot then
-                                                    task.wait(0.002) -- 2ms efficient
-                                                else
-                                                    -- ⚡ SMOOTH NORMAL MODE: Optimized spacing
-                                                    local urgentDelay = target.distance < criticalZone and 0.01 or 0.015
-                                                    local variance = math.random() * 0.01 -- 0-10ms variance (reduced)
-                                                    task.wait(urgentDelay + variance) -- 10-25ms (ultra-smooth)
-                                                end
+                                                -- Critical threats = faster but still human-like
+                                                -- Human panic: 40-80ms between rapid shots
+                                                local urgentDelay = target.distance < criticalZone and 0.04 or 0.06
+                                                local variance = math.random() * 0.04 -- 0-40ms variance
+                                                task.wait(urgentDelay + variance) -- 40-80ms (improved)
                                             end
                                         end
                                     end
                                     
                                     -- 🧠 INTELLIGENT TARGET SKIP: Don't waste time on blocked targets
                                     -- At high effectiveness, try more targets to find clear shots
-                                        end -- Close shouldSkip check
+                                    end -- Close shouldSkip check
                                 end
-                                end -- Close the parallel vs sequential processing
                                 
                                 -- If no shot fired, all targets blocked (legitimate game behavior)
                                         end
@@ -1000,40 +758,28 @@ CombatTab:CreateToggle({
                                     end
                                 end
                                 
-                    -- 🔥 ULTRA-FAST CYCLE DELAY + EXPLOIT MODES
+                    -- 🧬 DYNAMIC CYCLE DELAY WITH BEHAVIORAL SIMULATION
                     local cycleDelay
                     
-                    if inOptimalWindow then
-                        -- 🔥 OPTIMAL WINDOW: ZERO CYCLE DELAY - Maximum exploitation (no threat check needed)
-                        cycleDelay = 0 -- No delay - instant continuous cycles
-                    elseif inPeakWindow then
-                        -- 🔥 PEAK WINDOW: ZERO CYCLE DELAY - Ultra exploitation (no threat check needed)
-                        cycleDelay = 0 -- No delay - instant continuous cycles
-                    elseif inHyperBlindspot then
-                        -- 🔥 HYPER KRYPTONITE: NO CYCLE DELAY - Constant flow (no threat check needed)
-                        cycleDelay = 0 -- No delay - instant continuous cycles
-                    elseif inUltraBlindspot and hasUrgentThreats then
-                        -- 🔥 ULTRA KRYPTONITE: Minimal cycle delay - Near constant flow
-                        cycleDelay = 0.001 -- Only 1ms cycle delay
-                    elseif inBlindspot and hasUrgentThreats then
-                        -- 🔥 KRYPTONITE: Very small cycle delay - Fast flow
-                        cycleDelay = 0.002 -- Only 2ms cycle delay
-                    elseif hasUrgentThreats then
-                        -- ALERT MODE: Enhanced reaction speed
-                        local alertSpeed = 0.06 + ((1 - behaviorProfile.focusLevel) * 0.03) -- 60-90ms
-                        cycleDelay = alertSpeed + (math.random() * 0.02) -- +0-20ms variance
+                    if hasUrgentThreats then
+                        -- ALERT MODE: Faster reaction like a focused human
+                        -- Focus level affects response time
+                        local alertSpeed = 0.08 + ((1 - behaviorProfile.focusLevel) * 0.04) -- 80-120ms
+                        cycleDelay = alertSpeed + (math.random() * 0.03) -- +0-30ms variance
                     else
                         -- NORMAL: Use smart delay based on effectiveness
                         cycleDelay = getKnightMareDelay(shootDelay)
                         
-                        -- 🧠 MINIMAL HUMAN PAUSE SIMULATION: Rare breaks for constant flow
+                        -- 🧠 HUMAN PAUSE SIMULATION: Occasionally take a break
                         -- Simulates looking around, checking UI, reloading mentally
-                        if math.random() < 0.02 then -- 2% chance per cycle (minimal for constant flow)
+                        if math.random() < 0.06 then -- 6% chance per cycle (reduced for better performance)
                                 local pauseType = math.random()
-                            if pauseType < 0.5 then
-                                cycleDelay = cycleDelay + (0.1 + math.random() * 0.1) -- Quick glance (100-200ms)
-                            else
-                                cycleDelay = cycleDelay + (0.2 + math.random() * 0.2) -- Brief check (200-400ms)
+                                if pauseType < 0.4 then
+                                cycleDelay = cycleDelay + (0.2 + math.random() * 0.3) -- Quick glance (200-500ms)
+                                elseif pauseType < 0.7 then
+                                cycleDelay = cycleDelay + (0.6 + math.random() * 0.5) -- Check surroundings (600-1100ms)
+                                else
+                                cycleDelay = cycleDelay + (1.0 + math.random() * 0.8) -- Brief distraction (1.0-1.8s)
                         end
                         end
                     end
@@ -1564,6 +1310,3 @@ MiscTab:CreateButton({
 
 -- Load config
 Rayfield:LoadConfiguration()
-
-end) -- Close the global pcall
-
