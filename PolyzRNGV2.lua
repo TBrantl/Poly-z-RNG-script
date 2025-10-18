@@ -1675,18 +1675,31 @@ CombatTab:CreateToggle({
     Callback = function(state)
         if state then
             Rayfield:Notify({
-                Title = "🖱️ RIGHT-CLICK MOUSE LOOK ACTIVE",
-                Content = "Right-click and drag to rotate character view",
-                Duration = 3,
+                Title = "🖱️ MOUSE LOOK ACTIVE",
+                Content = "Right-click OR Middle-click and drag to rotate character view",
+                Duration = 4,
                 Image = 4483362458
             })
             
             -- 🖱️ RIGHT-CLICK MOUSE LOOK SYSTEM
             local mouseLookConnection = nil
+            local mouseLookConnection2 = nil
             local isMouseLookActive = false
             local lastMousePosition = Vector2.new(0, 0)
             local camera = workspace.CurrentCamera
             local player = game:GetService("Players").LocalPlayer
+            
+            -- Override game's weapon aiming system
+            local function overrideWeaponAiming()
+                if player.Character and player.Character:FindFirstChild("Humanoid") then
+                    local humanoid = player.Character.Humanoid
+                    -- Disable weapon aiming when mouse look is active
+                    if isMouseLookActive then
+                        humanoid.AutoRotate = true
+                        humanoid.PlatformStand = false
+                    end
+                end
+            end
             
             -- Mouse look function
             local function updateMouseLook()
@@ -1696,7 +1709,7 @@ CombatTab:CreateToggle({
                     local deltaPosition = currentMousePosition - lastMousePosition
                     
                     -- Calculate rotation based on mouse movement
-                    local sensitivity = 0.005 -- Adjust sensitivity as needed
+                    local sensitivity = 0.01 -- Increased sensitivity
                     local rotationY = deltaPosition.X * sensitivity
                     local rotationX = deltaPosition.Y * sensitivity
                     
@@ -1716,25 +1729,47 @@ CombatTab:CreateToggle({
                     end
                     
                     lastMousePosition = currentMousePosition
+                    
+                    -- Override weapon aiming
+                    overrideWeaponAiming()
                 end
             end
             
-            -- Mouse input handling
+            -- Mouse input handling with game behavior override
             mouseLookConnection = game:GetService("UserInputService").InputBegan:Connect(function(input, gameProcessed)
-                if gameProcessed then return end
-                
                 if input.UserInputType == Enum.UserInputType.MouseButton2 then -- Right mouse button
+                    -- Override game's default right-click behavior
+                    isMouseLookActive = true
+                    local mouse = player:GetMouse()
+                    lastMousePosition = Vector2.new(mouse.X, mouse.Y)
+                    
+                    -- Prevent game from processing right-click
+                    return true
+                end
+            end)
+            
+            -- Mouse input ended
+            game:GetService("UserInputService").InputEnded:Connect(function(input, gameProcessed)
+                if input.UserInputType == Enum.UserInputType.MouseButton2 then -- Right mouse button
+                    isMouseLookActive = false
+                    
+                    -- Prevent game from processing right-click release
+                    return true
+                end
+            end)
+            
+            -- Alternative input method - Middle mouse button
+            mouseLookConnection2 = game:GetService("UserInputService").InputBegan:Connect(function(input, gameProcessed)
+                if input.UserInputType == Enum.UserInputType.MouseButton3 then -- Middle mouse button
                     isMouseLookActive = true
                     local mouse = player:GetMouse()
                     lastMousePosition = Vector2.new(mouse.X, mouse.Y)
                 end
             end)
             
-            -- Mouse input ended
+            -- Middle mouse button release
             game:GetService("UserInputService").InputEnded:Connect(function(input, gameProcessed)
-                if gameProcessed then return end
-                
-                if input.UserInputType == Enum.UserInputType.MouseButton2 then -- Right mouse button
+                if input.UserInputType == Enum.UserInputType.MouseButton3 then -- Middle mouse button
                     isMouseLookActive = false
                 end
             end)
@@ -1747,6 +1782,11 @@ CombatTab:CreateToggle({
             if mouseLookConnection then
                 mouseLookConnection:Disconnect()
                 mouseLookConnection = nil
+            end
+            
+            if mouseLookConnection2 then
+                mouseLookConnection2:Disconnect()
+                mouseLookConnection2 = nil
             end
             
             Rayfield:Notify({
