@@ -1667,124 +1667,89 @@ CombatTab:CreateToggle({
     end
 })
 
--- Add keyboard character rotation toggle to combat tab
+-- Add click and drag camera rotation toggle to combat tab
 CombatTab:CreateToggle({
-    Name = "⌨️ Arrow Keys Character Rotation",
+    Name = "🖱️ Click & Drag Camera Rotation",
     CurrentValue = false,
-    Flag = "ArrowKeysRotation",
+    Flag = "ClickDragCamera",
     Callback = function(state)
         if state then
             Rayfield:Notify({
-                Title = "⌨️ ARROW KEYS ROTATION ACTIVE",
-                Content = "Hold Arrow Keys to rotate character:\n← → Rotate Left/Right\n↑ ↓ Look Up/Down\nSpeed: 0.05 radians/frame",
-                Duration = 5,
+                Title = "🖱️ CLICK & DRAG CAMERA ACTIVE",
+                Content = "Click and drag to rotate camera view\nLeft-click and drag to look around",
+                Duration = 4,
                 Image = 4483362458
             })
             
-            -- ⌨️ KEYBOARD CHARACTER ROTATION SYSTEM
-            local rotationConnection = nil
+            -- 🖱️ CLICK & DRAG CAMERA ROTATION SYSTEM
+            local cameraConnection = nil
+            local isDragging = false
+            local lastMousePosition = Vector2.new(0, 0)
             local player = game:GetService("Players").LocalPlayer
             local camera = workspace.CurrentCamera
             
-            -- Character rotation function
-            local function rotateCharacter()
-                if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-                    local humanoidRootPart = player.Character.HumanoidRootPart
-                    local currentCFrame = humanoidRootPart.CFrame
-                    local rotationSpeed = 0.1 -- Adjust rotation speed
-                    
-                    -- Get current rotation
-                    local _, yRotation, _ = currentCFrame:ToEulerAnglesXYZ()
-                    
-                    -- Apply rotation based on key presses
-                    local newCFrame = currentCFrame * CFrame.Angles(0, 0, 0) -- Will be updated by key presses
-                    humanoidRootPart.CFrame = newCFrame
-                end
-            end
-            
-            -- Keyboard input handling with continuous rotation
-            local keysPressed = {
-                Left = false,
-                Right = false,
-                Up = false,
-                Down = false
-            }
-            
-            -- Key press detection
-            rotationConnection = game:GetService("UserInputService").InputBegan:Connect(function(input, gameProcessed)
+            -- Mouse input handling
+            cameraConnection = game:GetService("UserInputService").InputBegan:Connect(function(input, gameProcessed)
                 if gameProcessed then return end
                 
-                if input.KeyCode == Enum.KeyCode.Left then
-                    keysPressed.Left = true
-                elseif input.KeyCode == Enum.KeyCode.Right then
-                    keysPressed.Right = true
-                elseif input.KeyCode == Enum.KeyCode.Up then
-                    keysPressed.Up = true
-                elseif input.KeyCode == Enum.KeyCode.Down then
-                    keysPressed.Down = true
+                if input.UserInputType == Enum.UserInputType.MouseButton1 then -- Left mouse button
+                    isDragging = true
+                    local mouse = player:GetMouse()
+                    lastMousePosition = Vector2.new(mouse.X, mouse.Y)
                 end
             end)
             
-            -- Key release detection
+            -- Mouse input ended
             game:GetService("UserInputService").InputEnded:Connect(function(input, gameProcessed)
                 if gameProcessed then return end
                 
-                if input.KeyCode == Enum.KeyCode.Left then
-                    keysPressed.Left = false
-                elseif input.KeyCode == Enum.KeyCode.Right then
-                    keysPressed.Right = false
-                elseif input.KeyCode == Enum.KeyCode.Up then
-                    keysPressed.Up = false
-                elseif input.KeyCode == Enum.KeyCode.Down then
-                    keysPressed.Down = false
+                if input.UserInputType == Enum.UserInputType.MouseButton1 then -- Left mouse button
+                    isDragging = false
                 end
             end)
             
-            -- Continuous rotation update
+            -- Camera rotation update
             game:GetService("RunService").Heartbeat:Connect(function()
-                if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-                    local humanoidRootPart = player.Character.HumanoidRootPart
-                    local currentCFrame = humanoidRootPart.CFrame
-                    local rotationSpeed = 0.05 -- Slower for better control
+                if isDragging and camera then
+                    local mouse = player:GetMouse()
+                    local currentMousePosition = Vector2.new(mouse.X, mouse.Y)
+                    local deltaPosition = currentMousePosition - lastMousePosition
                     
-                    -- Character rotation (left/right)
-                    if keysPressed.Left then
-                        local newCFrame = currentCFrame * CFrame.Angles(0, rotationSpeed, 0)
-                        humanoidRootPart.CFrame = newCFrame
-                    end
+                    -- Calculate rotation based on mouse movement
+                    local sensitivity = 0.01 -- Adjust sensitivity
+                    local rotationY = deltaPosition.X * sensitivity
+                    local rotationX = deltaPosition.Y * sensitivity
                     
-                    if keysPressed.Right then
-                        local newCFrame = currentCFrame * CFrame.Angles(0, -rotationSpeed, 0)
-                        humanoidRootPart.CFrame = newCFrame
-                    end
+                    -- Apply camera rotation
+                    local currentCFrame = camera.CFrame
+                    local position = currentCFrame.Position
+                    local lookDirection = currentCFrame.LookVector
                     
-                    -- Camera rotation (up/down)
-                    if camera then
-                        if keysPressed.Up then
-                            local cameraCFrame = camera.CFrame
-                            local newCameraCFrame = cameraCFrame * CFrame.Angles(-rotationSpeed, 0, 0)
-                            camera.CFrame = newCameraCFrame
-                        end
-                        
-                        if keysPressed.Down then
-                            local cameraCFrame = camera.CFrame
-                            local newCameraCFrame = cameraCFrame * CFrame.Angles(rotationSpeed, 0, 0)
-                            camera.CFrame = newCameraCFrame
-                        end
-                    end
+                    -- Apply horizontal rotation (Y-axis)
+                    local horizontalRotation = CFrame.Angles(0, rotationY, 0)
+                    local newLookDirection = horizontalRotation * lookDirection
+                    
+                    -- Apply vertical rotation (X-axis)
+                    local verticalRotation = CFrame.Angles(-rotationX, 0, 0)
+                    local finalLookDirection = verticalRotation * newLookDirection
+                    
+                    -- Update camera
+                    camera.CFrame = CFrame.lookAt(position, position + finalLookDirection)
+                    
+                    lastMousePosition = currentMousePosition
                 end
             end)
             
         else
-            -- Clean up rotation system
-            if rotationConnection then
-                rotationConnection:Disconnect()
-                rotationConnection = nil
+            -- Clean up camera system
+            if cameraConnection then
+                cameraConnection:Disconnect()
+                cameraConnection = nil
             end
             
             Rayfield:Notify({
-                Title = "⌨️ ARROW KEYS ROTATION DISABLED",
-                Content = "Character rotation disabled",
+                Title = "🖱️ CLICK & DRAG CAMERA DISABLED",
+                Content = "Camera rotation disabled",
                 Duration = 3,
                 Image = 4483362458
             })
