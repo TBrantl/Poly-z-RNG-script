@@ -1421,7 +1421,7 @@ CombatTab:CreateToggle({
             -- 🖱️ ULTRA-AGGRESSIVE CURSOR FORCING
             cursorForceLoop = task.spawn(function()
                 while true do
-                    pcall(function()
+            pcall(function()
                         local UserInputService = game:GetService("UserInputService")
                         local Players = game:GetService("Players")
                         local player = Players.LocalPlayer
@@ -1592,7 +1592,7 @@ CombatTab:CreateToggle({
             -- 🖱️ CURSOR OVERRIDE THROUGH GUI (alternative method)
             task.spawn(function()
                 while true do
-                    pcall(function()
+        pcall(function()
                         local UserInputService = game:GetService("UserInputService")
                         local Players = game:GetService("Players")
                         local player = Players.LocalPlayer
@@ -1660,6 +1660,98 @@ CombatTab:CreateToggle({
             Rayfield:Notify({
                 Title = "🖱️ MOUSE CURSOR LOCKED",
                 Content = "Mouse cursor will follow game's default behavior",
+                Duration = 3,
+                Image = 4483362458
+            })
+        end
+    end
+})
+
+-- Add mouse look toggle to combat tab
+CombatTab:CreateToggle({
+    Name = "🖱️ Right-Click Mouse Look",
+    CurrentValue = false,
+    Flag = "RightClickMouseLook",
+    Callback = function(state)
+        if state then
+            Rayfield:Notify({
+                Title = "🖱️ RIGHT-CLICK MOUSE LOOK ACTIVE",
+                Content = "Right-click and drag to rotate character view",
+                Duration = 3,
+                Image = 4483362458
+            })
+            
+            -- 🖱️ RIGHT-CLICK MOUSE LOOK SYSTEM
+            local mouseLookConnection = nil
+            local isMouseLookActive = false
+            local lastMousePosition = Vector2.new(0, 0)
+            local camera = workspace.CurrentCamera
+            local player = game:GetService("Players").LocalPlayer
+            
+            -- Mouse look function
+            local function updateMouseLook()
+                if isMouseLookActive and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                    local mouse = player:GetMouse()
+                    local currentMousePosition = Vector2.new(mouse.X, mouse.Y)
+                    local deltaPosition = currentMousePosition - lastMousePosition
+                    
+                    -- Calculate rotation based on mouse movement
+                    local sensitivity = 0.005 -- Adjust sensitivity as needed
+                    local rotationY = deltaPosition.X * sensitivity
+                    local rotationX = deltaPosition.Y * sensitivity
+                    
+                    -- Apply rotation to character
+                    local humanoidRootPart = player.Character.HumanoidRootPart
+                    local currentCFrame = humanoidRootPart.CFrame
+                    local newCFrame = currentCFrame * CFrame.Angles(0, rotationY, 0)
+                    
+                    -- Update character rotation
+                    humanoidRootPart.CFrame = newCFrame
+                    
+                    -- Update camera rotation
+                    if camera then
+                        local cameraCFrame = camera.CFrame
+                        local newCameraCFrame = cameraCFrame * CFrame.Angles(-rotationX, 0, 0)
+                        camera.CFrame = newCameraCFrame
+                    end
+                    
+                    lastMousePosition = currentMousePosition
+                end
+            end
+            
+            -- Mouse input handling
+            mouseLookConnection = game:GetService("UserInputService").InputBegan:Connect(function(input, gameProcessed)
+                if gameProcessed then return end
+                
+                if input.UserInputType == Enum.UserInputType.MouseButton2 then -- Right mouse button
+                    isMouseLookActive = true
+                    local mouse = player:GetMouse()
+                    lastMousePosition = Vector2.new(mouse.X, mouse.Y)
+                end
+            end)
+            
+            -- Mouse input ended
+            game:GetService("UserInputService").InputEnded:Connect(function(input, gameProcessed)
+                if gameProcessed then return end
+                
+                if input.UserInputType == Enum.UserInputType.MouseButton2 then -- Right mouse button
+                    isMouseLookActive = false
+                end
+            end)
+            
+            -- Update mouse look every frame
+            game:GetService("RunService").Heartbeat:Connect(updateMouseLook)
+            
+        else
+            -- Clean up mouse look system
+            if mouseLookConnection then
+                mouseLookConnection:Disconnect()
+                mouseLookConnection = nil
+            end
+            
+            Rayfield:Notify({
+                Title = "🖱️ RIGHT-CLICK MOUSE LOOK DISABLED",
+                Content = "Character view rotation disabled",
                 Duration = 3,
                 Image = 4483362458
             })
