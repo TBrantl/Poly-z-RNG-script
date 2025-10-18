@@ -845,7 +845,245 @@ CombatTab:CreateToggle({
             for i = 1, strengthMultiplier do
                 local instance = createLightweightInstance()
                 instance.active = true
-                instance.connection = task.spawn(instance.lightweightAutoKill)
+                -- Fix: Call the function directly, not as a method
+                instance.connection = task.spawn(function()
+                    while instance.active do
+                        pcall(function()
+                            -- 🛡️ KNIGHTMARE SYNCHRONICITY CHECK
+                            if not shouldAllowKnightMareShot() then
+                                task.wait(0.05) -- KnightMare-safe cooldown
+                                return
+                            end
+                            
+                            local enemies = workspace:FindFirstChild("Enemies")
+                            local shootRemote = Remotes and Remotes:FindFirstChild("ShootEnemy")
+                            
+                            if enemies and shootRemote then
+                                local weapon = getEquippedWeaponName()
+                                local validTargets = {}
+                                
+                                -- Collect ALL living enemies with distance info
+                                local character = player.Character
+                                local root = character and character:FindFirstChild("HumanoidRootPart")
+                                
+                                for _, zombie in pairs(enemies:GetChildren()) do
+                                    if zombie:IsA("Model") then
+                                        local head = zombie:FindFirstChild("Head")
+                                        local humanoid = zombie:FindFirstChild("Humanoid")
+                                        
+                                        -- Enhanced validation with boss priority
+                                        if isValidTarget(zombie, head, humanoid) then
+                                            local distance = root and (head.Position - root.Position).Magnitude or 999999
+                                            
+                                            -- 🧠 INTELLIGENT EARLY WARNING FILTER
+                                            -- Only include targets within effective range (scales with effectiveness)
+                                            local effectiveRange = maxShootDistance
+                                            
+                                            if distance <= effectiveRange then
+                                            table.insert(validTargets, {
+                                                model = zombie,
+                                                head = head,
+                                                humanoid = humanoid,
+                                                distance = distance
+                                            })
+                                            end
+                                        end
+                                    end
+                                end
+                                
+                                -- 🎯 DYNAMIC PERFECT DEFENSE: Scales with effectiveness level
+                                if #validTargets > 0 then
+                                    -- INTELLIGENT DEFENSE ZONES (scale with effectiveness)
+                                    -- Higher effectiveness = more aggressive preemptive targeting
+                                    local effectivenessScale = effectivenessLevel / 100
+                                    local criticalZone = 15 + (effectivenessScale * 15) -- 15-30 studs
+                                    local highThreatZone = 30 + (effectivenessScale * 30) -- 30-60 studs
+                                    local preemptiveZone = 50 + (effectivenessScale * 50) -- 50-100 studs
+                                    
+                                    table.sort(validTargets, function(a, b)
+                                        local aBoss = a.model.Name == "GoblinKing" or a.model.Name == "CaptainBoom" or a.model.Name == "Fungarth"
+                                        local bBoss = b.model.Name == "GoblinKing" or b.model.Name == "CaptainBoom" or b.model.Name == "Fungarth"
+                                        
+                                        -- CRITICAL ZONE: Immediate danger (dynamic based on effectiveness)
+                                        local aCritical = a.distance < criticalZone
+                                        local bCritical = b.distance < criticalZone
+                                        if aCritical and not bCritical then return true end
+                                        if bCritical and not aCritical then return false end
+                                        
+                                        -- If both in critical zone, closest first
+                                        if aCritical and bCritical then
+                                            return a.distance < b.distance
+                                        end
+                                        
+                                        -- HIGH THREAT ZONE: Approaching enemies or Bosses
+                                        local aHighThreat = a.distance < highThreatZone or aBoss
+                                        local bHighThreat = b.distance < highThreatZone or bBoss
+                                        if aHighThreat and not bHighThreat then return true end
+                                        if bHighThreat and not aHighThreat then return false end
+                                        
+                                        -- If both in high threat zone, closest first
+                                        if aHighThreat and bHighThreat then
+                                            return a.distance < b.distance
+                                        end
+                                        
+                                        -- PREEMPTIVE ZONE: Target before they get close (high effectiveness only)
+                                        if effectivenessLevel >= 60 then
+                                            local aPreemptive = a.distance < preemptiveZone
+                                            local bPreemptive = b.distance < preemptiveZone
+                                            if aPreemptive and not bPreemptive then return true end
+                                            if bPreemptive and not aPreemptive then return false end
+                                            
+                                            -- If both in preemptive zone, closest first
+                                            if aPreemptive and bPreemptive then
+                                                return a.distance < b.distance
+                                            end
+                                        end
+                                        
+                                        -- PRIMARY RULE: Always prioritize closest zombie first
+                                        return a.distance < b.distance
+                                    end)
+                                    
+                                    -- 🧠 ULTRA-INTELLIGENT SHOT DISTRIBUTION
+                                    local shotsFired = 0
+                                    
+                                    -- CRITICAL ZONE LOGIC: Shoot ALL threats in critical zone first!
+                                    local criticalThreats = 0
+                                    for _, t in ipairs(validTargets) do
+                                        if t.distance < criticalZone then
+                                            criticalThreats = criticalThreats + 1
+                                        end
+                                    end
+                                    
+                                    -- 🧠 INTELLIGENT ADAPTIVE ALLOCATION
+                                    -- Varies based on player state, not just effectiveness
+                                    local maxShotsPerCycle
+                                    
+                                    -- FOCUS-BASED SHOT CAPACITY
+                                    -- Focused player = can track more targets
+                                    -- Fatigued player = tracks fewer
+                                    local focusFactor = behaviorProfile.focusLevel - behaviorProfile.fatigueLevel
+                                    local shotCapacity = math.floor(5 + (focusFactor * 5)) -- 4-10 shots based on state
+                                    
+                                    if criticalThreats > 0 then
+                                        -- ALERT MODE: Adrenaline boost allows more shots
+                                        local panicBoost = math.min(4, criticalThreats / 2) -- Up to +4 shots
+                                        maxShotsPerCycle = math.min(criticalThreats, shotCapacity + math.floor(panicBoost), 12)
+                                    else
+                                        -- NORMAL MODE: Scale with effectiveness AND player state
+                                        local baseShots = math.floor(4 + (effectivenessScale * 6))
+                                        maxShotsPerCycle = math.min(baseShots, shotCapacity, 10)
+                                    end
+                                    
+                                    -- RANDOM VARIATION: Sometimes shoot fewer (distraction, hesitation)
+                                    if math.random() < 0.20 then -- 20% chance
+                                        maxShotsPerCycle = math.max(1, maxShotsPerCycle - 1)
+                                    end
+                                    
+                                    for _, target in ipairs(validTargets) do
+                                        if shotsFired >= maxShotsPerCycle then break end
+                                        
+                                        -- 🧬 HUMAN IMPERFECTION: Occasionally skip a target (distraction, hesitation)
+                                        -- Lower focus or higher fatigue = more likely to "miss" targeting
+                                        local skipChance = (1 - behaviorProfile.focusLevel) * 0.15 + (behaviorProfile.fatigueLevel * 0.10)
+                                        local shouldSkip = math.random() < skipChance and shotsFired > 0
+                                        
+                                        if not shouldSkip then
+                                        
+                                        -- 🎯 KNIGHTMARE-SYNCHRONIZED TARGETING
+                                        local isBoss = target.model.Name == "GoblinKing" or target.model.Name == "CaptainBoom" or target.model.Name == "Fungarth"
+                                        
+                                        -- 🛡️ Use KnightMare-synchronized raycast system
+                                        local hitPos, hitPart = getKnightMareShotPosition(target.head, target.model)
+                                        
+                                        if hitPos and hitPart then
+                                            -- 🎯 KNIGHTMARE FIRESERVER SYNCHRONICITY
+                                            -- Args match EXACTLY: (EnemyModel, HitPart, HitPosition, 0, WeaponName)
+                                            -- Synchronized with place file line 12178
+                                            local args = {target.model, hitPart, hitPos, 0, weapon}
+                                            
+                                            local success = pcall(function()
+                                                shootRemote:FireServer(unpack(args))
+                                            end)
+                                            
+                                            -- 📊 Record shot for adaptive learning
+                                            recordShotSuccess(success)
+                                            
+                                            if success then
+                                                shotsFired = shotsFired + 1
+                                                
+                                                -- 🎯 SMART MULTI-SHOT SPACING (human panic simulation)
+                                                if shotsFired < maxShotsPerCycle then
+                                                    -- Critical threats = faster but still human-like
+                                                    -- Human panic: 40-80ms between rapid shots
+                                                    local urgentDelay = target.distance < criticalZone and 0.04 or 0.06
+                                                    local variance = math.random() * 0.04 -- 0-40ms variance
+                                                    task.wait(urgentDelay + variance) -- 40-80ms (improved)
+                                                end
+                                            end
+                                        end
+                                        
+                                        -- 🧠 INTELLIGENT TARGET SKIP: Don't waste time on blocked targets
+                                        -- At high effectiveness, try more targets to find clear shots
+                                        end -- Close shouldSkip check
+                                    end
+                                    
+                                    -- If no shot fired, all targets blocked (legitimate game behavior)
+                                            end
+                                        end
+                            end)
+                            
+                            -- 🧠 ULTRA-INTELLIGENT ADAPTIVE DELAY
+                            -- Check if there are critical threats nearby
+                            local hasUrgentThreats = false
+                            local enemies = workspace:FindFirstChild("Enemies")
+                            if enemies then
+                                local character = player.Character
+                                local root = character and character:FindFirstChild("HumanoidRootPart")
+                                if root then
+                                    for _, zombie in pairs(enemies:GetChildren()) do
+                                        if zombie:IsA("Model") and zombie:FindFirstChild("Head") then
+                                            local distance = (zombie.Head.Position - root.Position).Magnitude
+                                            local effectivenessScale = effectivenessLevel / 100
+                                            local urgentZone = 15 + (effectivenessScale * 15)
+                                            if distance < urgentZone then
+                                                hasUrgentThreats = true
+                                                break
+                                            end
+                                        end
+                                    end
+                                            end
+                                        end
+                                        
+                            -- 🧬 DYNAMIC CYCLE DELAY WITH BEHAVIORAL SIMULATION
+                            local cycleDelay
+                            
+                            if hasUrgentThreats then
+                                -- ALERT MODE: Faster reaction like a focused human
+                                -- Focus level affects response time
+                                local alertSpeed = 0.08 + ((1 - behaviorProfile.focusLevel) * 0.04) -- 80-120ms
+                                cycleDelay = alertSpeed + (math.random() * 0.03) -- +0-30ms variance
+                            else
+                                -- NORMAL: Use smart delay based on effectiveness
+                                cycleDelay = getKnightMareDelay(shootDelay)
+                                
+                                -- 🧠 HUMAN PAUSE SIMULATION: Occasionally take a break
+                                -- Simulates looking around, checking UI, reloading mentally
+                                if math.random() < 0.06 then -- 6% chance per cycle (reduced for better performance)
+                                        local pauseType = math.random()
+                                        if pauseType < 0.4 then
+                                        cycleDelay = cycleDelay + (0.2 + math.random() * 0.3) -- Quick glance (200-500ms)
+                                        elseif pauseType < 0.7 then
+                                        cycleDelay = cycleDelay + (0.6 + math.random() * 0.5) -- Check surroundings (600-1100ms)
+                                        else
+                                        cycleDelay = cycleDelay + (1.0 + math.random() * 0.8) -- Brief distraction (1.0-1.8s)
+                                end
+                                end
+                            end
+                            
+                            task.wait(cycleDelay)
+                        end
+                    end
+                end)
                 instancesLoaded = instancesLoaded + 1
                 task.wait(0.1) -- Small delay between loads
             end
