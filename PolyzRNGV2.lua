@@ -1339,16 +1339,18 @@ CombatTab:CreateToggle({
                             if math.random() < 0.4 then -- 40% chance to shoot (increased from 10%)
                                 local targetZombie = nil
                                 local closestDistance = math.huge
+                                local playerRoot = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
                                 
-                                -- Find closest zombie
+                                -- 🎯 PRIORITY: Find closest zombie (always targets closest enemy first)
                                 for _, zombie in ipairs(enemies:GetChildren()) do
                                     if zombie:IsA("Model") then
                                         local humanoid = zombie:FindFirstChild("Humanoid")
                                         local head = zombie:FindFirstChild("Head")
                                         local root = zombie:FindFirstChild("HumanoidRootPart")
                                         
-                                        if humanoid and head and root and humanoid.Health > 0 then
-                                            local distance = root and (head.Position - root.Position).Magnitude or 999999
+                                        if humanoid and head and root and humanoid.Health > 0 and playerRoot then
+                                            -- Calculate distance from player to zombie head
+                                            local distance = (head.Position - playerRoot.Position).Magnitude
                                             if distance < closestDistance then
                                                 closestDistance = distance
                                                 targetZombie = zombie
@@ -1409,16 +1411,18 @@ CombatTab:CreateToggle({
                             if math.random() < 0.7 then -- 70% chance to shoot
                                 local targetZombie = nil
                                 local closestDistance = math.huge
+                                local playerRoot = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
                                 
-                                -- Find closest zombie
+                                -- 🎯 PRIORITY: Find closest zombie (always targets closest enemy first)
                                 for _, zombie in ipairs(enemies:GetChildren()) do
                                     if zombie:IsA("Model") then
                                         local humanoid = zombie:FindFirstChild("Humanoid")
                                         local head = zombie:FindFirstChild("Head")
                                         local root = zombie:FindFirstChild("HumanoidRootPart")
                                         
-                                        if humanoid and head and root and humanoid.Health > 0 then
-                                            local distance = root and (head.Position - root.Position).Magnitude or 999999
+                                        if humanoid and head and root and humanoid.Health > 0 and playerRoot then
+                                            -- Calculate distance from player to zombie head
+                                            local distance = (head.Position - playerRoot.Position).Magnitude
                                             if distance < closestDistance then
                                                 closestDistance = distance
                                                 targetZombie = zombie
